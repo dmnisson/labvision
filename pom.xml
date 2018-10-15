@@ -1,0 +1,16 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>labvision</groupId>
+  <artifactId>labvision</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>labvision</name>
+  <url>https://github.com/dmnisson/labvision</url>
+  <description>A tool for comparing students' laboratory results in a classroom with accepted or theoretical values, and analyzing error statistics of groups and individuals in groups.</description>
+  <dependencies>
+  	<dependency>
+  		<groupId>org.hibernate</groupId>
+  		<artifactId>hibernate-entitymanager</artifactId>
+  		<version>5.3.6.Final</version>
+  	</dependency>
+  </dependencies>
+</project>
