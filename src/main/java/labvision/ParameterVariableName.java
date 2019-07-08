@@ -5,29 +5,25 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 /**
- * Value of a parameter
+ * mXparser variable name for a parameter
  * @author davidnisson
  *
  * @param <M> the measurement quantity
  * @param <P> the parameter quantity
  */
 @Entity
-public class ParameterValue<M extends Quantity<M>, P extends Quantity<P>> {
+public class ParameterVariableName<M extends Quantity<M>, P extends Quantity<P>> {
 	@Id
 	@GeneratedValue( strategy=GenerationType.AUTO )
 	private int id;
 	
-	@ManyToOne
+	@OneToOne
 	private Parameter<M, P> parameter;
 	
-	@ManyToOne
-	private ParameterValue<M, P> parameterValue;
-	
-	/** Value in SI units */
-	private double value;
+	private String variableName;
 
 	public int getId() {
 		return id;
@@ -45,19 +41,11 @@ public class ParameterValue<M extends Quantity<M>, P extends Quantity<P>> {
 		this.parameter = parameter;
 	}
 
-	public ParameterValue<M, P> getParameterValue() {
-		return parameterValue;
+	public String getVariableName() {
+		return variableName;
 	}
 
-	public void setParameterValue(ParameterValue<M, P> parameterValue) {
-		this.parameterValue = parameterValue;
-	}
-
-	public double getValue() {
-		return value;
-	}
-
-	public void setValue(double value) {
-		this.value = value;
+	public void setVariableName(String variableName) {
+		this.variableName = variableName;
 	}
 }

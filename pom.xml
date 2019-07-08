@@ -12,5 +12,10 @@
   		<artifactId>hibernate-entitymanager</artifactId>
   		<version>5.3.6.Final</version>
   	</dependency>
+  	<dependency>
+  		<groupId>javax.measure</groupId>
+  		<artifactId>unit-api</artifactId>
+  		<version>1.0</version>
+  	</dependency>
   </dependencies>
 </project>
