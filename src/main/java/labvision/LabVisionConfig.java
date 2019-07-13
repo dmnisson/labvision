@@ -13,8 +13,6 @@ import java.util.logging.Logger;
  *
  */
 public class LabVisionConfig {
-	private static final String APP_PROPERTIES_FILENAME = "app.properties";
-
 	private Properties props = new Properties();
 	
 	public static final String APP_VERSION = "0.0.0";
@@ -26,13 +24,7 @@ public class LabVisionConfig {
 
 	private static final String VERSION_KEY = "version";
 	
-	public LabVisionConfig() {
-		// load properties file
-		String propsRoot = Thread.currentThread()
-				.getContextClassLoader()
-				.getResource("")
-				.getPath();
-		String configPath = propsRoot + APP_PROPERTIES_FILENAME;
+	public LabVisionConfig(String configPath) {
 		try {
 			props.load(new FileInputStream(configPath));
 		} catch (FileNotFoundException e) {
