@@ -1,4 +1,4 @@
-package labvision;
+package labvision.entities;
 
 import java.util.List;
 

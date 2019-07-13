@@ -1,4 +1,4 @@
-package labvision;
+package labvision.entities;
 
 import javax.measure.Quantity;
 import javax.persistence.Embeddable;
