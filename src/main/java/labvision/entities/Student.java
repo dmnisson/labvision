@@ -22,4 +22,28 @@ public class Student {
 	
 	@OneToMany
 	private List<MeasurementValue<?>> measurementValues;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public List<CourseClass> getCourseClasses() {
+		return courseClasses;
+	}
+
+	public void setCourseClasses(List<CourseClass> courseClasses) {
+		this.courseClasses = courseClasses;
+	}
+
+	public List<MeasurementValue<?>> getMeasurementValues() {
+		return measurementValues;
+	}
+
+	public void setMeasurementValues(List<MeasurementValue<?>> measurementValues) {
+		this.measurementValues = measurementValues;
+	}
 }
