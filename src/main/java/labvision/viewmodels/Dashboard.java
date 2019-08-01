@@ -128,7 +128,7 @@ public class Dashboard {
 	 * Remove old courses that are stored in the list but are not displayed
 	 * because of the maximum size.
 	 */
-	public void pruneOldCourses() {
+	void pruneOldCourses() {
 		this.recentCourses.retainAll(this.getRecentCourses());
 	}
 }
