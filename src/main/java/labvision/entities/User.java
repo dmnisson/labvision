@@ -1,12 +1,17 @@
 package labvision.entities;
 
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
 
+import labvision.LabVisionConfig;
 import labvision.utils.ByteArrayStringConverter;
 
 @Entity
@@ -112,7 +117,55 @@ public abstract class User {
 	 * Set a new password salt
 	 * @param passwordSalt new salt as array of bytes
 	 */
-	public void setPasswordSalt(byte[] passwordSalt) {
+	public void setPasswordSaltBytes(byte[] passwordSalt) {
 		this.passwordSalt = ByteArrayStringConverter.toHexString(passwordSalt);
+	}
+	
+	// Hash a password with the given salt.
+	private static byte[] hashPassword(LabVisionConfig config, String password, byte[] salt)
+			throws NoSuchAlgorithmException {
+		MessageDigest messageDigest = MessageDigest.getInstance(
+				config.getPasswordHashAlgorithm()
+				);
+		
+		messageDigest.update(password.getBytes(Charset.forName("UTF-8")));
+		
+		return messageDigest.digest(salt);
+	}
+	
+	/**
+	 * Check if password matches the one stored as a hash
+	 * @param config the configuration file to use
+	 * @param password the password
+	 * @return true if matches
+	 * @throws NoSuchAlgorithmException if the configured hash algorithm is not supported
+	 */
+	public boolean passwordMatches(LabVisionConfig config, String password) 
+			throws NoSuchAlgorithmException {
+		return MessageDigest.isEqual(
+				this.getPasswordDigestBytes(), 
+				hashPassword(config, password, this.getPasswordSaltBytes())
+				);
+	}
+	
+	/**
+	 * Update the password hash for a new password
+	 * @param config the configuration to use
+	 * @param random the random number generator instance to use for the salt
+	 * @param newPassword the new password
+	 * @throws NoSuchAlgorithmException if the configured hash algorithm is not supported
+	 */
+	public void updatePassword(
+			LabVisionConfig config,
+			SecureRandom random,
+			String newPassword)
+			throws NoSuchAlgorithmException {
+		// generate salt
+		byte[] newSalt = new byte[config.getSaltSize()];
+		random.nextBytes(newSalt);
+		
+		// update the password salt and hash
+		this.setPasswordDigestBytes(hashPassword(config, newPassword, newSalt));
+		this.setPasswordSaltBytes(newSalt);
 	}
 }

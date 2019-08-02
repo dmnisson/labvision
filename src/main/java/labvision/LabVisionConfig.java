@@ -25,6 +25,8 @@ public class LabVisionConfig {
 	private static final String VERSION_KEY = "version";
 	
 	private static final String PASSWORD_HASH_ALGORITHM_KEY = "passwordHashAlgorithm";
+
+	private static final String PASSWORD_SALT_SIZE_KEY = "passwordSaltSize";
 	
 	public LabVisionConfig(String configPath) {
 		try {
@@ -58,5 +60,9 @@ public class LabVisionConfig {
 	
 	public String getPasswordHashAlgorithm() {
 		return props.getProperty(PASSWORD_HASH_ALGORITHM_KEY, "SHA-256");
+	}
+
+	public int getSaltSize() {
+		return Integer.parseInt(props.getProperty(PASSWORD_SALT_SIZE_KEY, "16"));
 	}
 }
