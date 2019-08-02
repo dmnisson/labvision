@@ -122,11 +122,12 @@ public abstract class User {
 	}
 	
 	// Hash a password with the given salt.
-	private static byte[] hashPassword(LabVisionConfig config, String password, byte[] salt)
+	private static byte[] hashPassword(
+			String password, 
+			byte[] salt, 
+			String algorithm)
 			throws NoSuchAlgorithmException {
-		MessageDigest messageDigest = MessageDigest.getInstance(
-				config.getPasswordHashAlgorithm()
-				);
+		MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
 		
 		messageDigest.update(password.getBytes(Charset.forName("UTF-8")));
 		
@@ -135,16 +136,15 @@ public abstract class User {
 	
 	/**
 	 * Check if password matches the one stored as a hash
-	 * @param config the configuration file to use
 	 * @param password the password
 	 * @return true if matches
-	 * @throws NoSuchAlgorithmException if the configured hash algorithm is not supported
+	 * @throws NoSuchAlgorithmException if the stored hash algorithm is not supported
 	 */
-	public boolean passwordMatches(LabVisionConfig config, String password) 
+	public boolean passwordMatches(String password) 
 			throws NoSuchAlgorithmException {
 		return MessageDigest.isEqual(
 				this.getPasswordDigestBytes(), 
-				hashPassword(config, password, this.getPasswordSaltBytes())
+				hashPassword(password, this.getPasswordSaltBytes(), this.getHashAlgorithm())
 				);
 	}
 	
@@ -153,7 +153,8 @@ public abstract class User {
 	 * @param config the configuration to use
 	 * @param random the random number generator instance to use for the salt
 	 * @param newPassword the new password
-	 * @throws NoSuchAlgorithmException if the configured hash algorithm is not supported
+	 * @throws NoSuchAlgorithmException if the stored or 
+	 * configured hash algorithm is not supported
 	 */
 	public void updatePassword(
 			LabVisionConfig config,
@@ -165,7 +166,14 @@ public abstract class User {
 		random.nextBytes(newSalt);
 		
 		// update the password salt and hash
-		this.setPasswordDigestBytes(hashPassword(config, newPassword, newSalt));
+		this.setPasswordDigestBytes(
+				hashPassword(
+				newPassword, 
+				newSalt, 
+				config.getPasswordHashAlgorithm()
+				));
 		this.setPasswordSaltBytes(newSalt);
+		
+		this.setHashAlgorithm(config.getPasswordHashAlgorithm());
 	}
 }
