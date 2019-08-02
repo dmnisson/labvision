@@ -6,6 +6,10 @@
   <name>labvision</name>
   <url>https://github.com/dmnisson/labvision</url>
   <description>A tool for comparing students' laboratory results in a classroom with accepted or theoretical values, and analyzing error statistics of groups and individuals in groups.</description>
+  <properties>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+  </properties>
   <dependencies>
   	<dependency>
   		<groupId>org.hibernate</groupId>
@@ -25,4 +29,13 @@
   	</dependency>
   </dependencies>
   <packaging>war</packaging>
+  <build>
+    <plugins>
+		  <plugin>
+		    <groupId>org.eclipse.jetty</groupId>
+		    <artifactId>jetty-maven-plugin</artifactId>
+		    <version>9.4.19.v20190610</version>
+		  </plugin>
+	  </plugins>
+  </build>
 </project>
