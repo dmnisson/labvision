@@ -16,6 +16,6 @@ public class LabVisionServlet extends HttpServlet {
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse res) 
 		throws ServletException, IOException {
-		req.getRequestDispatcher("/index.jsp").forward(req, res);
+		req.getRequestDispatcher("/WEB-INF/index.jsp").forward(req, res);
 	}
 }
