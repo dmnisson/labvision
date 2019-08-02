@@ -2,19 +2,23 @@ package labvision.entities;
 
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
-@Entity
-public class Student {
-	@Id
-	@GeneratedValue( strategy=GenerationType.AUTO )
-	private int id;
+/**
+ * Stores information about a student user including course classes and measurements
+ * taken
+ * @author davidnisson
+ *
+ */
+@Entity( name = "Student" )
+public class Student extends User {
 	
+	@Column
 	private String name;
 	
 	@ManyToMany
@@ -23,6 +27,12 @@ public class Student {
 	@OneToMany
 	private List<MeasurementValue<?>> measurementValues;
 
+	@OneToOne
+	private StudentPreferences studentPreferences;
+	
+	@ManyToMany
+	private List<Experiment> activeExperiments;
+	
 	public String getName() {
 		return name;
 	}
@@ -45,5 +55,21 @@ public class Student {
 
 	public void setMeasurementValues(List<MeasurementValue<?>> measurementValues) {
 		this.measurementValues = measurementValues;
+	}
+
+	public List<Experiment> getActiveExperiments() {
+		return activeExperiments;
+	}
+
+	public void setActiveExperiments(List<Experiment> activeExperiments) {
+		this.activeExperiments = activeExperiments;
+	}
+
+	public StudentPreferences getStudentPreferences() {
+		return studentPreferences;
+	}
+
+	public void setStudentPreferences(StudentPreferences studentPreferences) {
+		this.studentPreferences = studentPreferences;
 	}
 }

@@ -1,12 +1,18 @@
 package labvision.entities;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.persistence.Basic;
+import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
  * A report of experimental results by a student
@@ -27,6 +33,11 @@ public class ReportedResult {
 	@OneToMany
 	private List<Result<?>> results;
 
+	@Basic(optional = false)
+	@Column( name="added", insertable = false, updatable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	private LocalDateTime added;
+	
 	public int getId() {
 		return id;
 	}
@@ -57,5 +68,13 @@ public class ReportedResult {
 
 	public void setResults(List<Result<?>> results) {
 		this.results = results;
+	}
+
+	public LocalDateTime getAdded() {
+		return added;
+	}
+
+	public void setAdded(LocalDateTime added) {
+		this.added = added;
 	}
 }

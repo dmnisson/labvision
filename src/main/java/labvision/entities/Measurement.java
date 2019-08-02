@@ -152,4 +152,12 @@ public class Measurement<Q extends Quantity<Q>> {
 		}
 		catch (ClassCastException | ClassNotFoundException ex) {}
 	}
+
+	public Experiment getExperiment() {
+		return experiment;
+	}
+
+	public void setExperiment(Experiment experiment) {
+		this.experiment = experiment;
+	}
 }

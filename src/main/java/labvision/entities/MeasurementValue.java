@@ -1,5 +1,7 @@
 package labvision.entities;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.measure.Quantity;
@@ -9,6 +11,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 @Entity
 public class MeasurementValue<Q extends Quantity<Q>> {
@@ -26,6 +30,9 @@ public class MeasurementValue<Q extends Quantity<Q>> {
 	private CourseClass courseClass;
 	
 	private double value;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	private LocalDateTime taken;
 	
 	@OneToMany( targetEntity=ParameterValue.class )
 	private List<ParameterValue<Q, ?>> parameterValues;
@@ -68,5 +75,13 @@ public class MeasurementValue<Q extends Quantity<Q>> {
 
 	public void setParameterValues(List<ParameterValue<Q, ?>> parameterValues) {
 		this.parameterValues = parameterValues;
+	}
+
+	public LocalDateTime getTaken() {
+		return taken;
+	}
+
+	public void setTaken(LocalDateTime taken) {
+		this.taken = taken;
 	}
 }

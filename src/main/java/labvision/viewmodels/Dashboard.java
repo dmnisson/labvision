@@ -1,6 +1,7 @@
 package labvision.viewmodels;
 
 import labvision.entities.Experiment;
+import labvision.entities.Student;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +16,9 @@ import labvision.entities.Course;
  *
  */
 public class Dashboard {
+	// currently logged in student
+	private Student student;
+	
 	// experiments which are currently available for the student to enter values into
 	private final HashMap<Course, Experiment> currentExperiments = new HashMap<>();
 	
@@ -25,11 +29,11 @@ public class Dashboard {
 	private final ArrayList<Course> recentCourses = new ArrayList<>();
 	
 	// maximum number of recent experiments to list
-	private int maxRecentExperiments;
+	private int maxRecentExperiments = 5;
 	
 	// maximum number of recent courses to list
-	private int maxRecentCourses;
-
+	private int maxRecentCourses = 5;
+	
 	/**
 	 * Get a map view of courses to current experiments
 	 * @return the map of courses to current experiments
@@ -70,7 +74,7 @@ public class Dashboard {
 	 */
 	public List<Experiment> getRecentExperiments() {
 		return recentExperiments.subList(0, 
-				Math.min(maxRecentExperiments, recentExperiments.size()));
+				Math.min(getMaxRecentExperiments(), recentExperiments.size()));
 	}
 
 	/**
@@ -104,7 +108,7 @@ public class Dashboard {
 	 */
 	public List<Course> getRecentCourses() {
 		return recentCourses.subList(0, 
-				Math.min(maxRecentCourses, recentCourses.size()));
+				Math.min(getMaxRecentCourses(), recentCourses.size()));
 	}
 	
 	/**
@@ -130,5 +134,37 @@ public class Dashboard {
 	 */
 	void pruneOldCourses() {
 		this.recentCourses.retainAll(this.getRecentCourses());
+	}
+
+	/**
+	 * Get the logged-in student
+	 * @return student
+	 */
+	public Student getStudent() {
+		return student;
+	}
+
+	/**
+	 * Set the logged-in student
+	 * @param studentId new student
+	 */
+	public void setStudent(Student student) {
+		this.student = student;
+	}
+
+	public int getMaxRecentExperiments() {
+		return maxRecentExperiments;
+	}
+
+	public void setMaxRecentExperiments(int maxRecentExperiments) {
+		this.maxRecentExperiments = maxRecentExperiments;
+	}
+
+	public int getMaxRecentCourses() {
+		return maxRecentCourses;
+	}
+
+	public void setMaxRecentCourses(int maxRecentCourses) {
+		this.maxRecentCourses = maxRecentCourses;
 	}
 }

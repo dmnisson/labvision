@@ -24,6 +24,8 @@ public class LabVisionConfig {
 
 	private static final String VERSION_KEY = "version";
 	
+	private static final String PASSWORD_HASH_ALGORITHM_KEY = "passwordHashAlgorithm";
+	
 	public LabVisionConfig(String configPath) {
 		try {
 			props.load(new FileInputStream(configPath));
@@ -52,5 +54,9 @@ public class LabVisionConfig {
 
 	public String getPersistenceUnitName() {
 		return props.getProperty(PERSISTENCE_UNIT_KEY);
+	}
+	
+	public String getPasswordHashAlgorithm() {
+		return props.getProperty(PASSWORD_HASH_ALGORITHM_KEY, "SHA-256");
 	}
 }
