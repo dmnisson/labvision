@@ -153,8 +153,7 @@ public abstract class User {
 	 * @param config the configuration to use
 	 * @param random the random number generator instance to use for the salt
 	 * @param newPassword the new password
-	 * @throws NoSuchAlgorithmException if the stored or 
-	 * configured hash algorithm is not supported
+	 * @throws NoSuchAlgorithmException if the configured hash algorithm is not supported
 	 */
 	public void updatePassword(
 			LabVisionConfig config,
