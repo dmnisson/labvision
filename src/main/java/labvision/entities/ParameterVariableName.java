@@ -20,7 +20,7 @@ public class ParameterVariableName<M extends Quantity<M>, P extends Quantity<P>>
 	@GeneratedValue( strategy=GenerationType.AUTO )
 	private int id;
 	
-	@OneToOne
+	@OneToOne( targetEntity = Parameter.class )
 	private Parameter<M, P> parameter;
 	
 	private String variableName;

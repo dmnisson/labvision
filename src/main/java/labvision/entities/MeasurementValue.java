@@ -10,8 +10,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 @Entity
 public class MeasurementValue<Q extends Quantity<Q>> {
@@ -19,7 +17,7 @@ public class MeasurementValue<Q extends Quantity<Q>> {
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	private int id;
 	
-	@ManyToOne
+	@ManyToOne( targetEntity = Measurement.class )
 	private Measurement<Q> measurement;
 	
 	@ManyToOne
@@ -30,7 +28,6 @@ public class MeasurementValue<Q extends Quantity<Q>> {
 	
 	private double value;
 	
-	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime taken;
 	
 	@OneToMany( targetEntity=ParameterValue.class )

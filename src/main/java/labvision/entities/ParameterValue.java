@@ -20,10 +20,10 @@ public class ParameterValue<M extends Quantity<M>, P extends Quantity<P>> {
 	@GeneratedValue( strategy=GenerationType.AUTO )
 	private int id;
 	
-	@ManyToOne
+	@ManyToOne(targetEntity = Parameter.class)
 	private Parameter<M, P> parameter;
 	
-	@ManyToOne
+	@ManyToOne(targetEntity = ParameterValue.class)
 	private ParameterValue<M, P> parameterValue;
 	
 	/** Value in SI units */

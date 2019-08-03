@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 @Entity
 /**
@@ -27,9 +28,10 @@ public class Parameter<M extends Quantity<M>, P extends Quantity<P>> {
 	
 	private String quantityClassName;
 	
+	@Transient
 	private Class<P> quantityClass;
 	
-	@ManyToOne
+	@ManyToOne( targetEntity=Measurement.class )
 	private Measurement<M> measurement;
 	
 	@OneToMany( targetEntity=ParameterValue.class )

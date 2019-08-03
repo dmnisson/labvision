@@ -3,11 +3,15 @@ package labvision.entities;
 import java.util.List;
 
 import javax.measure.Quantity;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
+
+import org.hibernate.annotations.Type;
 
 @Entity
 public class Result<Q extends Quantity<Q>> {
@@ -18,14 +22,18 @@ public class Result<Q extends Quantity<Q>> {
 	private String name;
 	  
 	private String quantityClassName;
-	  
+	
+	@Transient
 	private Class<Q> quantityClass;
 	  
 	@OneToMany
 	private List<MeasurementValue<?>> measurementValues;
-	  
+	
+	@Embedded
 	private ResultComputation computation;
-	  
+	
+	@Embedded
+	@Type( type = "labvision.entities.types.AmountType" )
 	private Amount<Q> resultValue;
 
 	public int getId() {
@@ -48,16 +56,23 @@ public class Result<Q extends Quantity<Q>> {
 		return quantityClassName;
 	}
 	
-	public void setQuantityClassName(String quantityClassName) {
-		this.quantityClassName = quantityClassName;
-	}
-	
 	public Class<Q> getQuantityClass() {
 		return quantityClass;
 	}
 	
+	public void setQuantityClassName(String quantityClassName) throws ClassNotFoundException {
+		if (Class.forName("javax.measure.quantity." + quantityClassName) != quantityClass) {
+			throw new ClassCastException();
+		}
+		this.quantityClassName = quantityClassName;
+	}
+	
 	public void setQuantityClass(Class<Q> quantityClass) {
 		this.quantityClass = quantityClass;
+		try {
+			this.setQuantityClassName(quantityClass.getSimpleName());
+		}
+		catch (ClassNotFoundException | ClassCastException e) {}
 	}
 	
 	public List<MeasurementValue<?>> getMeasurementValues() {

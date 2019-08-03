@@ -10,8 +10,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 /**
  * A report of experimental results by a student
@@ -34,7 +32,6 @@ public class ReportedResult {
 
 	@Basic(optional = false)
 	@Column( name="added", insertable = false, updatable = false)
-	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime added;
 	
 	public int getId() {

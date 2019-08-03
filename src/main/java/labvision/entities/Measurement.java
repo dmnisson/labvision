@@ -3,12 +3,16 @@ package labvision.entities;
 import java.util.List;
 
 import javax.measure.Quantity;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
+
+import org.hibernate.annotations.Type;
 
 import static java.lang.Math.*;
 
@@ -22,6 +26,7 @@ public class Measurement<Q extends Quantity<Q>> {
 	
 	private String quantityClassName;
 	
+	@Transient
 	private Class<Q> quantityClass;
 	
 	protected Measurement() {
@@ -52,7 +57,12 @@ public class Measurement<Q extends Quantity<Q>> {
 		return recomputeIf(measurementValues.remove(arg0));
 	}
 
+	@Embedded
+	@Type( type = "labvision.entities.types.AmountType" )
 	private Amount<Q> mean;
+	
+	@Embedded
+	@Type( type = "labvision.entities.types.AmountType" )
 	private Amount<Q> sampleStandardDeviation;
 	
 	public String getName() {
@@ -115,9 +125,9 @@ public class Measurement<Q extends Quantity<Q>> {
 					ssd = Double.NaN;
 				}
 				
-				this.setMean(new Amount<>(avg, stdDevInMean));
+				this.setMean(new Amount<Q>(avg, stdDevInMean));
 				if (!Double.isNaN(ssd)) {
-					this.setSampleStandardDeviation(new Amount<>(ssd, 0));
+					this.setSampleStandardDeviation(new Amount<Q>(ssd, 0));
 				}
 			}
 			else {

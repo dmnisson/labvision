@@ -18,7 +18,7 @@ public class MeasurementVariableName<Q extends Quantity<Q>> {
 	@GeneratedValue( strategy=GenerationType.AUTO )
 	private int id;
 	
-	@OneToOne
+	@OneToOne( targetEntity = Measurement.class )
 	private Measurement<Q> measurement;
 	
 	private String variableName;
