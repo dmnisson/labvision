@@ -6,10 +6,12 @@ import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 
 import labvision.entities.Experiment;
 import labvision.entities.MeasurementValue;
 import labvision.entities.Student;
+import labvision.entities.User;
 import labvision.viewmodels.Dashboard;
 
 /**
@@ -22,6 +24,16 @@ public class LabVisionDataAccess {
 	
 	public LabVisionDataAccess(EntityManagerFactory entityManagerFactory) {
 		this.entityManagerFactory = entityManagerFactory;
+	}
+	
+	public User getUser(String username) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		TypedQuery<User> userQuery = manager.createQuery(
+				"SELECT u FROM User WHERE u.username=:username",
+				User.class);
+		userQuery.setParameter("username", username);
+		return userQuery.getSingleResult();
 	}
 	
 	public Dashboard getDashboard(int studentId) {

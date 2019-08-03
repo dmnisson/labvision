@@ -7,14 +7,14 @@
   <url>https://github.com/dmnisson/labvision</url>
   <description>A tool for comparing students' laboratory results in a classroom with accepted or theoretical values, and analyzing error statistics of groups and individuals in groups.</description>
   <properties>
-    <maven.compiler.source>8</maven.compiler.source>
-    <maven.compiler.target>8</maven.compiler.target>
+    <maven.compiler.source>9</maven.compiler.source>
+    <maven.compiler.target>9</maven.compiler.target>
   </properties>
   <dependencies>
   	<dependency>
   		<groupId>org.hibernate</groupId>
   		<artifactId>hibernate-entitymanager</artifactId>
-  		<version>5.3.6.Final</version>
+  		<version>5.4.4.Final</version>
   	</dependency>
   	<dependency>
   		<groupId>javax.measure</groupId>
@@ -27,6 +27,12 @@
   		<version>2.5</version>
   		<scope>provided</scope>
   	</dependency>
+  	<dependency>
+	    <groupId>org.hsqldb</groupId>
+	    <artifactId>hsqldb</artifactId>
+	    <version>2.5.0</version>
+    <scope>runtime</scope>
+</dependency>
   </dependencies>
   <packaging>war</packaging>
   <build>

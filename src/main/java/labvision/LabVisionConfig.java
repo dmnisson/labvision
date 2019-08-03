@@ -19,6 +19,8 @@ public class LabVisionConfig {
 	
 	public static final String APP_NAME = "LabVision";
 	
+	public static final String DEFAULT_PERSISTENCE_UNIT = "LabVisionDefaultPersistence";
+	
 	// property names
 	private static final String PERSISTENCE_UNIT_KEY = "persistenceUnit";
 
@@ -44,7 +46,7 @@ public class LabVisionConfig {
 		}
 		
 		// check version number
-		String version = props.getProperty(VERSION_KEY);
+		String version = props.getProperty(VERSION_KEY, APP_VERSION);
 		if (version != APP_VERSION) {
 			Logger.getLogger(LabVisionConfig.APP_NAME).log(
 					Level.WARNING,
@@ -55,7 +57,7 @@ public class LabVisionConfig {
 	}
 
 	public String getPersistenceUnitName() {
-		return props.getProperty(PERSISTENCE_UNIT_KEY);
+		return props.getProperty(PERSISTENCE_UNIT_KEY, DEFAULT_PERSISTENCE_UNIT);
 	}
 	
 	public String getPasswordHashAlgorithm() {
