@@ -12,14 +12,20 @@
 	    </c:if>
 	    <h1 class="h3 mb3 font-weight-normal">Log in to access your account.</h1>
 	    
-	    <label for="email" class="sr-only">Email</label>
-	    <input name="email" id="email" type="email" class="form-control" placeholder="Email" required autofocus />
+	    <div class="form-group">
+	      <label for="email" class="sr-only">Email</label>
+	      <input name="email" id="email" type="email" class="form-control" placeholder="Email" required autofocus />
+	    </div>
 	    
-	    <label for="password" class="sr-only">Password</label>
-	    <input name="password" id="password" type="password" class="form-control" placeholder="Password" required />
+	    <div class="form-group">
+	      <label for="password" class="sr-only">Password</label>
+	      <input name="password" id="password" type="password" class="form-control" placeholder="Password" required />
+	    </div>
+	    
 	    <div class="checkbox mb-3">
 	      <label>
 	        <input type="checkbox" name="rememberMe" />
+	        <label for="rememberMe">Remember Me</label>
 	      </label>
 	    </div>
 	    <button class="btn btn-lg btn-primary btn-block">
