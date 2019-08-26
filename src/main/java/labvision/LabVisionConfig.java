@@ -3,6 +3,7 @@ package labvision;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +30,14 @@ public class LabVisionConfig {
 	private static final String PASSWORD_HASH_ALGORITHM_KEY = "passwordHashAlgorithm";
 
 	private static final String PASSWORD_SALT_SIZE_KEY = "passwordSaltSize";
+	
+	private static final String DEVICE_TOKEN_EXPIRATION_TIME_KEY = "deviceTokenExpirationTime";
+	
+	private static final String DEVICE_TOKEN_SIGNER_URL_KEY = "deviceTokenSignerUrl";
+	
+	private static final String PUBLIC_KEY_FILENAME_KEY = "publicKeyFilename";
+	
+	private static final String DEVICE_TOKEN_KEY_ALGORITHM_NAME_KEY = "deviceTokenKeyAlgorithm";
 	
 	public LabVisionConfig(String configPath) {
 		try {
@@ -66,5 +75,24 @@ public class LabVisionConfig {
 
 	public int getSaltSize() {
 		return Integer.parseInt(props.getProperty(PASSWORD_SALT_SIZE_KEY, "16"));
+	}
+
+	public long getDeviceTokenExpirationTime() {
+		return Long.parseLong(props.getProperty(
+				DEVICE_TOKEN_EXPIRATION_TIME_KEY, 
+				Long.toString(Duration.ofDays(7).getSeconds()))
+				);
+	}
+
+	public String getDeviceTokenSignerUrl() {
+		return props.getProperty(DEVICE_TOKEN_SIGNER_URL_KEY);
+	}
+
+	public String getPublicKeyFilename() {
+		return props.getProperty(PUBLIC_KEY_FILENAME_KEY, "devauth.cer");
+	}
+
+	public String getDeviceTokenKeyAlgorithm() {
+		return props.getProperty(DEVICE_TOKEN_KEY_ALGORITHM_NAME_KEY, "SHA256withRSA");
 	}
 }

@@ -4,12 +4,14 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 import labvision.LabVisionConfig;
 import labvision.utils.ByteArrayStringConverter;
@@ -19,7 +21,7 @@ public abstract class User {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	@Column( name = "id", updatable = false, nullable = false )
-	protected int id;
+	private int id;
 	
 	/**
 	 * The username
@@ -40,6 +42,12 @@ public abstract class User {
 	 * The hash algorithm used to compute this user's password
 	 */
 	protected String hashAlgorithm;
+	
+	/**
+	 * The user's devices
+	 */
+	@OneToMany
+	private List<Device> devices;
 
 	public String getUsername() {
 		return username;
@@ -174,5 +182,21 @@ public abstract class User {
 		this.setPasswordSaltBytes(newSalt);
 		
 		this.setHashAlgorithm(config.getPasswordHashAlgorithm());
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public List<Device> getDevices() {
+		return devices;
+	}
+
+	public void setDevices(List<Device> devices) {
+		this.devices = devices;
 	}
 }

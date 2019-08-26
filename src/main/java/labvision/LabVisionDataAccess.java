@@ -8,6 +8,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 
+import labvision.entities.Device;
 import labvision.entities.Experiment;
 import labvision.entities.MeasurementValue;
 import labvision.entities.Student;
@@ -30,10 +31,17 @@ public class LabVisionDataAccess {
 		EntityManager manager = entityManagerFactory.createEntityManager();
 		
 		TypedQuery<User> userQuery = manager.createQuery(
-				"SELECT u FROM User WHERE u.username=:username",
+				"SELECT u FROM User u WHERE u.username=:username",
 				User.class);
 		userQuery.setParameter("username", username);
 		return userQuery.getSingleResult();
+	}
+	
+
+	public User getUser(int userId) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		return manager.find(User.class, userId);
 	}
 	
 	public Dashboard getDashboard(int studentId) {
@@ -73,5 +81,18 @@ public class LabVisionDataAccess {
 				.getMaxRecentExperiments());
 		
 		return dashboard;
+	}
+
+	public Device addNewDevice(User user) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		Device device = new Device();
+		device.setUser(user);
+		
+		manager.getTransaction().begin();
+		manager.persist(device);
+		manager.getTransaction().commit();
+		
+		return device;
 	}
 }
