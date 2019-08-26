@@ -1,6 +1,12 @@
 @charset "UTF-8";
 
+.signin-page-div {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	height: 100%;
+}
+
 .signin-form {
 	max-width: 450px;
-	display: inline-block;
 }
