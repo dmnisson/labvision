@@ -49,11 +49,16 @@ public class DeviceAuthentication {
 	 * @return the token
 	 */
 	public static DeviceToken getDeviceToken(HttpServletRequest req) {
-		return DeviceToken.parseDeviceToken(Stream.of(req.getCookies())
+		String deviceTokenString = Stream.of(req.getCookies())
 				.filter(c -> c.getName().equals(DEVICE_TOKEN_COOKIE_NAME))
 				.map(c -> c.getValue())
 				.findAny()
-				.orElse(null));
+				.orElse(null);
+		if (deviceTokenString == null) {
+			return null;
+		} else {
+			return DeviceToken.parseDeviceToken(deviceTokenString);
+		}
 	}
 
 	/**
