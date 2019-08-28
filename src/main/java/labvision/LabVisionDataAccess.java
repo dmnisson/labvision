@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 
 import labvision.entities.Device;
@@ -37,11 +38,19 @@ public class LabVisionDataAccess {
 		return userQuery.getSingleResult();
 	}
 	
-
 	public User getUser(int userId) {
 		EntityManager manager = entityManagerFactory.createEntityManager();
 		
 		return manager.find(User.class, userId);
+	}
+	
+	public void addUser(User user) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		EntityTransaction transaction = manager.getTransaction();
+		transaction.begin();
+		manager.persist(user);
+		transaction.commit();
 	}
 	
 	public Dashboard getDashboard(int studentId) {

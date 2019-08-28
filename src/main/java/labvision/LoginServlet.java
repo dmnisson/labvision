@@ -87,6 +87,7 @@ public class LoginServlet extends HttpServlet {
 			DeviceAuthentication deviceAuthentication = 
 					new DeviceAuthentication(config, dataAccess);
 			if (!user.passwordMatches(password)) {
+				System.out.println("invalid password");
 				req.getRequestDispatcher("/WEB-INF/login.jsp").forward(req, resp);
 			} else {
 				HttpSession session = req.getSession();

@@ -26,5 +26,7 @@ public class LabVisionServletContextListener implements ServletContextListener {
 
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
+		EntityManagerFactory emf = (EntityManagerFactory) event.getServletContext().getAttribute("emf");
+		emf.close();
 	}
 }

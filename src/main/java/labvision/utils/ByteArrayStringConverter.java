@@ -9,7 +9,7 @@ public class ByteArrayStringConverter {
 	public static String toHexString(byte[] a) {
 		StringBuilder builder = new StringBuilder();
 		for (byte b : a) {
-			builder.append(String.format("%2x", b));
+			builder.append(String.format("%02x", b));
 		}
 		return builder.toString();
 	}

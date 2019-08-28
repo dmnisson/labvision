@@ -139,7 +139,8 @@ public abstract class User {
 		
 		messageDigest.update(password.getBytes(Charset.forName("UTF-8")));
 		
-		return messageDigest.digest(salt);
+		byte[] digest = messageDigest.digest(salt);
+		return digest;
 	}
 	
 	/**

@@ -13,8 +13,8 @@
 	    <h1 class="h3 mb3 font-weight-normal">Log in to access your account.</h1>
 	    
 	    <div class="form-group">
-	      <label for="email" class="sr-only">Email</label>
-	      <input name="email" id="email" type="email" class="form-control" placeholder="Email" required autofocus />
+	      <label for="username" class="sr-only">Username</label>
+	      <input name="username" id="username" type="text" class="form-control" placeholder="Username" required autofocus />
 	    </div>
 	    
 	    <div class="form-group">
