@@ -130,6 +130,7 @@ public abstract class User {
 	}
 	
 	// Hash a password with the given salt.
+	// TODO Use PBDKDF2WithHmacSHA1
 	private static byte[] hashPassword(
 			String password, 
 			byte[] salt, 
