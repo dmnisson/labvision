@@ -49,7 +49,7 @@ public abstract class User {
 	/**
 	 * The user's devices
 	 */
-	@OneToMany
+	@OneToMany( mappedBy="user", targetEntity = Device.class )
 	private List<Device> devices;
 
 	public String getUsername() {

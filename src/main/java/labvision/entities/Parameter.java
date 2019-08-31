@@ -4,9 +4,11 @@ import java.util.List;
 
 import javax.measure.Quantity;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
@@ -31,10 +33,11 @@ public class Parameter<M extends Quantity<M>, P extends Quantity<P>> {
 	@Transient
 	private Class<P> quantityClass;
 	
-	@ManyToOne( targetEntity=Measurement.class )
+	@ManyToOne( targetEntity=Measurement.class, fetch=FetchType.LAZY )
+	@JoinColumn( name="Measurement_id" )
 	private Measurement<M> measurement;
 	
-	@OneToMany( targetEntity=ParameterValue.class )
+	@OneToMany( mappedBy="parameter", targetEntity=ParameterValue.class )
 	private List<ParameterValue<M, P>> parameterValues;
 
 	public int getId() {

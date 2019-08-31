@@ -5,9 +5,11 @@ import java.util.List;
 
 import javax.measure.Quantity;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
@@ -17,20 +19,23 @@ public class MeasurementValue<Q extends Quantity<Q>> {
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	private int id;
 	
-	@ManyToOne( targetEntity = Measurement.class )
+	@ManyToOne( targetEntity = Measurement.class, fetch=FetchType.LAZY )
+	@JoinColumn( name="Measurement_id" )
 	private Measurement<Q> measurement;
 	
-	@ManyToOne
+	@ManyToOne( fetch=FetchType.LAZY )
+	@JoinColumn( name="Student_id" )
 	private Student student;
 	
-	@ManyToOne
+	@ManyToOne( fetch=FetchType.LAZY )
+	@JoinColumn( name="CourseClass_id" )
 	private CourseClass courseClass;
 	
 	private double value;
 	
 	private LocalDateTime taken;
 	
-	@OneToMany( targetEntity=ParameterValue.class )
+	@OneToMany( mappedBy="measurementValue", targetEntity=ParameterValue.class )
 	private List<ParameterValue<Q, ?>> parameterValues;
 
 	public Measurement<Q> getMeasurement() {

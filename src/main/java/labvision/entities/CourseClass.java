@@ -3,9 +3,11 @@ package labvision.entities;
 import java.util.List;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.ManyToOne;
@@ -18,13 +20,14 @@ public class CourseClass {
 	
 	private String name;
 
-	@ManyToOne
+	@ManyToOne( optional=false, fetch=FetchType.LAZY )
+	@JoinColumn( name="Course_id" )
 	private Course course;
 	
 	@ManyToMany( targetEntity=Student.class )
 	private List<Student> students;
 	
-	@OneToMany( targetEntity=MeasurementValue.class )
+	@OneToMany( mappedBy="courseClass", targetEntity=MeasurementValue.class )
 	private List<MeasurementValue<?>> measurementValues;
 	
 	public int getId() {

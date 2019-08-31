@@ -5,9 +5,12 @@ import java.util.List;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
@@ -16,18 +19,22 @@ import javax.persistence.OneToMany;
  * @author davidnisson
  *
  */
+@Entity
 public class ReportedResult {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	private int id;
 	
-	@ManyToOne
+	@ManyToOne( fetch=FetchType.LAZY )
+	@JoinColumn( name="Student_id" )
 	private Student student;
 	
-	@ManyToOne
+	@ManyToOne( fetch=FetchType.LAZY )
+	@JoinColumn( name="Experiment_id" )
 	private Experiment experiment;
 	
 	@OneToMany
+	@JoinColumn( name="ReportedResult_id" )
 	private List<Result<?>> results;
 
 	@Basic(optional = false)

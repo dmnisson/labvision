@@ -16,10 +16,10 @@ public class Course {
 	
 	private String name;
 	
-	@OneToMany( targetEntity=CourseClass.class )
+	@OneToMany( mappedBy="course", targetEntity=CourseClass.class )
 	private List<CourseClass> courseClasses;
 
-	@OneToMany( targetEntity=Experiment.class )
+	@OneToMany( mappedBy="course", targetEntity=Experiment.class )
 	private List<Experiment> experiments;
 	
 	public String getName() {

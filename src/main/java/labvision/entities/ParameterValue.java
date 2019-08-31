@@ -2,9 +2,11 @@ package labvision.entities;
 
 import javax.measure.Quantity;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 /**
@@ -20,11 +22,13 @@ public class ParameterValue<M extends Quantity<M>, P extends Quantity<P>> {
 	@GeneratedValue( strategy=GenerationType.AUTO )
 	private int id;
 	
-	@ManyToOne(targetEntity = Parameter.class)
+	@ManyToOne(targetEntity = Parameter.class, fetch = FetchType.LAZY )
+	@JoinColumn( name="Parameter_id" )
 	private Parameter<M, P> parameter;
 	
-	@ManyToOne(targetEntity = ParameterValue.class)
-	private ParameterValue<M, P> parameterValue;
+	@ManyToOne(targetEntity = MeasurementValue.class, fetch = FetchType.LAZY )
+	@JoinColumn( name="MeasurementValue_id" )
+	private MeasurementValue<M> measurementValue;
 	
 	/** Value in SI units */
 	private double value;
@@ -43,14 +47,6 @@ public class ParameterValue<M extends Quantity<M>, P extends Quantity<P>> {
 
 	public void setParameter(Parameter<M, P> parameter) {
 		this.parameter = parameter;
-	}
-
-	public ParameterValue<M, P> getParameterValue() {
-		return parameterValue;
-	}
-
-	public void setParameterValue(ParameterValue<M, P> parameterValue) {
-		this.parameterValue = parameterValue;
 	}
 
 	public double getValue() {

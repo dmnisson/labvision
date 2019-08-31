@@ -1,8 +1,10 @@
 package labvision.entities;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import org.hibernate.annotations.GenericGenerator;
@@ -14,7 +16,8 @@ public class Device {
 	@GenericGenerator( name = "uuid", strategy = "uuid2" )
 	private String id;
 	
-	@ManyToOne
+	@ManyToOne( fetch=FetchType.LAZY )
+	@JoinColumn( name="User_id" )
 	private User user;
 
 	public String getId() {

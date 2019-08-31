@@ -20,10 +20,10 @@ public class Student extends User {
 	@Column
 	private String name;
 	
-	@ManyToMany
+	@ManyToMany( mappedBy="students" )
 	private List<CourseClass> courseClasses;
 	
-	@OneToMany
+	@OneToMany( mappedBy="student", targetEntity=MeasurementValue.class )
 	private List<MeasurementValue<?>> measurementValues;
 
 	@OneToOne

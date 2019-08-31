@@ -5,9 +5,11 @@ import java.util.List;
 import javax.measure.Quantity;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
@@ -37,13 +39,14 @@ public class Measurement<Q extends Quantity<Q>> {
 		this.quantityClassName = quantityClass.getName();
 	}
 	
-	@ManyToOne
+	@ManyToOne( fetch=FetchType.LAZY )
+	@JoinColumn( name="Experiment_id" )
 	private Experiment experiment;
 	
-	@OneToMany( targetEntity=Parameter.class )
+	@OneToMany( mappedBy="measurement", targetEntity=Parameter.class )
 	private List<Parameter<Q, ?>> parameters;
 	
-	@OneToMany( targetEntity=MeasurementValue.class )
+	@OneToMany( mappedBy="measurement", targetEntity=MeasurementValue.class )
 	private List<MeasurementValue<Q>> measurementValues;
 	
 	public boolean addMeasurementValue(MeasurementValue<Q> arg0) {
