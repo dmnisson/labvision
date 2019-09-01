@@ -28,6 +28,7 @@ public class LoginServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		
 		LabVisionConfig config = (LabVisionConfig) 
 				this.getServletContext().getAttribute("config");
 		LabVisionDataAccess dataAccess = (LabVisionDataAccess)
@@ -39,6 +40,7 @@ public class LoginServlet extends HttpServlet {
 		
 		if (Objects.isNull(deviceToken)) {
 			req.getRequestDispatcher("/WEB-INF/login.jsp").forward(req, resp);
+			System.out.println(req.getSession(false));
 		} else {
 			User user = dataAccess.getUser(deviceToken.getUserId());
 			
@@ -48,7 +50,7 @@ public class LoginServlet extends HttpServlet {
 				} else {
 					String redirect = req.getParameter("redirect");
 					if (Objects.isNull(redirect)) {
-						redirect = "/dashboard";
+						redirect = "/student/dashboard";
 					}
 					resp.sendRedirect(redirect);
 				}
@@ -64,6 +66,20 @@ public class LoginServlet extends HttpServlet {
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+		switch (req.getServletPath()) {
+		case "/login/student":
+			doPostLogin(req, resp);
+			break;
+		case "/logout/student":
+			doPostLogout(req, resp);
+			break;
+		default:
+			resp.sendRedirect("/login/student");
+		}
+	}
+
+	private void doPostLogin(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		String username = req.getParameter("username");
 		String password = req.getParameter("password");
@@ -87,7 +103,6 @@ public class LoginServlet extends HttpServlet {
 			DeviceAuthentication deviceAuthentication = 
 					new DeviceAuthentication(config, dataAccess);
 			if (!user.passwordMatches(password)) {
-				System.out.println("invalid password");
 				req.getRequestDispatcher("/WEB-INF/login.jsp").forward(req, resp);
 			} else {
 				HttpSession session = req.getSession();
@@ -104,7 +119,7 @@ public class LoginServlet extends HttpServlet {
 				
 				String redirect = req.getParameter("redirect");
 				if (Objects.isNull(redirect)) {
-					redirect = "/dashboard";
+					redirect = "/student/dashboard";
 				}
 				resp.sendRedirect(redirect);
 			}
@@ -116,5 +131,15 @@ public class LoginServlet extends HttpServlet {
 					user.getHashAlgorithm());
 			resp.sendError(500, "See logs for details.");
 		}
+	}
+	
+	
+	private void doPostLogout(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		HttpSession session = req.getSession();
+		session.invalidate();
+		
+		System.out.println(req.getSession(false));
+		
+		resp.sendRedirect("/login/student");
 	}
 }

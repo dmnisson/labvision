@@ -71,4 +71,9 @@ public class Student extends User {
 	public void setStudentPreferences(StudentPreferences studentPreferences) {
 		this.studentPreferences = studentPreferences;
 	}
+	
+	@Override
+	public UserRole getRole() {
+		return UserRole.STUDENT;
+	}
 }

@@ -1,5 +1,7 @@
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
 <%@ tag description="Generic Page Layout" language="java" pageEncoding="UTF-8"%>
 <%@ attribute name="title" %>
+<%@ attribute name="style" fragment="true" %>
 <!DOCTYPE html5>
 <html>
 <head>
@@ -9,7 +11,11 @@
   <link rel="stylesheet" href="/css/site.css">
   <title>${title}</title>
   
-  <sty
+  <c:if test="${style}">
+  <style>
+    <jsp:invoke fragment="style" />
+  </style>
+  </c:if>
 </head>
 <body>
   <jsp:doBody />

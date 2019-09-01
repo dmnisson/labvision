@@ -10,3 +10,14 @@
 .signin-form {
 	max-width: 450px;
 }
+
+.logout-link {
+	font-family: Helvetica;
+	font-size: 24px;
+	color: #000000;
+	text-align: left;
+}
+
+.userpage-container {
+	margin-top: 75px;
+}

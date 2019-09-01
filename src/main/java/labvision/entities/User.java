@@ -204,4 +204,6 @@ public abstract class User {
 	public void setDevices(List<Device> devices) {
 		this.devices = devices;
 	}
+	
+	public abstract UserRole getRole();
 }

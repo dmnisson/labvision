@@ -5,28 +5,58 @@ import javax.persistence.Persistence;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import labvision.viewmodels.NavbarModel;
+
 public class LabVisionServletContextListener implements ServletContextListener {
+
+	public static final String STUDENT_NAVBAR_ATTR = "studentNavbar";
+	public static final String DATA_ACCESS_ATTR = "dataAccess";
+	public static final String ENTITY_MANAGER_FACTORY_ATTR = "emf";
+	public static final String CONFIG_ATTR = "config";
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
 		String configPath = event.getServletContext().getInitParameter("config_file");
 		LabVisionConfig config = new LabVisionConfig(configPath);
 		
-		event.getServletContext().setAttribute("config", config);
+		event.getServletContext().setAttribute(CONFIG_ATTR, config);
 		
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(
 				config.getPersistenceUnitName());
 		
-		event.getServletContext().setAttribute("emf", emf);
+		event.getServletContext().setAttribute(ENTITY_MANAGER_FACTORY_ATTR, emf);
 		
 		LabVisionDataAccess dataAccess = new LabVisionDataAccess(emf);
 		
-		event.getServletContext().setAttribute("dataAccess", dataAccess);
+		event.getServletContext().setAttribute(DATA_ACCESS_ATTR, dataAccess);
+		
+		event.getServletContext().setAttribute(STUDENT_NAVBAR_ATTR, initStudentNavbar());
+	}
+
+	private NavbarModel initStudentNavbar() {
+		NavbarModel model = new NavbarModel();
+		
+		model.addNavLink("Dashboard", "/dashboard");
+		model.addNavLink("Experiments", "/experiments");
+		model.addNavLink("Reports",	"/reports");
+		model.addNavLink("Errors", "/errors");
+		model.addNavLink(model.new NavLink(
+				"Account", 
+				"#", 
+				new NavbarModel.NavLink[] {
+						model.new NavLink("Profile", "/profile"),
+						model.new NavLink("Courses", "/courses")
+				}
+			));
+		
+		model.setLogoutLink("/logout/student");
+		
+		return model;
 	}
 
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
-		EntityManagerFactory emf = (EntityManagerFactory) event.getServletContext().getAttribute("emf");
+		EntityManagerFactory emf = (EntityManagerFactory) event.getServletContext().getAttribute(ENTITY_MANAGER_FACTORY_ATTR);
 		emf.close();
 	}
 }

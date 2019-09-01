@@ -19,8 +19,8 @@
 						<p class="card-text">Sign in to view and manage your results.</p>
 						<form method="POST" action="/login/student">
 							<div class="form-group">
-								<label for="email">Email address</label>
-								<input type="email" id="email" name="email" class="form-control" />
+								<label for="username">Username</label>
+								<input type="text" id="username" name="username" class="form-control" />
 							</div>
 							<div class="form-group">
 								<label for="password">Password</label>
