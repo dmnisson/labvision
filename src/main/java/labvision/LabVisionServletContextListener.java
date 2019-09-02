@@ -36,16 +36,16 @@ public class LabVisionServletContextListener implements ServletContextListener {
 	private NavbarModel initStudentNavbar() {
 		NavbarModel model = new NavbarModel();
 		
-		model.addNavLink("Dashboard", "/dashboard");
-		model.addNavLink("Experiments", "/experiments");
-		model.addNavLink("Reports",	"/reports");
-		model.addNavLink("Errors", "/errors");
+		model.addNavLink("Dashboard", "/student/dashboard");
+		model.addNavLink("Experiments", "/student/experiments");
+		model.addNavLink("Reports",	"/student/reports");
+		model.addNavLink("Errors", "/student/errors");
 		model.addNavLink(model.new NavLink(
 				"Account", 
 				"#", 
 				new NavbarModel.NavLink[] {
-						model.new NavLink("Profile", "/profile"),
-						model.new NavLink("Courses", "/courses")
+						model.new NavLink("Profile", "/student/profile"),
+						model.new NavLink("Courses", "/student/courses")
 				}
 			));
 		
