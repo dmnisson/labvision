@@ -15,7 +15,7 @@ import labvision.entities.Course;
  * @author davidnisson
  *
  */
-public class Dashboard {
+public class StudentDashboard {
 	// currently logged in student
 	private Student student;
 	

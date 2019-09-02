@@ -14,7 +14,7 @@ import labvision.entities.Experiment;
 import labvision.entities.MeasurementValue;
 import labvision.entities.Student;
 import labvision.entities.User;
-import labvision.viewmodels.Dashboard;
+import labvision.viewmodels.StudentDashboard;
 
 /**
  * Provides access to the database to load and maniuplate entity objects.
@@ -53,10 +53,10 @@ public class LabVisionDataAccess {
 		transaction.commit();
 	}
 	
-	public Dashboard getDashboard(int studentId) {
+	public StudentDashboard getDashboard(int studentId) {
 		EntityManager manager = entityManagerFactory.createEntityManager();
 		
-		Dashboard dashboard = new Dashboard();
+		StudentDashboard dashboard = new StudentDashboard();
 		
 		Student student = manager.find(Student.class, studentId);
 		
