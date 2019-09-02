@@ -10,7 +10,7 @@
 	</servlet>
 	<servlet>
 		<servlet-name>labvision-login</servlet-name>
-		<servlet-class>labvision.LoginServlet</servlet-class>
+		<servlet-class>labvision.AuthServlet</servlet-class>
 	</servlet>
 	<servlet>
 	    <servlet-name>labvision-student</servlet-name>
@@ -22,8 +22,8 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>labvision-login</servlet-name>
-		<url-pattern>/login/student</url-pattern>
-		<url-pattern>/logout/student</url-pattern>
+		<url-pattern>/login</url-pattern>
+		<url-pattern>/logout</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
         <servlet-name>labvision-student</servlet-name>

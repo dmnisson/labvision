@@ -49,7 +49,7 @@ public class LabVisionServletContextListener implements ServletContextListener {
 				}
 			));
 		
-		model.setLogoutLink("/logout/student");
+		model.setLogoutLink("/logout");
 		
 		return model;
 	}

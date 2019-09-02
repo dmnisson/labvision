@@ -15,9 +15,9 @@
 			<div class="col-md-6">
 				<div class="card">
 					<div class="card-body">
-						<h3 class="card-title">Students</h3>
-						<p class="card-text">Sign in to view and manage your results.</p>
-						<form method="POST" action="/login/student">
+						<h3 class="card-title">Students and Faculty</h3>
+						<p class="card-text">Sign in to view and manage lab results.</p>
+						<form method="POST" action="/login">
 							<div class="form-group">
 								<label for="username">Username</label>
 								<input type="text" id="username" name="username" class="form-control" />
@@ -30,6 +30,14 @@
 						</form>
 					</div>
 				</div>
+			</div>
+			<div class="col-md-6">
+			  <div class="card">
+			    <div class="card-body">
+			      <h3 class="card-title">Don't have an account?</h3>
+			      <p class="card-text">Contact your institution to have an account created.</p>
+			    </div> 
+			  </div>
 			</div>
 		</div>
   </div>

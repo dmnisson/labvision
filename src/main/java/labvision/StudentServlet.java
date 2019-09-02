@@ -26,7 +26,7 @@ public class StudentServlet extends HttpServlet {
 		
 		if (session == null || session.getAttribute("user") == null ||
 				((User)session.getAttribute("user")).getRole() != UserRole.STUDENT) {
-			response.sendRedirect("/login/student");
+			response.sendRedirect("/login");
 			return;
 		}
 		

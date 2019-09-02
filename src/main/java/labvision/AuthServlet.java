@@ -19,7 +19,7 @@ import labvision.auth.DeviceAuthentication;
 import labvision.auth.DeviceToken;
 import labvision.entities.User;
 
-public class LoginServlet extends HttpServlet {
+public class AuthServlet extends HttpServlet {
 	/**
 	 * Unique version ID for serialization
 	 */
@@ -67,14 +67,14 @@ public class LoginServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		switch (req.getServletPath()) {
-		case "/login/student":
+		case "/login":
 			doPostLogin(req, resp);
 			break;
-		case "/logout/student":
+		case "/logout":
 			doPostLogout(req, resp);
 			break;
 		default:
-			resp.sendRedirect("/login/student");
+			resp.sendRedirect("/login");
 		}
 	}
 
@@ -137,6 +137,6 @@ public class LoginServlet extends HttpServlet {
 		HttpSession session = req.getSession();
 		session.invalidate();
 		
-		resp.sendRedirect("/login/student");
+		resp.sendRedirect("/login");
 	}
 }
