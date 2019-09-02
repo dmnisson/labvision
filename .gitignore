@@ -12,3 +12,4 @@ labvision_data.lobs
 /jetty.key
 /jetty.pkcs12
 /keystore
+/labvision_data.lck
