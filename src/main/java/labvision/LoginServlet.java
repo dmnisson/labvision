@@ -40,7 +40,6 @@ public class LoginServlet extends HttpServlet {
 		
 		if (Objects.isNull(deviceToken)) {
 			req.getRequestDispatcher("/WEB-INF/login.jsp").forward(req, resp);
-			System.out.println(req.getSession(false));
 		} else {
 			User user = dataAccess.getUser(deviceToken.getUserId());
 			
@@ -137,8 +136,6 @@ public class LoginServlet extends HttpServlet {
 	private void doPostLogout(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		HttpSession session = req.getSession();
 		session.invalidate();
-		
-		System.out.println(req.getSession(false));
 		
 		resp.sendRedirect("/login/student");
 	}

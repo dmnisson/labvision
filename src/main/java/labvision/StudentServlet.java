@@ -23,7 +23,6 @@ public class StudentServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		HttpSession session = request.getSession(false);
-		System.out.println(session);
 		
 		if (session == null || session.getAttribute("user") == null ||
 				((User)session.getAttribute("user")).getRole() != UserRole.STUDENT) {

@@ -47,6 +47,7 @@
 		    <artifactId>jetty-maven-plugin</artifactId>
 		    <version>9.4.19.v20190610</version>
 		    <configuration>
+		      <jettyXml>jetty.xml,jetty-ssl-keystore.xml,jetty-ssl.xml,jetty-https.xml</jettyXml>
 		      <scanIntervalSeconds>5</scanIntervalSeconds>
 		    </configuration>
 		  </plugin>
