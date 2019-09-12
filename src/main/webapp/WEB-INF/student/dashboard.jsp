@@ -4,7 +4,7 @@
     pageEncoding="UTF-8"%>
 <t:userpage title="Dashboard">
 
-<div class="container-fluid m-lg-5 userpage-container">
+<div class="container-fluid p-lg-5 userpage-container">
   <div class="row">
     <div class="col">
       <h1>Welcome, ${dashboardModel.student.username}!</h1>
@@ -15,6 +15,10 @@
       <div class="card">
         <div class="card-body">
           <h2 class="card-title">Current Experiments</h2>
+          <c:if test="${empty dashboardModel.currentExperiments}">
+            <p class="card-text text-center">No current experiments.</p>
+          </c:if>
+          <c:if test="${not empty dashboardModel.currentExperiments}">
           <table class="table">
             <thead>
               <tr>
@@ -35,6 +39,7 @@
               </c:forEach>
             </tbody>
           </table>
+          </c:if>
         </div>
       </div>
     </div>
@@ -47,7 +52,11 @@
 	        <div class="card-title">
 	          <h2>Recent Experiments</h2>
 	        </div>
+	        <c:if test="${empty dashboardModel.recentExperiments}">
+	        <p class="card-text text-center">No recent experiments.</p>
+	        </c:if>
         </div>
+        <c:if test="${not empty dashboardModel.recentExperiments}">
         <ul class="list-group list-group-flush">
           <c:forEach var="experiment" items="${dashboardModel.recentExperiments}">
           <li class="list-group-item">
@@ -55,6 +64,7 @@
           </li>
           </c:forEach>
         </ul>
+        </c:if>
       </div>
     </div>
     <div class="col-md-6">
@@ -63,12 +73,17 @@
 	        <div class="card-title">
 	          <h2>Recent Courses</h2>
 	        </div>
+	        <c:if test="${empty dashboardModel.recentCourses}">
+          <p class="card-text text-center">No recent courses.</p>
+          </c:if>
         </div>
+        <c:if test="${not empty dashboardModel.recentCourses}">
         <ul class="list-group list-group-flush">
           <c:forEach var="course" items="${dashboardModel.recentCourses}">
             <a href="/student/course/${course.id}">${course.name}</a>
           </c:forEach>
         </ul>
+        </c:if>
       </div>
     </div>
   </div>
