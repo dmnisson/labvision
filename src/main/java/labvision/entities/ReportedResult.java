@@ -1,5 +1,6 @@
 package labvision.entities;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 /**
  * A report of experimental results by a student
@@ -40,6 +42,12 @@ public class ReportedResult {
 	@Basic(optional = false)
 	@Column( name="added", insertable = false, updatable = false)
 	private LocalDateTime added;
+	
+	@OneToOne
+	private ReportDocument reportDocument;
+	
+	@Column
+	private BigDecimal score;
 	
 	public int getId() {
 		return id;
