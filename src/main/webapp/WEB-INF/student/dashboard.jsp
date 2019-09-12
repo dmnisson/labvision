@@ -46,7 +46,7 @@
   </div>
   
   <div class="row py-4">
-    <div class="col-md-6">
+    <div class="col-md-6 py-2 py-md-0">
       <div class="card">
 	      <div class="card-body">
 	        <div class="card-title">
@@ -67,7 +67,7 @@
         </c:if>
       </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-6 py-2 py-md-0">
       <div class="card">
         <div class="card-body">
 	        <div class="card-title">
