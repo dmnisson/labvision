@@ -1,5 +1,6 @@
 package labvision.entities;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -10,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 @Entity
 public class Experiment {
@@ -35,6 +38,9 @@ public class Experiment {
 	@OneToMany
 	@JoinColumn( name="obtaining_experiment_id" )
 	private List<Result<?>> obtainedResults;
+	
+	@Temporal(TemporalType.DATE)
+	private Date reportDueDate;
 
 	public int getId() {
 		return id;
@@ -90,5 +96,13 @@ public class Experiment {
 
 	public void setObtainedResults(List<Result<?>> obtainedResults) {
 		this.obtainedResults = obtainedResults;
+	}
+
+	public Date getReportDueDate() {
+		return reportDueDate;
+	}
+
+	public void setReportDueDate(Date reportDueDate) {
+		this.reportDueDate = reportDueDate;
 	}
 }
