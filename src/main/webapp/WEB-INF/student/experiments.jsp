@@ -5,7 +5,7 @@
     pageEncoding="UTF-8"%>
 <t:userpage title="Experiments">
 
-<div class="container-fluid m-lg-5 userpage-container">
+<div class="container-fluid p-lg-5 userpage-container">
   <div class="row">
     <div class="col">
       <h1>My Experiments</h1>
