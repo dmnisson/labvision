@@ -1,14 +1,20 @@
 package labvision;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import javax.persistence.EntityManagerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import labvision.viewmodels.ExperimentsTableModel;
 import labvision.viewmodels.NavbarModel;
+import labvision.entities.Experiment;
+import labvision.entities.MeasurementValue;
 import labvision.entities.Student;
 import labvision.viewmodels.StudentDashboard;
 
@@ -109,15 +115,38 @@ public class StudentServlet extends HttpServlet {
 		
 	}
 
-	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
-		// TODO Auto-generated method stub
+	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException {
+		EntityManagerFactory emf = (EntityManagerFactory) getServletContext()
+				.getAttribute(LabVisionServletContextListener.ENTITY_MANAGER_FACTORY_ATTR);
+		LabVisionDataAccess dataAccess = new LabVisionDataAccess(emf);
 		
+		Student student = (Student) session.getAttribute("user");
+		ExperimentsTableModel experimentsTableModel = new ExperimentsTableModel();
+		experimentsTableModel.setCurrentExperiments(student.getActiveExperiments());
+		experimentsTableModel.setPastExperiments(dataAccess.getRecentExperiments(student));
+		experimentsTableModel.setReportedResults(dataAccess.getReportedResults(student));
+		experimentsTableModel.setReportStatus(dataAccess.getReportStatus(student));
+		
+		request.setAttribute("experimentsTableModel", experimentsTableModel);
+		request.getRequestDispatcher("/WEB-INF/student/experiments.jsp").forward(request, response);
 	}
 
 	private void doGetDashboard(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException, ServletException {
+		LabVisionDataAccess dataAccess = (LabVisionDataAccess) getServletContext()
+				.getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
+		LabVisionConfig config = (LabVisionConfig) getServletContext()
+				.getAttribute(LabVisionServletContextListener.CONFIG_ATTR);
+		
 		StudentDashboard dashboardModel = new StudentDashboard();
 			
-		dashboardModel.setStudent((Student) session.getAttribute("user"));
+		Student student = (Student) session.getAttribute("user");
+		dashboardModel.setStudent(student);
+		dashboardModel.setCurrentExperiments(student.getActiveExperiments().stream()
+				.collect(Collectors.toMap(Experiment::getCourse, e -> e)));		
+		dashboardModel.setRecentExperiments(dataAccess.getRecentExperiments(student));
+		dashboardModel.setRecentCourses(dataAccess.getRecentCourses(student));
+		dashboardModel.setMaxRecentExperiments(config.getStudentDashboardMaxRecentExperiments());
+		dashboardModel.setMaxRecentCourses(config.getStudentDashboardMaxRecentCourses());
 		
 		request.setAttribute("dashboardModel", dashboardModel);
 		request.getRequestDispatcher("/WEB-INF/student/dashboard.jsp").forward(request, response);

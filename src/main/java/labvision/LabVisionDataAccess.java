@@ -1,5 +1,9 @@
 package labvision;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -9,9 +13,11 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 
+import labvision.entities.Course;
 import labvision.entities.Device;
 import labvision.entities.Experiment;
 import labvision.entities.MeasurementValue;
+import labvision.entities.ReportedResult;
 import labvision.entities.Student;
 import labvision.entities.User;
 import labvision.viewmodels.StudentDashboard;
@@ -103,5 +109,91 @@ public class LabVisionDataAccess {
 		manager.getTransaction().commit();
 		
 		return device;
+	}
+
+	public Experiment getExperiment(int id) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		return manager.find(Experiment.class, id);
+	}
+	
+	public List<Experiment> getRecentExperiments(Student student) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		TypedQuery<Object[]> query = manager.createQuery(
+				"SELECT DISTINCT mv, mv.measurement.experiment " +
+		        "FROM MeasurementValue mv " +
+				"WHERE mv.student.id=:studentid " +
+		        "ORDER BY mv.taken DESC",
+				Object[].class);
+		query.setParameter("studentid", student.getId());
+		return query.getResultList().stream()
+				.map(row -> (Experiment) row[1])
+				.collect(Collectors.toList());
+	}
+
+	public List<Course> getRecentCourses(Student student) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		TypedQuery<Object[]> query = manager.createQuery(
+				"SELECT DISTINCT mv, mv.courseClass.course " +
+				        "FROM MeasurementValue mv " +
+						"WHERE mv.student.id=:studentid " +
+				        "ORDER BY mv.taken DESC",
+				Object[].class);
+		query.setParameter("studentid", student.getId());
+		return query.getResultList().stream()
+				.map(row -> (Course) row[1])
+				.collect(Collectors.toList());
+	}
+
+	public Map<Experiment, ReportedResult> getReportedResults(Student student) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		TypedQuery<Object[]> query = manager.createQuery(
+				"SELECT r, r.experiment " +
+				"FROM ReportedResult r " +
+				"WHERE r.student.id=:studentid",
+				Object[].class);
+		query.setParameter("studentid", student.getId());
+		return query.getResultList().stream()
+				.collect(Collectors.toMap(
+						(Object[] row) -> (Experiment) row[1],
+						(Object[] row) -> (ReportedResult) row[0],
+						(r1, r2) -> r1));
+	}
+
+	public Map<Experiment, ReportStatus> getReportStatus(Student student) {
+		return getRecentExperiments(student).stream().collect(
+				Collectors.toMap(e -> e, LabVisionDataAccess::getReportStatus));
+	}
+	
+	public static ReportStatus getReportStatus(Experiment experiment) {
+		if (isNullOrEmpty(experiment.getMeasurements())) {
+			return ReportStatus.NOT_SUBMITTED;
+		} else if (isNullOrEmpty(experiment.getObtainedResults())) {
+			return ReportStatus.MEASUREMENT_VALUES_REPORTED;
+		} else {
+			// check for accepted values not obtained
+			if (experiment.getAcceptedResults().stream()
+					.anyMatch(ar -> experiment.getObtainedResults().stream()
+							.noneMatch(or -> or.getName().equals(ar.getName())))) {
+				return ReportStatus.RESULTS_IN_PROGRESS;
+			} else if (experiment.getAcceptedResults().stream()
+					.anyMatch(ar -> experiment.getReportedResults().stream()
+							.flatMap(rr -> rr.getResults().stream())
+							.noneMatch(r -> r.getName().equals(ar.getName())))) {
+				return ReportStatus.RESULTS_IN_PROGRESS;
+			} else if (experiment.getReportedResults().stream()
+					.anyMatch(rr -> Objects.isNull(rr.getReportDocument()))) {
+				return ReportStatus.RESULTS_IN_PROGRESS;
+			} else {
+				return ReportStatus.COMPLETED;
+			}
+		}
+	}
+	
+	private static <E> boolean isNullOrEmpty(Collection<E> coll) {
+		return Objects.isNull(coll) || coll.isEmpty();
 	}
 }

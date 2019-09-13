@@ -14,6 +14,10 @@ import java.util.logging.Logger;
  *
  */
 public class LabVisionConfig {
+	private static final String STUDENT_DASHBOARD_MAX_RECENT_COURSES_KEY = "studentDashboardMaxRecentCourses";
+
+	private static final String STUDENT_DASHBOARD_MAX_RECENT_EXPERIMENTS_KEY = "studentDashboardMaxRecentExperiments";
+
 	private Properties props = new Properties();
 	
 	public static final String APP_VERSION = "0.0.0";
@@ -94,5 +98,13 @@ public class LabVisionConfig {
 
 	public String getDeviceTokenKeyAlgorithm() {
 		return props.getProperty(DEVICE_TOKEN_KEY_ALGORITHM_NAME_KEY, "SHA256withRSA");
+	}
+
+	public int getStudentDashboardMaxRecentExperiments() {
+		return Integer.parseInt(props.getProperty(STUDENT_DASHBOARD_MAX_RECENT_EXPERIMENTS_KEY, "5"));
+	}
+
+	public int getStudentDashboardMaxRecentCourses() {
+		return Integer.parseInt(props.getProperty(STUDENT_DASHBOARD_MAX_RECENT_COURSES_KEY, "5"));
 	}
 }

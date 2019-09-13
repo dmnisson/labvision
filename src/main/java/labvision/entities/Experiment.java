@@ -39,6 +39,9 @@ public class Experiment {
 	@JoinColumn( name="obtaining_experiment_id" )
 	private List<Result<?>> obtainedResults;
 	
+	@OneToMany( mappedBy="experiment", targetEntity=ReportedResult.class )
+	private List<ReportedResult> reportedResults;
+	
 	@Temporal(TemporalType.DATE)
 	private Date reportDueDate;
 
@@ -74,7 +77,7 @@ public class Experiment {
 		this.measurements = measurements;
 	}
 
-	public List<Result<?>> getAcceptedResult() {
+	public List<Result<?>> getAcceptedResults() {
 		return acceptedResults;
 	}
 
@@ -104,5 +107,13 @@ public class Experiment {
 
 	public void setReportDueDate(Date reportDueDate) {
 		this.reportDueDate = reportDueDate;
+	}
+
+	public List<ReportedResult> getReportedResults() {
+		return reportedResults;
+	}
+
+	public void setReportedResults(List<ReportedResult> reportedResults) {
+		this.reportedResults = reportedResults;
 	}
 }

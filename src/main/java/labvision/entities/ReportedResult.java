@@ -88,4 +88,12 @@ public class ReportedResult {
 	public void setAdded(LocalDateTime added) {
 		this.added = added;
 	}
+
+	public ReportDocument getReportDocument() {
+		return reportDocument;
+	}
+
+	public void setReportDocument(ReportDocument reportDocument) {
+		this.reportDocument = reportDocument;
+	}
 }
