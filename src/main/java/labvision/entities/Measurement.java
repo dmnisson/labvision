@@ -6,6 +6,10 @@ import javax.measure.IncommensurableException;
 import javax.measure.Quantity;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
+
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -28,9 +32,17 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 	@OneToMany( mappedBy="variable", targetEntity=MeasurementValue.class )
 	private List<MeasurementValue> values;
 
+	@AttributeOverrides({
+		@AttributeOverride( name="value", column=@Column( name="mean_value" ) ),
+		@AttributeOverride( name="value", column=@Column( name="mean_uncertainty" ) )
+	})
 	@Embedded
 	private PersistableAmount mean;
 	
+	@AttributeOverrides({
+		@AttributeOverride( name="value", column=@Column( name="sampleStandardDeviation_value" ) ),
+		@AttributeOverride( name="value", column=@Column( name="sampleStandardDeviation_uncertainty" ) )
+	})
 	@Embedded
 	private PersistableAmount sampleStandardDeviation;
 
@@ -49,16 +61,20 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 		return sampleStandardDeviation;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private <Q extends Quantity<Q>> Amount<Q> helpComputeAverage(Unit<Q> unit) {
-		return this.values.stream()
-				.map(mv -> mv.getValue().asAmount(unit))
+		Amount<Q> avg = this.values.stream()
+				.map(mv -> mv.getValue().asAmount(this, unit))
 				.reduce(new Amount<>(0, 0, unit), (a1, a2) -> a1.add(a2))
 				.divideAmount(this.values.size());
+		this.mean = new PersistableAmount();
+		this.mean.setAmount(this, avg, (Class<Q>) getQuantityTypeId().getQuantityClass());
+		return avg;
 	}
 	
 	private <Q extends Quantity<Q>, V extends Quantity<V>> Amount<V> helpComputeVariance(Amount<Q> avg, Unit<V> varianceUnit) {
 		return this.values.stream()
-				.map(mv -> mv.getValue().asAmount(avg.getUnit()).subtract(avg))
+				.map(mv -> mv.getValue().asAmount(this, avg.getUnit()).subtract(avg))
 				.map(d -> {
 					Amount<?> d2 = d.multiply(d);
 					UnitConverter converter;
@@ -78,12 +94,15 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 				.reduce(new Amount<V>(0, 0, varianceUnit), (a1, a2) -> a1.add(a2));
 	}
 	
-	private <Q extends Quantity<Q>, V extends Quantity<V>> Amount<Q> helpComputeSampleStandardDeviation(
+	@SuppressWarnings("unchecked")
+	private <Q extends Quantity<Q>, V extends Quantity<V>> void helpComputeSampleStandardDeviation(
 			Amount<V> variance, Unit<Q> unit) {
-		return Amount.fromQuantity(
+		Amount<Q> ssd = Amount.fromQuantity(
 				Quantities.getQuantity(variance.sqrt()
 						.divide(this.values.size() - 1)
 						.getValue(), unit), 0);
+		this.sampleStandardDeviation = new PersistableAmount();
+		this.sampleStandardDeviation.setAmount(this, ssd, (Class<Q>) getQuantityTypeId().getQuantityClass());
 	}
 	
 	public void computeStatistics() {
@@ -93,15 +112,7 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 			Amount<?> avg = helpComputeAverage(systemUnit);
 			Unit<?> varianceUnit = avg.getUnit().pow(2);
 			Amount<?> variance = helpComputeVariance(avg, varianceUnit);
-			Amount<?> ssd = helpComputeSampleStandardDeviation(variance, systemUnit);
-			
-			this.mean = new PersistableAmount();
-			this.mean.setAmountFromQuantity(avg, getQuantityTypeId().getQuantityClass(), 0);
-
-			this.sampleStandardDeviation = new PersistableAmount();
-			this.sampleStandardDeviation.setAmountFromQuantity(ssd,
-					getQuantityTypeId().getQuantityClass(),
-					0);
+			helpComputeSampleStandardDeviation(variance, systemUnit);
 		}
 		else {
 			this.mean = null;

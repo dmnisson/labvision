@@ -66,7 +66,8 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 	
 	@SuppressWarnings("unchecked")
 	private <Q extends Quantity<Q>> void setValueHelper(PersistableAmount value, Unit<Q> unit) {
-		this.value.setAmount(value.asAmount(unit), (Class<Q>) variable.getQuantityTypeId().getQuantityClass());
+		this.value.setAmount(variable, value.asAmount(variable, unit), 
+				(Class<Q>) variable.getQuantityTypeId().getQuantityClass());
 	}
 	
 	public Student getStudent() {
