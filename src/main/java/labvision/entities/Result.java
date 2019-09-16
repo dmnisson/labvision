@@ -10,8 +10,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 
-import org.hibernate.annotations.Type;
-
 @Entity
 public class Result implements LabVisionEntity {
 	@Id
@@ -28,7 +26,6 @@ public class Result implements LabVisionEntity {
 	private ResultComputation computation;
 	
 	@Embedded
-	@Type( type = "labvision.entities.types.AmountType" )
 	private PersistableAmount resultValue;
 
 	public int getId() {

@@ -49,50 +49,71 @@ public class Amount<Q extends Quantity<Q>> implements Quantity<Q> {
 	}
 
 	/**
-	 * Creates an Amount from a Quantity object of another type, with uncertainty set
-	 * to either the one in the quantity if it is an amount, or the given value
+	 * Creates an Amount from a Quantity object, with uncertainty set
+	 * to the given value. This method may also be used to change the uncertainty value
+	 * of an existing Amount object.
 	 * @param <Q> the quantity type
 	 * @param quantity the quantity
-	 * @param defaultUncertainty the uncertainty value to use if the quantity is not another Amount
+	 * @param uncertainty the new uncertainty value
 	 * @return the Amount
 	 */
-	public static <Q extends Quantity<Q>> Amount<Q> fromQuantity(Quantity<Q> quantity, Number defaultUncertainty) {
-		if (quantity instanceof Amount) {
-			return new Amount<>(quantity.getValue(), ((Amount<Q>) quantity).getUncertainty(), quantity.getUnit());
-		} else {
-			return new Amount<>(quantity.getValue(), defaultUncertainty, quantity.getUnit());
-		}
+	public static <Q extends Quantity<Q>> Amount<Q> fromQuantity(Quantity<Q> quantity, Number uncertainty) {
+		return new Amount<>(quantity.getValue(), uncertainty, quantity.getUnit());
 	}
 	
 	@Override
 	public Quantity<Q> add(Quantity<Q> augend) {
-		return fromErrorProp(this.toErrorProp().plus(fromQuantity(augend, 0).toErrorProp()), unit);
+		return add(fromQuantity(augend, 0));
+	}
+	
+	public Amount<Q> add(Amount<Q> augend) {
+		return fromErrorProp(this.toErrorProp().plus(augend.toErrorProp()), unit);
 	}
 
 	@Override
 	public Quantity<Q> subtract(Quantity<Q> subtrahend) {
-		return fromErrorProp(this.toErrorProp().minus(fromQuantity(subtrahend, 0).toErrorProp()), unit);
+		return subtract(fromQuantity(subtrahend, 0));
+	}
+	
+	public Amount<Q> subtract(Amount<Q> subtrahend) {
+		return fromErrorProp(this.toErrorProp().minus(subtrahend.toErrorProp()), unit);
 	}
 
 	@Override
 	public Quantity<?> divide(Quantity<?> divisor) {
-		return fromErrorProp(this.toErrorProp().over(fromQuantity(divisor, 0).toErrorProp()),
+		return divide(fromQuantity(divisor, 0));
+	}
+	
+	public Amount<?> divide(Amount<?> divisor) {
+		return fromErrorProp(this.toErrorProp().over(divisor.toErrorProp()),
 				unit.divide(divisor.getUnit()));
 	}
 
 	@Override
 	public Quantity<Q> divide(Number divisor) {
+		return divideAmount(divisor);
+	}
+	
+	public Amount<Q> divideAmount(Number divisor) {
 		return fromErrorProp(this.toErrorProp().over(divisor.doubleValue()), unit);
 	}
 
 	@Override
 	public Quantity<?> multiply(Quantity<?> multiplier) {
-		return fromErrorProp(this.toErrorProp().times(fromQuantity(multiplier, 0).toErrorProp()),
+		return multiply(fromQuantity(multiplier, 0));
+	}
+	
+	public Amount<?> multiply(Amount<?> multiplier) {
+		return fromErrorProp(this.toErrorProp().times(multiplier.toErrorProp()),
 				unit.multiply(multiplier.getUnit()));
 	}
 
 	@Override
 	public Quantity<Q> multiply(Number multiplier) {
+		return multiplyAmount(multiplier);
+	}
+	
+	public Amount<Q> multiplyAmount(Number multiplier) {
 		return fromErrorProp(this.toErrorProp().times(multiplier.doubleValue()), unit);
 	}
 
@@ -102,9 +123,13 @@ public class Amount<Q extends Quantity<Q>> implements Quantity<Q> {
 	
 	@Override
 	public Quantity<?> inverse() {
-		return fromErrorProp(this.toErrorProp().inverse(), unit.inverse());
+		return inverseAmount();
 	}
 
+	public Amount<?> inverseAmount() {
+		return fromErrorProp(this.toErrorProp().inverse(), unit.inverse());
+	}
+	
 	@Override
 	public Quantity<Q> to(Unit<Q> unit) throws UnconvertibleException {
 		return toAmount(unit);

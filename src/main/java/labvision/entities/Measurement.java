@@ -50,28 +50,32 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 	}
 	
 	private <Q extends Quantity<Q>> Amount<Q> helpComputeAverage(Unit<Q> unit) {
-		return Amount.fromQuantity(this.values.stream()
+		return this.values.stream()
 				.map(mv -> mv.getValue().asAmount(unit))
-				.reduce(new Amount<>(0, 0, unit), (a1, a2) -> Amount.fromQuantity(a1.add(a2), 0))
-				.divide(this.values.size()), 0);
+				.reduce(new Amount<>(0, 0, unit), (a1, a2) -> a1.add(a2))
+				.divideAmount(this.values.size());
 	}
 	
 	private <Q extends Quantity<Q>, V extends Quantity<V>> Amount<V> helpComputeVariance(Amount<Q> avg, Unit<V> varianceUnit) {
-		return Amount.fromQuantity(this.values.stream()
-				.map(mv -> mv.getValue().asAmount(avg.getUnit())
-						.subtract(avg))
+		return this.values.stream()
+				.map(mv -> mv.getValue().asAmount(avg.getUnit()).subtract(avg))
 				.map(d -> {
-					Quantity<?> d2 = d.multiply(d);
+					Amount<?> d2 = d.multiply(d);
+					UnitConverter converter;
 					try {
-						UnitConverter uc = d2.getUnit().getConverterToAny(varianceUnit);
-						return Amount.fromQuantity(
-								Quantities.getQuantity(uc.convert(d2.getValue()), varianceUnit), 0);
+						converter = d2.getUnit().getConverterToAny(varianceUnit);
 					} catch (IncommensurableException e) {
 						throw new RuntimeException(e);
 					}
+					if (!converter.isLinear()) {
+						throw new IllegalArgumentException("varianceUnit does not have a linear relationship with d2.unit");
+					}
+					return new Amount<>(
+							converter.convert(d2.getValue()),
+							converter.convert(d2.getUncertainty()),
+							varianceUnit);
 				})
-				.reduce(Amount.fromQuantity(Quantities.getQuantity(0, varianceUnit), 0),
-						(a1, a2) -> Amount.fromQuantity(a1.add(a2), 0)), 0);
+				.reduce(new Amount<V>(0, 0, varianceUnit), (a1, a2) -> a1.add(a2));
 	}
 	
 	private <Q extends Quantity<Q>, V extends Quantity<V>> Amount<Q> helpComputeSampleStandardDeviation(
