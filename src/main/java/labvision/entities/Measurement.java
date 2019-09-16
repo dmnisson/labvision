@@ -34,14 +34,14 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 
 	@AttributeOverrides({
 		@AttributeOverride( name="value", column=@Column( name="mean_value" ) ),
-		@AttributeOverride( name="value", column=@Column( name="mean_uncertainty" ) )
+		@AttributeOverride( name="uncertainty", column=@Column( name="mean_uncertainty" ) )
 	})
 	@Embedded
 	private PersistableAmount mean;
 	
 	@AttributeOverrides({
 		@AttributeOverride( name="value", column=@Column( name="sampleStandardDeviation_value" ) ),
-		@AttributeOverride( name="value", column=@Column( name="sampleStandardDeviation_uncertainty" ) )
+		@AttributeOverride( name="uncertainty", column=@Column( name="sampleStandardDeviation_uncertainty" ) )
 	})
 	@Embedded
 	private PersistableAmount sampleStandardDeviation;

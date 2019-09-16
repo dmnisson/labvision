@@ -1,7 +1,5 @@
 package labvision.entities;
 
-import java.io.Serializable;
-
 import javax.measure.Quantity;
 import javax.measure.UnconvertibleException;
 import javax.measure.Unit;
@@ -20,12 +18,7 @@ import javax.persistence.Embeddable;
  * @author davidnisson
  */
 @Embeddable
-public class PersistableAmount implements Serializable {
-	/**
-	 * Unique version number for serialization
-	 */
-	private static final long serialVersionUID = -419676055576745650L;
-	
+public class PersistableAmount {
 	/**
 	 * The value in system units
 	 */
