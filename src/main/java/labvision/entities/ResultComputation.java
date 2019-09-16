@@ -15,7 +15,7 @@ import javax.persistence.OneToMany;
 public class ResultComputation {
 	@OneToMany( targetEntity=Measurement.class )
 	@JoinColumn( name="ResultComputation_id" )
-	List<Measurement<?>> measurements;
+	List<Measurement> measurements;
 	
 	/** mXparser formula */
 	String formula;

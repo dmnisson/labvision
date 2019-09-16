@@ -1,11 +1,7 @@
 package labvision.entities;
 
-import javax.measure.Quantity;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
@@ -17,43 +13,21 @@ import javax.persistence.ManyToOne;
  * @param <P> the parameter quantity
  */
 @Entity
-public class ParameterValue<M extends Quantity<M>, P extends Quantity<P>> {
-	@Id
-	@GeneratedValue( strategy=GenerationType.AUTO )
-	private int id;
-	
+public class ParameterValue extends VariableValue<Parameter, ParameterValue> {
 	@ManyToOne(targetEntity = Parameter.class, fetch = FetchType.LAZY )
 	@JoinColumn( name="Parameter_id" )
-	private Parameter<M, P> parameter;
+	private Parameter variable;
 	
 	@ManyToOne(targetEntity = MeasurementValue.class, fetch = FetchType.LAZY )
 	@JoinColumn( name="MeasurementValue_id" )
-	private MeasurementValue<M> measurementValue;
-	
-	/** Value in SI units */
-	private double value;
+	private MeasurementValue measurementValue;
 
-	public int getId() {
-		return id;
+	@Override
+	public Parameter getVariable() {
+		return variable;
 	}
 
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public Parameter<M, P> getParameter() {
-		return parameter;
-	}
-
-	public void setParameter(Parameter<M, P> parameter) {
-		this.parameter = parameter;
-	}
-
-	public double getValue() {
-		return value;
-	}
-
-	public void setValue(double value) {
-		this.value = value;
-	}
-}
+	@Override
+	public void setVariable(Parameter parameter) {
+		this.variable = parameter;
+	}}

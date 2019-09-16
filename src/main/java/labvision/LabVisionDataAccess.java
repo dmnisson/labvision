@@ -1,26 +1,32 @@
 package labvision;
 
-import java.util.Collection;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 
 import labvision.entities.Course;
 import labvision.entities.Device;
 import labvision.entities.Experiment;
+import labvision.entities.LabVisionEntity;
+import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
+import labvision.entities.Parameter;
+import labvision.entities.ParameterValue;
 import labvision.entities.ReportedResult;
 import labvision.entities.Student;
 import labvision.entities.User;
-import labvision.viewmodels.StudentDashboard;
 
 /**
  * Provides access to the database to load and maniuplate entity objects.
@@ -29,6 +35,54 @@ import labvision.viewmodels.StudentDashboard;
  */
 public class LabVisionDataAccess {
 	private EntityManagerFactory entityManagerFactory;
+	
+	/**
+	 * A query that selects for entities related to a given student and another entity
+	 * @author davidnisson
+	 *
+	 * @param <E> the entity type to constrain as being related to a student
+	 * @param <C> the entity type of the other attribute to query for
+	 * @param <T> the type of object to query for
+	 */
+	static class StudentSelectQuery<E, C extends LabVisionEntity, T> {
+		final String mapFieldName; // the name of the field mapping to the entity type C
+		final Root<E> root;
+		final Join<E, Student> s;
+		final Join<E, C> e;
+		final CriteriaQuery<T> cq;
+		
+		public StudentSelectQuery(String mapFieldName,
+				Root<E> root,
+				Join<E, Student> s,
+				Join<E, C> e,
+				CriteriaQuery<T> cq) {
+			this.mapFieldName = mapFieldName;
+			this.root = root;
+			this.s = s;
+			this.e = e;
+			this.cq = cq;
+		}
+
+		static <E, C extends LabVisionEntity, T> StudentSelectQuery<E, C, T> selectEntities(
+				EntityManager manager,
+				C mappedEntity,
+				Student student,
+				Function<CriteriaBuilder, Function<Root<E>, Function<Join<E, Student>, Function<Join<E, C>, Selection<? extends T>>>>> selectionFactory,
+				String mapFieldName,
+				Class<E> entityClass, Class<T> queryClass) {
+			CriteriaBuilder cb = manager.getCriteriaBuilder();
+			
+			CriteriaQuery<T> cq = cb.createQuery(queryClass);
+			Root<E> root = cq.from(entityClass);
+			Join<E, Student> s = root.join("student");
+			Join<E, C> e = root.join(mapFieldName);
+			cq.select(selectionFactory.apply(cb).apply(root).apply(s).apply(e))
+			.where(cb.and(
+					cb.equal(s.get("id"),  student.getId()),
+					cb.equal(e.get("id"), mappedEntity.getId())));
+			return new StudentSelectQuery<>(mapFieldName, root, s, e, cq);
+		}
+	}
 	
 	public LabVisionDataAccess(EntityManagerFactory entityManagerFactory) {
 		this.entityManagerFactory = entityManagerFactory;
@@ -57,45 +111,6 @@ public class LabVisionDataAccess {
 		transaction.begin();
 		manager.persist(user);
 		transaction.commit();
-	}
-	
-	public StudentDashboard getDashboard(int studentId) {
-		EntityManager manager = entityManagerFactory.createEntityManager();
-		
-		StudentDashboard dashboard = new StudentDashboard();
-		
-		Student student = manager.find(Student.class, studentId);
-		
-		// set dashboard values from objects in database
-		dashboard.setStudent(student);
-		
-		// sort measurement values by date last taken
-		Stream<MeasurementValue<?>> measurementValueStream = student.getMeasurementValues()
-				.stream()
-				.sorted((m1, m2) -> m2.getTaken().compareTo(m1.getTaken()));
-		
-		// sort recent courses by date last measurement value was taken
-		dashboard.setRecentCourses(measurementValueStream
-				.map(m -> m.getCourseClass().getCourse())
-				.distinct()
-				.collect(Collectors.toList()));
-		
-		dashboard.setRecentExperiments(measurementValueStream
-				.map(m -> m.getMeasurement().getExperiment())
-				.distinct()
-				.collect(Collectors.toList()));
-		
-		dashboard.setCurrentExperiments(student.getActiveExperiments().stream()
-				.collect(Collectors.toMap(Experiment::getCourse, Function.identity()))
-				);
-		
-		dashboard.setMaxRecentCourses(student.getStudentPreferences()
-				.getMaxRecentCourses());
-		
-		dashboard.setMaxRecentExperiments(student.getStudentPreferences()
-				.getMaxRecentExperiments());
-		
-		return dashboard;
 	}
 
 	public Device addNewDevice(User user) {
@@ -147,53 +162,92 @@ public class LabVisionDataAccess {
 				.collect(Collectors.toList());
 	}
 
-	public Map<Experiment, ReportedResult> getReportedResults(Student student) {
+	public List<ReportedResult> getReportedResults(Experiment experiment, Student student) {
 		EntityManager manager = entityManagerFactory.createEntityManager();
+
+		StudentSelectQuery<ReportedResult, Experiment, ReportedResult> sesq = 
+				StudentSelectQuery.selectEntities(
+				manager,
+				experiment, 
+				student, 
+				cb -> (rr -> (s -> (e -> rr))),
+				"experiment",
+				ReportedResult.class,
+				ReportedResult.class);
 		
-		TypedQuery<Object[]> query = manager.createQuery(
-				"SELECT r, r.experiment " +
-				"FROM ReportedResult r " +
-				"WHERE r.student.id=:studentid",
-				Object[].class);
-		query.setParameter("studentid", student.getId());
-		return query.getResultList().stream()
-				.collect(Collectors.toMap(
-						(Object[] row) -> (Experiment) row[1],
-						(Object[] row) -> (ReportedResult) row[0],
-						(r1, r2) -> r1));
+		TypedQuery<ReportedResult> query = manager.createQuery(sesq.cq);
+		return query.getResultList();
 	}
 
-	public Map<Experiment, ReportStatus> getReportStatus(Student student) {
-		return getRecentExperiments(student).stream().collect(
-				Collectors.toMap(e -> e, LabVisionDataAccess::getReportStatus));
+	public LocalDateTime getLastReportUpdated(Experiment experiment, Student student) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		StudentSelectQuery<ReportedResult, Experiment, LocalDateTime> sesq = 
+				StudentSelectQuery.selectEntities(
+				manager,
+				experiment, 
+				student, 
+				cb -> (rr -> (s -> (e -> cb.greatest(rr.get("added"))))),
+				"experiment",
+				ReportedResult.class,
+				LocalDateTime.class);
+		sesq.cq.groupBy(sesq.e);
+		
+		TypedQuery<LocalDateTime> query = manager.createQuery(sesq.cq);
+		List<LocalDateTime> resultList = query.getResultList();
+		return resultList.isEmpty() ? null : resultList.get(0);
 	}
-	
-	public static ReportStatus getReportStatus(Experiment experiment) {
-		if (isNullOrEmpty(experiment.getMeasurements())) {
-			return ReportStatus.NOT_SUBMITTED;
-		} else if (isNullOrEmpty(experiment.getObtainedResults())) {
-			return ReportStatus.MEASUREMENT_VALUES_REPORTED;
-		} else {
-			// check for accepted values not obtained
-			if (experiment.getAcceptedResults().stream()
-					.anyMatch(ar -> experiment.getObtainedResults().stream()
-							.noneMatch(or -> or.getName().equals(ar.getName())))) {
-				return ReportStatus.RESULTS_IN_PROGRESS;
-			} else if (experiment.getAcceptedResults().stream()
-					.anyMatch(ar -> experiment.getReportedResults().stream()
-							.flatMap(rr -> rr.getResults().stream())
-							.noneMatch(r -> r.getName().equals(ar.getName())))) {
-				return ReportStatus.RESULTS_IN_PROGRESS;
-			} else if (experiment.getReportedResults().stream()
-					.anyMatch(rr -> Objects.isNull(rr.getReportDocument()))) {
-				return ReportStatus.RESULTS_IN_PROGRESS;
-			} else {
-				return ReportStatus.COMPLETED;
-			}
-		}
+
+	public BigDecimal getTotalReportScore(Experiment experiment, Student student) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		StudentSelectQuery<ReportedResult, Experiment, BigDecimal> sesq =
+				StudentSelectQuery.selectEntities(
+				manager,
+				experiment, 
+				student, 
+				cb -> (rr -> (s -> (e -> cb.sum(rr.get("score")) ))),
+				"experiment",
+				ReportedResult.class,
+				BigDecimal.class);
+		sesq.cq.groupBy(sesq.e);
+		
+		TypedQuery<BigDecimal> query = manager.createQuery(sesq.cq);
+		List<BigDecimal> resultList = query.getResultList();
+		return resultList.isEmpty() ? null : resultList.get(0);
 	}
-	
-	private static <E> boolean isNullOrEmpty(Collection<E> coll) {
-		return Objects.isNull(coll) || coll.isEmpty();
+
+	public List<MeasurementValue> getMeasurementValues(Measurement measurement, Student student) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		StudentSelectQuery<MeasurementValue, Measurement, MeasurementValue> sesq =
+				StudentSelectQuery.selectEntities(
+						manager,
+						measurement,
+						student,
+						cb -> (mv -> (s -> (e -> mv))),
+						"measurement",
+						MeasurementValue.class,
+						MeasurementValue.class);
+		
+		TypedQuery<MeasurementValue> query = manager.createQuery(sesq.cq);
+		return query.getResultList();
+	}
+
+	public List<ParameterValue> getParameterValues(Parameter parameter, Student student) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+
+		StudentSelectQuery<ParameterValue, Parameter, ParameterValue> sesq =
+				StudentSelectQuery.selectEntities(
+						manager,
+						parameter,
+						student,
+						cb -> (mv -> (s -> (e -> mv))),
+						"parameter",
+						ParameterValue.class,
+						ParameterValue.class);
+		
+		TypedQuery<ParameterValue> query = manager.createQuery(sesq.cq);
+		return query.getResultList();
 	}
 }

@@ -22,7 +22,7 @@ import javax.persistence.OneToOne;
  *
  */
 @Entity
-public class ReportedResult {
+public class ReportedResult implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	private int id;
@@ -37,7 +37,7 @@ public class ReportedResult {
 	
 	@OneToMany
 	@JoinColumn( name="ReportedResult_id" )
-	private List<Result<?>> results;
+	private List<Result> results;
 
 	@Basic(optional = false)
 	@Column( name="added", insertable = false, updatable = false)
@@ -73,11 +73,11 @@ public class ReportedResult {
 		this.experiment = experiment;
 	}
 
-	public List<Result<?>> getResults() {
+	public List<Result> getResults() {
 		return results;
 	}
 
-	public void setResults(List<Result<?>> results) {
+	public void setResults(List<Result> results) {
 		this.results = results;
 	}
 
@@ -95,5 +95,13 @@ public class ReportedResult {
 
 	public void setReportDocument(ReportDocument reportDocument) {
 		this.reportDocument = reportDocument;
+	}
+
+	public BigDecimal getScore() {
+		return score;
+	}
+
+	public void setScore(BigDecimal score) {
+		this.score = score;
 	}
 }

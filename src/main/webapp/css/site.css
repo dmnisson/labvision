@@ -8,6 +8,7 @@
 
 .table-fixed thead,
 .table-fixed tbody,
+.table-fixed tfoot,
 .table-fixed tr,
 .table-fixed td,
 .table-fixed th {
@@ -16,7 +17,8 @@
 
 .table-fixed tbody td,
 .table-fixed tbody th,
-.table-fixed thead > tr > th {
+.table-fixed thead > tr > th,
+.table-fixed tfoot > tr > th {
     float: left;
     position: relative;
 

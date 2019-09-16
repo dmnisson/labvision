@@ -20,7 +20,7 @@ import labvision.utils.ByteArrayStringConverter;
 
 @Entity
 @Inheritance( strategy = InheritanceType.JOINED )
-public abstract class User {
+public abstract class User implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	@Column( name = "id", updatable = false, nullable = false )

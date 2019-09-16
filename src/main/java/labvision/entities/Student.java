@@ -24,7 +24,7 @@ public class Student extends User {
 	private List<CourseClass> courseClasses;
 	
 	@OneToMany( mappedBy="student", targetEntity=MeasurementValue.class )
-	private List<MeasurementValue<?>> measurementValues;
+	private List<MeasurementValue> measurementValues;
 
 	@OneToOne
 	private StudentPreferences studentPreferences;
@@ -48,11 +48,11 @@ public class Student extends User {
 		this.courseClasses = courseClasses;
 	}
 
-	public List<MeasurementValue<?>> getMeasurementValues() {
+	public List<MeasurementValue> getMeasurementValues() {
 		return measurementValues;
 	}
 
-	public void setMeasurementValues(List<MeasurementValue<?>> measurementValues) {
+	public void setMeasurementValues(List<MeasurementValue> measurementValues) {
 		this.measurementValues = measurementValues;
 	}
 

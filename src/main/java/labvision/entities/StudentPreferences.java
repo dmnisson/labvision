@@ -12,7 +12,7 @@ import javax.persistence.OneToOne;
  *
  */
 @Entity
-public class StudentPreferences {
+public class StudentPreferences implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	private int id;
@@ -39,5 +39,13 @@ public class StudentPreferences {
 
 	public void setMaxRecentCourses(int maxRecentCourses) {
 		this.maxRecentCourses = maxRecentCourses;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 }

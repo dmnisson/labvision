@@ -13,7 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class CourseClass {
+public class CourseClass implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	private int id;
@@ -28,7 +28,7 @@ public class CourseClass {
 	private List<Student> students;
 	
 	@OneToMany( mappedBy="courseClass", targetEntity=MeasurementValue.class )
-	private List<MeasurementValue<?>> measurementValues;
+	private List<MeasurementValue> measurementValues;
 	
 	public int getId() {
 		return id;
@@ -62,11 +62,11 @@ public class CourseClass {
 		this.students = students;
 	}
 
-	public List<MeasurementValue<?>> getMeasurementValues() {
+	public List<MeasurementValue> getMeasurementValues() {
 		return measurementValues;
 	}
 
-	public void setMeasurementValues(List<MeasurementValue<?>> measurementValues) {
+	public void setMeasurementValues(List<MeasurementValue> measurementValues) {
 		this.measurementValues = measurementValues;
 	}
 }

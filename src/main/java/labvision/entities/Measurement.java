@@ -2,168 +2,107 @@ package labvision.entities;
 
 import java.util.List;
 
+import javax.measure.IncommensurableException;
 import javax.measure.Quantity;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
-import org.hibernate.annotations.Type;
+import tec.units.ri.quantity.Quantities;
 
-import static java.lang.Math.*;
-
-@Entity
-public class Measurement<Q extends Quantity<Q>> {
-	@Id
-	@GeneratedValue( strategy = GenerationType.AUTO )
-	private int id;
-	
-	private String name;
-	
-	private String quantityClassName;
-	
-	@Transient
-	private Class<Q> quantityClass;
-	
-	protected Measurement() {
-	}
-	
-	public Measurement(String name, Class<Q> quantityClass) {
-		this.quantityClass = quantityClass;
-		this.quantityClassName = quantityClass.getName();
-	}
+@Entity( name="Measurement" )
+public class Measurement extends Variable<Measurement, MeasurementValue> implements LabVisionEntity {
 	
 	@ManyToOne( fetch=FetchType.LAZY )
 	@JoinColumn( name="Experiment_id" )
 	private Experiment experiment;
 	
 	@OneToMany( mappedBy="measurement", targetEntity=Parameter.class )
-	private List<Parameter<Q, ?>> parameters;
+	private List<Parameter> parameters;
 	
-	@OneToMany( mappedBy="measurement", targetEntity=MeasurementValue.class )
-	private List<MeasurementValue<Q>> measurementValues;
-	
-	public boolean addMeasurementValue(MeasurementValue<Q> arg0) {
-		return recomputeIf(measurementValues.add(arg0));
-	}
-	
-	public boolean contains(Object arg0) {
-		return measurementValues.contains(arg0);
-	}
-	public boolean remove(Object arg0) {
-		return recomputeIf(measurementValues.remove(arg0));
-	}
+	@OneToMany( mappedBy="variable", targetEntity=MeasurementValue.class )
+	private List<MeasurementValue> values;
 
 	@Embedded
-	@Type( type = "labvision.entities.types.AmountType" )
-	private Amount<Q> mean;
+	private PersistableAmount mean;
 	
 	@Embedded
-	@Type( type = "labvision.entities.types.AmountType" )
-	private Amount<Q> sampleStandardDeviation;
-	
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public List<Parameter<Q, ?>> getParameters() {
+	private PersistableAmount sampleStandardDeviation;
+
+	public List<Parameter> getParameters() {
 		return parameters;
 	}
-	public void setParameters(List<Parameter<Q, ?>> parameters) {
+	public void setParameters(List<Parameter> parameters) {
 		this.parameters = parameters;
 	}
-	public List<MeasurementValue<Q>> getMeasurementValues() {
-		return measurementValues;
-	}
-	public void setMeasurementValues(List<MeasurementValue<Q>> measurementValues) {
-		this.measurementValues = measurementValues;
-		measurementValues.stream()
-		.filter(value -> value.getMeasurement() != this)
-		.forEach(value -> {
-			value.setMeasurement(this);
-		});
-		recomputeIf(measurementValues != null);
-	}
-	public Amount<Q> getMean() {
+
+	public PersistableAmount getMean() {
 		return mean;
 	}
-	public void setMean(Amount<Q> mean) {
-		this.mean = mean;
-	}
-	public Amount<Q> getSampleStandardDeviation() {
+
+	public PersistableAmount getSampleStandardDeviation() {
 		return sampleStandardDeviation;
 	}
-	public void setSampleStandardDeviation(Amount<Q> sampleStandardDeviation) {
-		this.sampleStandardDeviation = sampleStandardDeviation;
+	
+	private <Q extends Quantity<Q>> Amount<Q> helpComputeAverage(Unit<Q> unit) {
+		return Amount.fromQuantity(this.values.stream()
+				.map(mv -> mv.getValue().asAmount(unit))
+				.reduce(new Amount<>(0, 0, unit), (a1, a2) -> Amount.fromQuantity(a1.add(a2), 0))
+				.divide(this.values.size()), 0);
 	}
 	
-	private boolean recomputeIf(boolean success) {
-		if (success) {
-			if (this.measurementValues.size() > 0) {
-				double avg = this.measurementValues.stream()
-						.mapToDouble(value -> value.getValue())
-						.average().getAsDouble();
-				
-				double variance = this.measurementValues.stream()
-						.mapToDouble(value -> pow(value.getValue() - avg, 2))
-						.sum();
-				
-				double ssd, stdDevInMean;
-				if (this.measurementValues.size() > 1) {
-					stdDevInMean = sqrt(variance 
-							/ pow(this.measurementValues.size(), 2));
-					ssd = sqrt(variance
-							/ (this.measurementValues.size() - 1));
-				}
-				else {
-					stdDevInMean = Double.NaN;
-					ssd = Double.NaN;
-				}
-				
-				this.setMean(new Amount<Q>(avg, stdDevInMean));
-				if (!Double.isNaN(ssd)) {
-					this.setSampleStandardDeviation(new Amount<Q>(ssd, 0));
-				}
-			}
-			else {
-				this.setMean(null);
-				this.setSampleStandardDeviation(null);
-			}
-		}
-		return success;
+	private <Q extends Quantity<Q>, V extends Quantity<V>> Amount<V> helpComputeVariance(Amount<Q> avg, Unit<V> varianceUnit) {
+		return Amount.fromQuantity(this.values.stream()
+				.map(mv -> mv.getValue().asAmount(avg.getUnit())
+						.subtract(avg))
+				.map(d -> {
+					Quantity<?> d2 = d.multiply(d);
+					try {
+						UnitConverter uc = d2.getUnit().getConverterToAny(varianceUnit);
+						return Amount.fromQuantity(
+								Quantities.getQuantity(uc.convert(d2.getValue()), varianceUnit), 0);
+					} catch (IncommensurableException e) {
+						throw new RuntimeException(e);
+					}
+				})
+				.reduce(Amount.fromQuantity(Quantities.getQuantity(0, varianceUnit), 0),
+						(a1, a2) -> Amount.fromQuantity(a1.add(a2), 0)), 0);
 	}
+	
+	private <Q extends Quantity<Q>, V extends Quantity<V>> Amount<Q> helpComputeSampleStandardDeviation(
+			Amount<V> variance, Unit<Q> unit) {
+		return Amount.fromQuantity(
+				Quantities.getQuantity(variance.sqrt()
+						.divide(this.values.size() - 1)
+						.getValue(), unit), 0);
+	}
+	
+	public void computeStatistics() {
+		Unit<?> systemUnit = systemUnit();
+		
+		if (this.values.size() > 0) {
+			Amount<?> avg = helpComputeAverage(systemUnit);
+			Unit<?> varianceUnit = avg.getUnit().pow(2);
+			Amount<?> variance = helpComputeVariance(avg, varianceUnit);
+			Amount<?> ssd = helpComputeSampleStandardDeviation(variance, systemUnit);
+			
+			this.mean = new PersistableAmount();
+			this.mean.setAmountFromQuantity(avg, getQuantityTypeId().getQuantityClass(), 0);
 
-	public String getQuantityClassName() {
-		return quantityClassName;
-	}
-
-	public void setQuantityClassName(String quantityClassName) 
-			throws ClassCastException, ClassNotFoundException {
-		if (!Class.forName("javax.measure.quantity." + quantityClassName)
-				.equals(quantityClass)) {
-			throw new ClassCastException("did you forget to set the quantityClass first?");
+			this.sampleStandardDeviation = new PersistableAmount();
+			this.sampleStandardDeviation.setAmountFromQuantity(ssd,
+					getQuantityTypeId().getQuantityClass(),
+					0);
 		}
-		this.quantityClassName = quantityClassName;
-	}
-	
-	public Class<Q> getQuantityClass() {
-		return quantityClass;
-	}
-	
-	protected void setQuantityClass(Class<Q> quantityClass) {
-		this.quantityClass = quantityClass;
-		try {
-		  this.setQuantityClassName(quantityClass.getSimpleName());
+		else {
+			this.mean = null;
+			this.sampleStandardDeviation = null;
 		}
-		catch (ClassCastException | ClassNotFoundException ex) {}
 	}
 
 	public Experiment getExperiment() {
@@ -173,4 +112,19 @@ public class Measurement<Q extends Quantity<Q>> {
 	public void setExperiment(Experiment experiment) {
 		this.experiment = experiment;
 	}
+	@Override
+	public List<MeasurementValue> getValues() {
+		return values;
+	}
+	@Override
+	public void setValues(List<MeasurementValue> values) {
+		this.values = values;
+		values.stream()
+		.filter(value -> value.getVariable() != this)
+		.forEach(value -> {
+			value.setVariable(this);;
+		});
+		computeStatistics();
+	}
+
 }

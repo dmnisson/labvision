@@ -9,7 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 @Entity
-public class Course {
+public class Course implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy=GenerationType.AUTO )
 	private int id;

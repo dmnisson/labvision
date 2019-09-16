@@ -15,7 +15,7 @@ import javax.persistence.OneToOne;
 
 @Entity
 @Inheritance( strategy = InheritanceType.JOINED )
-public abstract class ReportDocument {
+public abstract class ReportDocument implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	@Column( name = "id", updatable = false, nullable = false )
@@ -53,5 +53,13 @@ public abstract class ReportDocument {
 
 	public void setReportedResult(ReportedResult reportedResult) {
 		this.reportedResult = reportedResult;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 }

@@ -1,22 +1,26 @@
 package labvision;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import javax.persistence.EntityManagerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import labvision.viewmodels.ExperimentsTableModel;
-import labvision.viewmodels.NavbarModel;
+import labvision.entities.PersistableAmount;
 import labvision.entities.Experiment;
-import labvision.entities.MeasurementValue;
+import labvision.entities.Parameter;
 import labvision.entities.Student;
+import labvision.viewmodels.ExperimentViewModel;
+import labvision.viewmodels.NavbarModel;
 import labvision.viewmodels.StudentDashboard;
+import labvision.viewmodels.StudentExperimentsTableModel;
 
 public class StudentServlet extends HttpServlet {
 	/**
@@ -110,22 +114,72 @@ public class StudentServlet extends HttpServlet {
 	}
 
 	private void doGetExperiment(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-			String string) {
-		// TODO Auto-generated method stub
+			String experimentId) throws ServletException, IOException {
+		LabVisionDataAccess dataAccess = (LabVisionDataAccess) getServletContext()
+				.getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
 		
+		Student student = (Student) session.getAttribute("user");
+		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId));
+		
+		ExperimentViewModel experimentViewModel = new ExperimentViewModel();
+		
+		experimentViewModel.setMeasurementUnits(experiment.getMeasurements().stream()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						m -> m.systemUnit())));
+		experimentViewModel.setParameterUnits(experiment.getMeasurements().stream()
+				.flatMap(m -> m.getParameters().stream())
+				.collect(Collectors.toMap(
+						Function.identity(),
+						p -> p.systemUnit())));
+		experimentViewModel.setMeasurementValues(experiment.getMeasurements().stream()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						m -> dataAccess.getMeasurementValues(m, student))));
+		experimentViewModel.setParameterValues(experiment.getMeasurements().stream()
+				.flatMap(m -> m.getParameters().stream())
+				.collect(Collectors.toMap(
+						Function.identity(),
+						p -> dataAccess.getParameterValues(p, student))));
+		experimentViewModel.setReportDisplay(dataAccess.getReportedResults(experiment, student).stream()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						rr -> {
+							if (Objects.isNull(rr.getReportDocument())) {
+								return rr.getReportDocument().getFilename();
+							} else {
+								return String.format("Report %d", rr.getId());
+							}
+						})));
+		
+		request.setAttribute("experimentViewModel", experimentViewModel);
+		request.getRequestDispatcher("/WEB-INF/student/experiment.jsp").forward(request, response);
 	}
 
 	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException {
-		EntityManagerFactory emf = (EntityManagerFactory) getServletContext()
-				.getAttribute(LabVisionServletContextListener.ENTITY_MANAGER_FACTORY_ATTR);
-		LabVisionDataAccess dataAccess = new LabVisionDataAccess(emf);
+		LabVisionDataAccess dataAccess = (LabVisionDataAccess) getServletContext()
+				.getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
-		ExperimentsTableModel experimentsTableModel = new ExperimentsTableModel();
+		StudentExperimentsTableModel experimentsTableModel = new StudentExperimentsTableModel();
+		
 		experimentsTableModel.setCurrentExperiments(student.getActiveExperiments());
 		experimentsTableModel.setPastExperiments(dataAccess.getRecentExperiments(student));
-		experimentsTableModel.setReportedResults(dataAccess.getReportedResults(student));
-		experimentsTableModel.setReportStatus(dataAccess.getReportStatus(student));
+		Supplier<Stream<Experiment> > experimentsStream = () -> Stream.concat(
+				experimentsTableModel.getCurrentExperiments().stream(),
+				experimentsTableModel.getPastExperiments().stream());
+		experimentsTableModel.setReportedResults(experimentsStream.get()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						e -> dataAccess.getReportedResults(e, student))));
+		experimentsTableModel.setLastReportUpdated(experimentsStream.get()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						e -> dataAccess.getLastReportUpdated(e, student))));
+		experimentsTableModel.setTotalReportScore(experimentsStream.get()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						e -> dataAccess.getTotalReportScore(e, student))));
 		
 		request.setAttribute("experimentsTableModel", experimentsTableModel);
 		request.getRequestDispatcher("/WEB-INF/student/experiments.jsp").forward(request, response);

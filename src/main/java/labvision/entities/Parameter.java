@@ -2,16 +2,13 @@ package labvision.entities;
 
 import java.util.List;
 
-import javax.measure.Quantity;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
 @Entity
 /**
@@ -21,77 +18,41 @@ import javax.persistence.Transient;
  * @param <M> the measurement quantity
  * @param <P> the parameter quantity
  */
-public class Parameter<M extends Quantity<M>, P extends Quantity<P>> {
-	@Id
-	@GeneratedValue( strategy=GenerationType.AUTO )
-	private int id;
-	
-	private String name;
-	
-	private String quantityClassName;
-	
-	@Transient
-	private Class<P> quantityClass;
+public class Parameter extends Variable<Parameter, ParameterValue> {
 	
 	@ManyToOne( targetEntity=Measurement.class, fetch=FetchType.LAZY )
 	@JoinColumn( name="Measurement_id" )
-	private Measurement<M> measurement;
+	private Measurement measurement;
 	
-	@OneToMany( mappedBy="parameter", targetEntity=ParameterValue.class )
-	private List<ParameterValue<M, P>> parameterValues;
+	@OneToMany( mappedBy="variable", targetEntity=ParameterValue.class )
+	private List<ParameterValue> values;
 
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public Measurement<M> getMeasurement() {
+	@Enumerated(EnumType.STRING)
+	private QuantityTypeId quantityTypeId;
+	
+	public Measurement getMeasurement() {
 		return measurement;
 	}
 
-	public void setMeasurement(Measurement<M> measurement) {
+	public void setMeasurement(Measurement measurement) {
 		this.measurement = measurement;
 	}
 
-	public List<ParameterValue<M, P>> getParameterValues() {
-		return parameterValues;
+	@Override
+	public List<ParameterValue> getValues() {
+		return values;
 	}
 
-	public void setParameterValues(List<ParameterValue<M, P>> parameterValues) {
-		this.parameterValues = parameterValues;
+	@Override
+	public void setValues(List<ParameterValue> parameterValues) {
+		this.values = parameterValues;
 	}
 
-	public String getQuantityClassName() {
-		return quantityClassName;
+	public QuantityTypeId getQuantityTypeId() {
+		return quantityTypeId;
 	}
 
-	public void setQuantityClassName(String quantityClassName) throws ClassNotFoundException {
-		if (Class.forName("javax.measure.quantity." + quantityClassName) != quantityClass) {
-			throw new ClassCastException();
-		}
-		this.quantityClassName = quantityClassName;
-	}
-
-	public Class<P> getQuantityClass() {
-		return quantityClass;
-	}
-
-	public void setQuantityClass(Class<P> quantityClass) {
-		this.quantityClass = quantityClass;
-		try {
-			this.setQuantityClassName(quantityClass.getSimpleName());
-		}
-		catch (ClassNotFoundException | ClassCastException e) {}
+	public void setQuantityTypeId(QuantityTypeId quantityTypeId) {
+		this.quantityTypeId = quantityTypeId;
 	}
 }

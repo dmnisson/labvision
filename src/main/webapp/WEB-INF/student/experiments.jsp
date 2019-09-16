@@ -1,6 +1,7 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
-<%@ taglib uri = "http://java.sun.com/jsp/jstl/fmt" prefix = "fmt" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/fmt" prefix = "fmt" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <t:userpage title="Experiments">
@@ -47,21 +48,21 @@
 	                  <fmt:formatDate value="${experiment.reportDueDate}" dateStyle="short"></fmt:formatDate>
 	                </td>
 	                <td class="col-3">
-	                  <c:if test="${experimentsTableModel.reportedResults[experiment]}">
-	                    <a href="/student/report/${experimentsTableModel.reportedResults[experiment].id}">
-	                      Last updated <fmt:formatDate value="${experimentsTableModel.reportedResults[experiment].lastUpdated}"
+	                  <c:if test="${not empty experimentsTableModel.reportedResults[experiment]}">
+	                    <a href="/student/experiment/${experiment.id}#reports">
+	                      Last updated <fmt:formatDate value="${experimentsTableModel.lastReportUpdated[experiment]}"
 	                         dateStyle="short"></fmt:formatDate>
 	                    </a>
 	                  </c:if>
-	                  <c:if test="${not experimentsTableModel.reportedResults[experiment]}">
+	                  <c:if test="${empty experimentsTableModel.reportedResults[experiment]}">
 	                    <a href="/student/report/new">Submit</a>
 	                  </c:if>
 	                </td>
 	                <td class="col-3">
-	                  <c:if test="${experimentsTableModel.reportedResults[experiment] and experimentsTableModel.reportedResults[experiment].score}">
-                      ${experimentsTableModel.reportedResults[experiment].score}
+	                  <c:if test="${experimentsTableModel.totalReportScore[experiment]}">
+                      ${experimentsTableModel.totalReportScore[experiment]}
                     </c:if>
-                    <c:if test="${not experimentsTableModel.reportedResults[experiment] or not experimentsTableModel.reportedResults[experiment].score}">
+                    <c:if test="${not experimentsTableModel.totalReportScore[experiment]}">
                       —
                     </c:if>
 	                </td>
@@ -82,7 +83,7 @@
               <thead>
                 <tr>
                   <th scope="col" class="col-3">Experiment</th>
-                  <th scope="col" class="col-3">Report</th>
+                  <th scope="col" class="col-3">Reports</th>
                   <th scope="col" class="col-3">Submitted</th>
                   <th scope="col" class="col-3">Score</th>
                 </tr>
@@ -94,15 +95,28 @@
                     <a href="/student/experiment/${experiment.id}">${experiment.name}</a>
                   </td>
                   <td class="col-3">
-                    <a href="/student/report/${experimentsTableModel.reportedResults[experiment]}">
-                      ${experimentsTableModel.reportStatus[experiment]}
+                    <a href="/student/experiment/${experiment.id}#reports">
+                      ${fn:length(experimentsTableModel.reportedResults[experiment])}
                     </a>
                   </td>
                   <td class="col-3">
-                    ${experimentsTableModel.reportedResults[experiment].added}
+                    <c:choose>
+                    <c:when test="${empty experimentsTableModel.lastReportUpdated[experiment]}">
+                    –
+                    </c:when>
+                    <c:otherwise>
+                    <fmt:formatDate value="${experimentsTableModel.lastReportUpdated[experiment]}"
+                      dateStyle="short" />
+                    </c:otherwise>
+                    </c:choose>
                   </td>
                   <td class="col-3">
-                    ${experimentsTableModel.reportedResults[experiment].score}
+                   <c:if test="${not empty experimentsTableModel.totalReportScore[experiment]}">
+                      ${experimentsTableModel.totalReportScore[experiment]}
+                    </c:if>
+                    <c:if test="${empty experimentsTableModel.totalReportScore[experiment]}">
+                      —
+                    </c:if>
                   </td>
                 </tr>
                 </c:forEach>
