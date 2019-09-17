@@ -1,4 +1,4 @@
-package labvision;
+package labvision.viewmodels;
 
 import labvision.entities.Instructor;
 

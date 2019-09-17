@@ -20,6 +20,7 @@ import labvision.entities.Student;
 import labvision.viewmodels.ExperimentViewModel;
 import labvision.viewmodels.NavbarModel;
 import labvision.viewmodels.StudentDashboard;
+import labvision.viewmodels.StudentExperimentViewModel;
 import labvision.viewmodels.StudentExperimentsTableModel;
 
 public class StudentServlet extends HttpServlet {
@@ -121,36 +122,25 @@ public class StudentServlet extends HttpServlet {
 		Student student = (Student) session.getAttribute("user");
 		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId));
 		
-		ExperimentViewModel experimentViewModel = new ExperimentViewModel();
+		StudentExperimentViewModel experimentViewModel = new StudentExperimentViewModel();
 		
 		experimentViewModel.setMeasurementUnits(experiment.getMeasurements().stream()
 				.collect(Collectors.toMap(
 						Function.identity(),
-						m -> m.systemUnit())));
+						m -> m.systemUnit().getSymbol())));
 		experimentViewModel.setParameterUnits(experiment.getMeasurements().stream()
 				.flatMap(m -> m.getParameters().stream())
 				.collect(Collectors.toMap(
 						Function.identity(),
-						p -> p.systemUnit())));
+						p -> p.systemUnit().getSymbol())));
 		experimentViewModel.setMeasurementValues(experiment.getMeasurements().stream()
 				.collect(Collectors.toMap(
 						Function.identity(),
 						m -> dataAccess.getMeasurementValues(m, student))));
-		experimentViewModel.setParameterValues(experiment.getMeasurements().stream()
-				.flatMap(m -> m.getParameters().stream())
-				.collect(Collectors.toMap(
-						Function.identity(),
-						p -> dataAccess.getParameterValues(p, student))));
 		experimentViewModel.setReportDisplay(dataAccess.getReportedResults(experiment, student).stream()
 				.collect(Collectors.toMap(
 						Function.identity(),
-						rr -> {
-							if (Objects.isNull(rr.getReportDocument())) {
-								return rr.getReportDocument().getFilename();
-							} else {
-								return String.format("Report %d", rr.getId());
-							}
-						})));
+						ExperimentViewModel.REPORT_DISPLAY_FUNCTION)));
 		
 		request.setAttribute("experimentViewModel", experimentViewModel);
 		request.getRequestDispatcher("/WEB-INF/student/experiment.jsp").forward(request, response);

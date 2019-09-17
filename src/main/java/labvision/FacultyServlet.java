@@ -13,6 +13,11 @@ import javax.servlet.http.HttpSession;
 
 import labvision.entities.Experiment;
 import labvision.entities.Instructor;
+import labvision.entities.MeasurementValue;
+import labvision.utils.Pair;
+import labvision.viewmodels.ExperimentViewModel;
+import labvision.viewmodels.FacultyDashboardModel;
+import labvision.viewmodels.FacultyExperimentViewModel;
 import labvision.viewmodels.FacultyExperimentsTableModel;
 
 /**
@@ -118,9 +123,42 @@ public class FacultyServlet extends HttpServlet {
 		
 	}
 
-	private void doGetExperiment(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String string) {
-		// TODO Auto-generated method stub
+	private void doGetExperiment(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String experimentId) throws ServletException, IOException {
+		LabVisionDataAccess dataAccess = (LabVisionDataAccess)
+				getServletContext().getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
 		
+		Instructor instructor = (Instructor) session.getAttribute("user");
+		FacultyExperimentViewModel experimentViewModel = new FacultyExperimentViewModel();
+		
+		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId));
+		
+		experimentViewModel.setMeasurementUnits(experiment.getMeasurements().stream()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						m -> m.systemUnit().getSymbol())));
+		experimentViewModel.setParameterUnits(experiment.getMeasurements().stream()
+				.flatMap(m -> m.getParameters().stream())
+				.collect(Collectors.toMap(
+						Function.identity(),
+						p -> p.systemUnit().getSymbol())));
+		experimentViewModel.setMeasurementValues(experiment.getMeasurements().stream()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						m -> m.getValues().stream()
+							.collect(Collectors.groupingBy(
+									MeasurementValue::getCourseClass,
+									Collectors.groupingBy(
+											MeasurementValue::getStudent)
+									))
+						)));
+		experimentViewModel.setReportDisplay(dataAccess.getReportedResults(experiment, instructor).stream()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						ExperimentViewModel.REPORT_DISPLAY_FUNCTION)));
+		
+		req.setAttribute("experiment", experiment);
+		req.setAttribute("experimentViewModel", experimentViewModel);
+		req.getRequestDispatcher("/WEB-INF/faculty/experiment.jsp").forward(req, resp);
 	}
 
 	private void doGetExperiments(HttpServletRequest req, HttpServletResponse resp, HttpSession session) {

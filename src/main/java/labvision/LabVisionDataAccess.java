@@ -2,6 +2,7 @@ package labvision;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ import javax.persistence.criteria.Selection;
 import labvision.entities.Course;
 import labvision.entities.Device;
 import labvision.entities.Experiment;
+import labvision.entities.Instructor;
 import labvision.entities.LabVisionEntity;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
@@ -187,7 +189,7 @@ public class LabVisionDataAccess {
 				manager,
 				experiment, 
 				student, 
-				cb -> (rr -> (s -> (e -> cb.greatest(rr.get("added"))))),
+				cb -> (rr -> (s -> (e -> cb.greatest(rr.<LocalDateTime>get("added"))))),
 				"experiment",
 				ReportedResult.class,
 				LocalDateTime.class);
@@ -268,5 +270,10 @@ public class LabVisionDataAccess {
 		return scores.stream()
 				.reduce(BigDecimal.ZERO, (s1, s2) -> s1.add(s2))
 				.divide(BigDecimal.valueOf(scores.size()));
+	}
+
+	public List<ReportedResult> getReportedResults(Experiment experiment, Instructor instructor) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

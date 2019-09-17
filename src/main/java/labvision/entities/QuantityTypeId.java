@@ -56,9 +56,8 @@ public enum QuantityTypeId {
 		this.quantityClass = quantityClass;
 	}
 	
-	@SuppressWarnings("unchecked")
-	public Class<? extends Quantity<?>> getQuantityClass() {
-		return quantityClass == null ? (Class<? extends Quantity<?>>) Quantity.class : quantityClass;
+	public Class<?> getQuantityClass() {
+		return quantityClass == null ? Quantity.class : quantityClass;
 	}
 	
 	public static QuantityTypeId of(Class<?> quantityClass) {
