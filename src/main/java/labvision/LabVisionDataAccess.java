@@ -136,7 +136,7 @@ public class LabVisionDataAccess {
 		EntityManager manager = entityManagerFactory.createEntityManager();
 		
 		TypedQuery<Object[]> query = manager.createQuery(
-				"SELECT DISTINCT mv, mv.measurement.experiment " +
+				"SELECT DISTINCT mv, mv.variable.experiment " +
 		        "FROM MeasurementValue mv " +
 				"WHERE mv.student.id=:studentid " +
 		        "ORDER BY mv.taken DESC",
@@ -226,7 +226,7 @@ public class LabVisionDataAccess {
 						measurement,
 						student,
 						cb -> (mv -> (s -> (e -> mv))),
-						"measurement",
+						"variable",
 						MeasurementValue.class,
 						MeasurementValue.class);
 		
@@ -243,7 +243,7 @@ public class LabVisionDataAccess {
 						parameter,
 						student,
 						cb -> (mv -> (s -> (e -> mv))),
-						"parameter",
+						"variable",
 						ParameterValue.class,
 						ParameterValue.class);
 		
