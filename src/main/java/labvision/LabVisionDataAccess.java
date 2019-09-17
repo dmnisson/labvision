@@ -250,4 +250,23 @@ public class LabVisionDataAccess {
 		TypedQuery<ParameterValue> query = manager.createQuery(sesq.cq);
 		return query.getResultList();
 	}
+
+	public BigDecimal getAverageStudentReportScore(Experiment experiment) {
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		
+		CriteriaBuilder cb = manager.getCriteriaBuilder();
+		CriteriaQuery<BigDecimal> cq = cb.createQuery(BigDecimal.class);
+		Root<ReportedResult> rr = cq.from(ReportedResult.class);
+		Join<ReportedResult, Experiment> e = rr.join("reportedResults");
+		Join<ReportedResult, Student> s = rr.join("student");
+		cq.select(cb.sum(rr.get("score")))
+			.where(cb.equal(e.get("id"), experiment.getId()))
+			.groupBy(s);
+		
+		TypedQuery<BigDecimal> studentReportScoreQuery = manager.createQuery(cq);
+		List<BigDecimal> scores = studentReportScoreQuery.getResultList();
+		return scores.stream()
+				.reduce(BigDecimal.ZERO, (s1, s2) -> s1.add(s2))
+				.divide(BigDecimal.valueOf(scores.size()));
+	}
 }

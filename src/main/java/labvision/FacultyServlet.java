@@ -1,12 +1,19 @@
 package labvision;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import labvision.entities.Experiment;
+import labvision.entities.Instructor;
+import labvision.viewmodels.FacultyExperimentsTableModel;
 
 /**
  * Servlet for handling faculty endpoints
@@ -117,13 +124,27 @@ public class FacultyServlet extends HttpServlet {
 	}
 
 	private void doGetExperiments(HttpServletRequest req, HttpServletResponse resp, HttpSession session) {
-		// TODO Auto-generated method stub
+		LabVisionDataAccess dataAccess = (LabVisionDataAccess)
+				getServletContext().getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
 		
+		Instructor instructor = (Instructor) session.getAttribute("user");
+		FacultyExperimentsTableModel experimentsTableModel = new FacultyExperimentsTableModel();
+		
+		List<Experiment> experiments = instructor.getExperiments();
+		
+		experimentsTableModel.setAverageStudentScores(experiments.stream()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						e -> dataAccess.getAverageStudentReportScore(e))));
 	}
 
-	private void doGetDashboard(HttpServletRequest req, HttpServletResponse resp, HttpSession session) {
-		// TODO Auto-generated method stub
+	private void doGetDashboard(HttpServletRequest req, HttpServletResponse resp, HttpSession session) throws ServletException, IOException {
+		Instructor instructor = (Instructor) session.getAttribute("user");
+		FacultyDashboardModel dashboardModel = new FacultyDashboardModel();
+		dashboardModel.setInstructor(instructor);
 		
+		req.setAttribute("dashboardModel", dashboardModel);
+		req.getRequestDispatcher("/WEB-INF/faculty/dashboard.jsp").forward(req, resp);
 	}
 	
 	@Override

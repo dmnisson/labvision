@@ -37,7 +37,7 @@
                 ${fn:length(experiment.reportedResults)}
               </td>
               <td>
-                ${experimentsTableModel.averageStudentScore[experiment]}
+                ${experimentsTableModel.averageStudentScores[experiment]}
               </td>
             </tr>
             </c:forEach>

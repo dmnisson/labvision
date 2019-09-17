@@ -13,6 +13,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
@@ -34,6 +35,9 @@ public class Experiment implements LabVisionEntity {
 	@ManyToOne( fetch=FetchType.LAZY )
 	@JoinColumn( name="Course_id" )
 	private Course course;
+	
+	@ManyToMany( targetEntity=Instructor.class )
+	private List<Instructor> instructors;
 	
 	@OneToMany( mappedBy="experiment", targetEntity=Measurement.class )
 	private List<Measurement> measurements;

@@ -36,51 +36,13 @@
         <c:forEach var="measurement" items="${experiment.measurements}">
         <div class="tab-pane" id="measurement-${measurement.id}" role="tabpanel" aria-labelledby="measurement-${measurement.id}-tab">
           <form method="POST" action="/student/measurement/newvalue">
-	          <div class="table-responsive">
-	            <table class="table table-fixed">
-	              <thead>
-	                <tr>
-	                  <th scope="col">
-	                    ${measurement.name} (${experimentViewModel.measurementUnits[measurement]})
-	                  </th>
-	                  <c:forEach var="parameter" items="${measurement.parameters}">
-	                  <th scope="col">
-	                    ${parameter.name} (${experimentViewModel.parameterUnits[parameter]})
-	                  </th>
-	                  </c:forEach>
-	                  <th scope="col">Taken</th>
-	                </tr>
-	              </thead>
-	              <tbody>
-	                <c:forEach var="measurementValue" items="${experimentViewModel.measurementValues[measurement]}">
-	                <tr>
-	                  <td>${measurementValue.value}</td>
-	                  <c:forEach var="parameterValue" items="${experimentViewModel.parameterValues[measurementValue]}">
-	                  <td>
-	                    ${parameter.name} (${experimentViewModel.parameterUnits[parameter]})
-	                  </td>
-	                  </c:forEach>
-	                  <td>${measurementValue.taken}</td>
-	                </tr>
-	                </c:forEach>
-	              </tbody>
-	              <tfoot>
-	                <tr>
-	                 <td class="col">
-	                   <input class="form-control" id="measurementValueInput" name="measurementValue" type="number" step="any" />
-	                 </td>
-	                 <c:forEach var="parameter" items="${measurement.parameters}">
-	                 <td class="col">
-	                   <input class="form-control" id="parameterValueInput${parameter.id}" name="parameterValue${parameter.id}" type="number" step="any" />
-	                 </td>
-	                 </c:forEach>
-	                 <td class="col">
-	                   <button type="submit" class="btn btn-primary">Add</button>
-	                 </td>
-	                </tr>
-	              </tfoot>
-	            </table>
-	          </div>
+	          <t:measurementvaluestable
+	            measurement="${measurement}"
+	            measurementunitsymbol="${experimentViewModel.measurementUnits[measurement]}"
+	            parameterunitsymbols="${experimentViewModel.parameterUnits}"
+	            id="measurement-values-table"
+	            addnewform="true"
+	          />
           </form>
         </div>
         </c:forEach>

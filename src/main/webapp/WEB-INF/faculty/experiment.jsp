@@ -33,7 +33,7 @@
             <tr>
               <th scope="col">Class</th>
               <th scope="col">Student</th>
-              <th scope="col">Active</th>
+              <th scope="col">Active in Experiment</th>
             </tr>
           </thead>
           <tbody>
@@ -58,7 +58,6 @@
               </td>
             </tr>
             </c:forEach>
-            
             </c:forEach>
           </tbody>
         </table>
@@ -83,7 +82,18 @@
       </div>
       <div class="row">
         <div class="col">
-          <p class="text-center">Loading measurement values...</p>
+          <c:forEach var="courseClass" items="${experiment.course.courseClasses}">
+          <c:forEach var="student" items="${courseClass.students}">
+          <t:measurementvaluestable 
+            measurement="${measurement}"
+            measurementunitsymbol="${experimentViewModel.measurementUnits[measurement]}"
+            measurementvalues="${experimentViewModel.measurementValues[measurement][courseClass][student]}"
+            parameterunitsymbols="${experimentViewModel.parameterUnits}"
+            id="measurementValuesTable${measurement.id}-${courseClass.id}-${student.id}"
+            addnewform="false"
+          />
+          </c:forEach>
+          </c:forEach>
         </div>
       </div>
       </c:forEach>

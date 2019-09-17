@@ -27,6 +27,9 @@ public class CourseClass implements LabVisionEntity {
 	@ManyToMany( targetEntity=Student.class )
 	private List<Student> students;
 	
+	@ManyToMany( targetEntity=Instructor.class )
+	private List<Instructor> instructors;
+	
 	@OneToMany( mappedBy="courseClass", targetEntity=MeasurementValue.class )
 	private List<MeasurementValue> measurementValues;
 	
