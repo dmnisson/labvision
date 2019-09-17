@@ -19,6 +19,7 @@ import labvision.viewmodels.ExperimentViewModel;
 import labvision.viewmodels.FacultyDashboardModel;
 import labvision.viewmodels.FacultyExperimentViewModel;
 import labvision.viewmodels.FacultyExperimentsTableModel;
+import labvision.viewmodels.NavbarModel;
 
 /**
  * Servlet for handling faculty endpoints
@@ -161,7 +162,7 @@ public class FacultyServlet extends HttpServlet {
 		req.getRequestDispatcher("/WEB-INF/faculty/experiment.jsp").forward(req, resp);
 	}
 
-	private void doGetExperiments(HttpServletRequest req, HttpServletResponse resp, HttpSession session) {
+	private void doGetExperiments(HttpServletRequest req, HttpServletResponse resp, HttpSession session) throws ServletException, IOException {
 		LabVisionDataAccess dataAccess = (LabVisionDataAccess)
 				getServletContext().getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
 		
@@ -174,6 +175,9 @@ public class FacultyServlet extends HttpServlet {
 				.collect(Collectors.toMap(
 						Function.identity(),
 						e -> dataAccess.getAverageStudentReportScore(e))));
+		
+		req.setAttribute("experimentsTableModel", experimentsTableModel);
+		req.getRequestDispatcher("/WEB-INF/faculty/experiments.jsp").forward(req, resp);
 	}
 
 	private void doGetDashboard(HttpServletRequest req, HttpServletResponse resp, HttpSession session) throws ServletException, IOException {
@@ -337,7 +341,12 @@ public class FacultyServlet extends HttpServlet {
 	}
 
 	private void initFacultyNavbar(HttpServletRequest req) {
-		// TODO Auto-generated method stub
+		NavbarModel navbarModel = new NavbarModel();
+		
+		navbarModel.addNavLink("Dashboard", "/faculty/dashboard");
+		navbarModel.addNavLink("Experiments", "/faculty/experiments");
+		
+		req.setAttribute("navbarModel", navbarModel);
 	}
 
 	

@@ -25,6 +25,24 @@ public class AuthServlet extends HttpServlet {
 	 */
 	private static final long serialVersionUID = -4995588582328863103L;
 
+	private String dashboardRedirectFor(User user) {
+		String redirect;
+		switch (user.getRole()) {
+		case STUDENT:
+			redirect = "/student/dashboard";
+			break;
+		case FACULTY:
+			redirect = "/faculty/dashboard";
+			break;
+		case ADMIN:
+			redirect = "/admin/dashboard";
+			break;
+		default:
+			redirect = "/login";	
+		}
+		return redirect;
+	}
+	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -49,7 +67,7 @@ public class AuthServlet extends HttpServlet {
 				} else {
 					String redirect = req.getParameter("redirect");
 					if (Objects.isNull(redirect)) {
-						redirect = "/student/dashboard";
+						redirect = dashboardRedirectFor(user);
 					}
 					resp.sendRedirect(redirect);
 				}
@@ -118,7 +136,7 @@ public class AuthServlet extends HttpServlet {
 				
 				String redirect = req.getParameter("redirect");
 				if (Objects.isNull(redirect)) {
-					redirect = "/student/dashboard";
+					redirect = dashboardRedirectFor(user);
 				}
 				resp.sendRedirect(redirect);
 			}

@@ -3,10 +3,13 @@ package labvision.viewmodels;
 import labvision.entities.Instructor;
 
 public class FacultyDashboardModel {
-
-	public void setInstructor(Instructor instructor) {
-		// TODO Auto-generated method stub
-		
+	private Instructor instructor;
+	
+	public Instructor getInstructor() {
+		return instructor;
 	}
 
+	public void setInstructor(Instructor instructor) {
+		this.instructor = instructor;
+	}
 }
