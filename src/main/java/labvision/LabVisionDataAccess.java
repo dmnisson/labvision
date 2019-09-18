@@ -1,6 +1,7 @@
 package labvision;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -305,7 +306,7 @@ public class LabVisionDataAccess {
 		CriteriaBuilder cb = manager.getCriteriaBuilder();
 		CriteriaQuery<BigDecimal> cq = cb.createQuery(BigDecimal.class);
 		Root<ReportedResult> rr = cq.from(ReportedResult.class);
-		Join<ReportedResult, Experiment> e = rr.join("reportedResults");
+		Join<ReportedResult, Experiment> e = rr.join("experiment");
 		Join<ReportedResult, Student> s = rr.join("student");
 		cq.select(cb.sum(rr.get("score")))
 			.where(cb.equal(e.get("id"), experiment.getId()))
@@ -314,9 +315,10 @@ public class LabVisionDataAccess {
 		TypedQuery<BigDecimal> studentReportScoreQuery = manager.createQuery(cq);
 		List<BigDecimal> scores = studentReportScoreQuery.getResultList();
 		manager.close();
+		if (scores.isEmpty()) return null;
 		return scores.stream()
 				.reduce(BigDecimal.ZERO, (s1, s2) -> s1.add(s2))
-				.divide(BigDecimal.valueOf(scores.size()));
+				.divide(BigDecimal.valueOf(scores.size()), RoundingMode.HALF_UP);
 	}
 
 	public List<ReportedResult> getReportedResults(Experiment experiment, Instructor instructor) {

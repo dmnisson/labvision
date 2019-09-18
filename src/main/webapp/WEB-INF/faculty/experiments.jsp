@@ -37,7 +37,14 @@
                 ${fn:length(experiment.reportedResults)}
               </td>
               <td>
-                ${experimentsTableModel.averageStudentScores[experiment]}
+                <c:choose>
+	                <c:when test="${experimentsTableModel.averageStudentScores[experiment] eq null}">
+	                  —
+	                </c:when>
+	                <c:otherwise>
+	                  ${experimentsTableModel.averageStudentScores[experiment]}
+	                </c:otherwise>
+                </c:choose>
               </td>
             </tr>
             </c:forEach>

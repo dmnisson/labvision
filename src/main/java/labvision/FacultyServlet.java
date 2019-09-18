@@ -1,6 +1,7 @@
 package labvision;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -182,10 +183,11 @@ public class FacultyServlet extends HttpServlet {
 		List<Experiment> experiments = instructor.getExperiments();
 		
 		experimentsTableModel.setAverageStudentScores(experiments.stream()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						e -> dataAccess.getAverageStudentReportScore(e))));
+				.collect(HashMap::new,
+						(m, e) -> m.put(e, dataAccess.getAverageStudentReportScore(e)),
+						HashMap::putAll));
 		
+		req.setAttribute("experiments", experiments);
 		req.setAttribute("experimentsTableModel", experimentsTableModel);
 		req.getRequestDispatcher("/WEB-INF/faculty/experiments.jsp").forward(req, resp);
 	}

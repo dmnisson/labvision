@@ -15,4 +15,7 @@ public class FacultyExperimentsTableModel {
 		this.averageStudentScores.putAll(scores);
 	}
 
+	public Map<Experiment, BigDecimal> getAverageStudentScores() {
+		return averageStudentScores;
+	}
 }
