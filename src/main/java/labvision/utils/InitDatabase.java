@@ -60,6 +60,7 @@ public class InitDatabase {
 		EntityManager manager = emf.createEntityManager();
 		clearTable(CourseClass.class, manager);
 		clearTable(Measurement.class, manager);
+		clearTable(Student.class, manager);
 		clearTable(Experiment.class, manager);
 		clearTable(Course.class, manager);
 		clearTable(User.class, manager);
@@ -78,6 +79,7 @@ public class InitDatabase {
 		rodLengthExperiment.setDescription("Measure the rod length using the ruler the best that you can.");
 		rodLengthExperiment.setReportDueDate(LocalDateTime.of(2100, 1, 1, 0, 0));
 		student1.setActiveExperiments(Arrays.asList(rodLengthExperiment));
+		instructor1.setExperiments(Arrays.asList(rodLengthExperiment));
 		EntityTransaction tx1 = manager.getTransaction();
 		tx1.begin();
 		manager.persist(rodLengthExperiment);

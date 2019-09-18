@@ -18,7 +18,7 @@ public class Instructor extends User {
 	@ManyToMany( mappedBy="instructors" )
 	private List<CourseClass> courseClasses;
 	
-	@ManyToMany( mappedBy="instructors" )
+	@ManyToMany( targetEntity=Experiment.class )
 	private List<Experiment> experiments;
 	
 	@Override

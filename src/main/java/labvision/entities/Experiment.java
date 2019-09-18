@@ -37,7 +37,7 @@ public class Experiment implements LabVisionEntity {
 	@JoinColumn( name="Course_id" )
 	private Course course;
 	
-	@ManyToMany( targetEntity=Instructor.class )
+	@ManyToMany( mappedBy="experiments", targetEntity=Instructor.class )
 	private List<Instructor> instructors;
 	
 	@OneToMany( mappedBy="experiment", targetEntity=Measurement.class )
