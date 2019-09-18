@@ -4,8 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -13,7 +15,9 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
@@ -125,13 +129,32 @@ public class LabVisionDataAccess {
 		manager.persist(device);
 		manager.getTransaction().commit();
 		
+		manager.close();
+		
 		return device;
 	}
-
+	
 	public Experiment getExperiment(int id) {
+		return getExperiment(id, false);
+	}
+	
+	public Experiment getExperiment(int id, boolean prefetch) {
 		EntityManager manager = entityManagerFactory.createEntityManager();
+		CriteriaBuilder cb = manager.getCriteriaBuilder();
+		CriteriaQuery<Experiment> cq = cb.createQuery(Experiment.class);
+		Root<Experiment> e = cq.from(Experiment.class);
+		if (prefetch) {
+			e.fetch("course", JoinType.LEFT);
+			e.fetch("measurements", JoinType.LEFT).fetch("parameters", JoinType.LEFT);
+		}
+		cq.select(e).where(cb.equal(e.get("id"), id));
 		
-		return manager.find(Experiment.class, id);
+		TypedQuery<Experiment> query = manager.createQuery(cq);
+		Experiment exp = query.getSingleResult();
+		
+		manager.close();
+		
+		return exp;
 	}
 	
 	public List<Experiment> getRecentExperiments(Student student) {
@@ -144,9 +167,13 @@ public class LabVisionDataAccess {
 		        "ORDER BY mv.taken DESC",
 				Object[].class);
 		query.setParameter("studentid", student.getId());
-		return query.getResultList().stream()
+		List<Experiment> resultList = query.getResultList().stream()
 				.map(row -> (Experiment) row[1])
 				.collect(Collectors.toList());
+		
+		manager.close();
+		
+		return resultList;
 	}
 
 	public List<Course> getRecentCourses(Student student) {
@@ -159,9 +186,13 @@ public class LabVisionDataAccess {
 				        "ORDER BY mv.taken DESC",
 				Object[].class);
 		query.setParameter("studentid", student.getId());
-		return query.getResultList().stream()
+		List<Course> courses = query.getResultList().stream()
 				.map(row -> (Course) row[1])
 				.collect(Collectors.toList());
+		
+		manager.close();
+		
+		return courses;
 	}
 
 	public List<ReportedResult> getReportedResults(Experiment experiment, Student student) {
@@ -178,7 +209,11 @@ public class LabVisionDataAccess {
 				ReportedResult.class);
 		
 		TypedQuery<ReportedResult> query = manager.createQuery(sesq.cq);
-		return query.getResultList();
+		List<ReportedResult> reportedResults = query.getResultList();
+		
+		manager.close();
+		
+		return reportedResults;
 	}
 
 	public LocalDateTime getLastReportUpdated(Experiment experiment, Student student) {
@@ -197,6 +232,9 @@ public class LabVisionDataAccess {
 		
 		TypedQuery<LocalDateTime> query = manager.createQuery(sesq.cq);
 		List<LocalDateTime> resultList = query.getResultList();
+		
+		manager.close();
+		
 		return resultList.isEmpty() ? null : resultList.get(0);
 	}
 
@@ -216,6 +254,9 @@ public class LabVisionDataAccess {
 		
 		TypedQuery<BigDecimal> query = manager.createQuery(sesq.cq);
 		List<BigDecimal> resultList = query.getResultList();
+		
+		manager.close();
+		
 		return resultList.isEmpty() ? null : resultList.get(0);
 	}
 
@@ -233,7 +274,9 @@ public class LabVisionDataAccess {
 						MeasurementValue.class);
 		
 		TypedQuery<MeasurementValue> query = manager.createQuery(sesq.cq);
-		return query.getResultList();
+		List<MeasurementValue> resultList = query.getResultList();
+		manager.close();
+		return resultList;
 	}
 
 	public List<ParameterValue> getParameterValues(Parameter parameter, Student student) {
@@ -250,7 +293,9 @@ public class LabVisionDataAccess {
 						ParameterValue.class);
 		
 		TypedQuery<ParameterValue> query = manager.createQuery(sesq.cq);
-		return query.getResultList();
+		List<ParameterValue> resultList = query.getResultList();
+		manager.close();
+		return resultList;
 	}
 
 	public BigDecimal getAverageStudentReportScore(Experiment experiment) {
@@ -267,6 +312,7 @@ public class LabVisionDataAccess {
 		
 		TypedQuery<BigDecimal> studentReportScoreQuery = manager.createQuery(cq);
 		List<BigDecimal> scores = studentReportScoreQuery.getResultList();
+		manager.close();
 		return scores.stream()
 				.reduce(BigDecimal.ZERO, (s1, s2) -> s1.add(s2))
 				.divide(BigDecimal.valueOf(scores.size()));

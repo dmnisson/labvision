@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -127,9 +129,15 @@ public class FacultyServlet extends HttpServlet {
 	private void doGetExperiment(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String experimentId) throws ServletException, IOException {
 		LabVisionDataAccess dataAccess = (LabVisionDataAccess)
 				getServletContext().getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
+		EntityManagerFactory emf = (EntityManagerFactory)
+				getServletContext().getAttribute(LabVisionServletContextListener.ENTITY_MANAGER_FACTORY_ATTR);
+		
 		
 		Instructor instructor = (Instructor) session.getAttribute("user");
 		FacultyExperimentViewModel experimentViewModel = new FacultyExperimentViewModel();
+		
+		// needed for lazy loading of measurements
+		EntityManager manager = emf.createEntityManager();
 		
 		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId));
 		
@@ -156,6 +164,8 @@ public class FacultyServlet extends HttpServlet {
 				.collect(Collectors.toMap(
 						Function.identity(),
 						ExperimentViewModel.REPORT_DISPLAY_FUNCTION)));
+		
+		manager.close();
 		
 		req.setAttribute("experiment", experiment);
 		req.setAttribute("experimentViewModel", experimentViewModel);

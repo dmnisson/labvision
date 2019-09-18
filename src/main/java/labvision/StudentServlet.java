@@ -1,12 +1,16 @@
 package labvision;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -15,6 +19,7 @@ import javax.servlet.http.HttpSession;
 
 import labvision.entities.PersistableAmount;
 import labvision.entities.Experiment;
+import labvision.entities.Measurement;
 import labvision.entities.Parameter;
 import labvision.entities.Student;
 import labvision.viewmodels.ExperimentViewModel;
@@ -118,22 +123,27 @@ public class StudentServlet extends HttpServlet {
 			String experimentId) throws ServletException, IOException {
 		LabVisionDataAccess dataAccess = (LabVisionDataAccess) getServletContext()
 				.getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
+		EntityManagerFactory emf = (EntityManagerFactory) getServletContext()
+				.getAttribute(LabVisionServletContextListener.ENTITY_MANAGER_FACTORY_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
-		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId));
+		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId), true);
+		List<Measurement> measurements = experiment.getMeasurements().stream()
+				.collect(Collectors.toCollection(ArrayList::new));
 		
 		StudentExperimentViewModel experimentViewModel = new StudentExperimentViewModel();
 		
-		experimentViewModel.setMeasurementUnits(experiment.getMeasurements().stream()
+		// needed for lazy loading of measurements
+		experimentViewModel.setMeasurementUnits(measurements.stream()
 				.collect(Collectors.toMap(
 						Function.identity(),
 						m -> m.systemUnit().getSymbol())));
-		experimentViewModel.setParameterUnits(experiment.getMeasurements().stream()
+		experimentViewModel.setParameterUnits(measurements.stream()
 				.flatMap(m -> m.getParameters().stream())
 				.collect(Collectors.toMap(
 						Function.identity(),
 						p -> p.systemUnit().getSymbol())));
-		experimentViewModel.setMeasurementValues(experiment.getMeasurements().stream()
+		experimentViewModel.setMeasurementValues(measurements.stream()
 				.collect(Collectors.toMap(
 						Function.identity(),
 						m -> dataAccess.getMeasurementValues(m, student))));

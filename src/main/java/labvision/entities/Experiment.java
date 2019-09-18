@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -40,7 +41,7 @@ public class Experiment implements LabVisionEntity {
 	private List<Instructor> instructors;
 	
 	@OneToMany( mappedBy="experiment", targetEntity=Measurement.class )
-	private List<Measurement> measurements;
+	private Set<Measurement> measurements;
 	
 	@OneToMany
 	@JoinColumn( name="accepted_experiment_id" )
@@ -79,11 +80,11 @@ public class Experiment implements LabVisionEntity {
 		this.course = course;
 	}
 
-	public List<Measurement> getMeasurements() {
+	public Set<Measurement> getMeasurements() {
 		return measurements;
 	}
 
-	public void setMeasurements(List<Measurement> measurements) {
+	public void setMeasurements(Set<Measurement> measurements) {
 		this.measurements = measurements;
 	}
 
