@@ -77,6 +77,11 @@ public class InitDatabase {
 		rodLengthExperiment.setName("How Long is the Rod?");
 		rodLengthExperiment.setDescription("Measure the rod length using the ruler the best that you can.");
 		rodLengthExperiment.setReportDueDate(LocalDateTime.of(2100, 1, 1, 0, 0));
+		student1.setActiveExperiments(Arrays.asList(rodLengthExperiment));
+		EntityTransaction tx1 = manager.getTransaction();
+		tx1.begin();
+		manager.persist(rodLengthExperiment);
+		tx1.commit();
 		
 		// course
 		Course course = new Course();
@@ -117,7 +122,7 @@ public class InitDatabase {
 		tx.begin();
 		
 		manager.persist(course);
-		manager.persist(rodLengthExperiment);
+		manager.merge(rodLengthExperiment);
 		manager.persist(rodLengthMeasurement);
 		manager.persist(courseClass);
 		

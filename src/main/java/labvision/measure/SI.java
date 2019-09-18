@@ -1,13 +1,16 @@
 package labvision.measure;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.measure.Dimension;
+import javax.measure.Quantity;
 import javax.measure.Unit;
+import javax.measure.spi.SystemOfUnits;
 
 import tec.units.ri.AbstractSystemOfUnits;
 import tec.units.ri.AbstractUnit;
@@ -46,7 +49,30 @@ public class SI extends AbstractSystemOfUnits {
 				.filter(u -> u.getDimension() == dimension))
 				.collect(Collectors.toSet());
 	}
-
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	public <Q extends Quantity<Q>> Unit<Q> getUnit(Class<Q> quantityType) {
+		final SystemOfUnits unitsInstance = Units.getInstance();
+		Unit<Q> unit = unitsInstance.getUnit(quantityType);
+		
+		if (unit == null) {
+			try {
+				Map<? extends Dimension, Integer> baseDimensions = quantityType.newInstance().getUnit()
+						.getDimension().getBaseDimensions();
+				if (baseDimensions == null) unit = null;
+				unit = baseDimensions.entrySet().stream()
+						.filter(e -> !unitsInstance.getUnits(e.getKey()).isEmpty())
+						.<Unit>map(e -> unitsInstance.getUnits(e.getKey()).stream()
+								.findAny().get().pow(e.getValue()))
+						.reduce(AbstractUnit.ONE, (u1, u2) -> u1.multiply(u2));
+			} catch (InstantiationException | IllegalAccessException e) {
+				unit = null;
+			}
+		}
+		return unit;
+	}
+	
 	/**
 	 * Creates a new derived SI unit with the given dimension
 	 * @param dimension the dimension

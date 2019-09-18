@@ -142,6 +142,7 @@ public class StudentServlet extends HttpServlet {
 						Function.identity(),
 						ExperimentViewModel.REPORT_DISPLAY_FUNCTION)));
 		
+		request.setAttribute("experiment", experiment);
 		request.setAttribute("experimentViewModel", experimentViewModel);
 		request.getRequestDispatcher("/WEB-INF/student/experiment.jsp").forward(request, response);
 	}
