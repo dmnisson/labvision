@@ -52,7 +52,7 @@ public class Experiment implements LabVisionEntity {
 	private List<Result> obtainedResults;
 	
 	@OneToMany( mappedBy="experiment", targetEntity=ReportedResult.class )
-	private List<ReportedResult> reportedResults;
+	private Set<ReportedResult> reportedResults;
 	
 	private LocalDateTime reportDueDate;
 
@@ -120,11 +120,11 @@ public class Experiment implements LabVisionEntity {
 		this.reportDueDate = reportDueDate;
 	}
 
-	public List<ReportedResult> getReportedResults() {
+	public Set<ReportedResult> getReportedResults() {
 		return reportedResults;
 	}
 	
-	public void setReportedResults(List<ReportedResult> reportedResults) {
+	public void setReportedResults(Set<ReportedResult> reportedResults) {
 		this.reportedResults = reportedResults;
 	}
 	

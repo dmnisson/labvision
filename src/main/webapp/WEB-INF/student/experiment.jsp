@@ -1,6 +1,7 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/fmt" prefix = "fmt" %>
+<%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
@@ -49,7 +50,6 @@
       </div>
     </div>
   </div>
-  <%--
   <div class="row" id="reports">
     <div class="col">
       <h2>Reports</h2>
@@ -76,7 +76,7 @@
                 <a href="/student/report/${report.id}">${experimentViewModel.reportDisplay[report]}</a>
               </td>
               <td class="col-6">
-                <fmt:formatDate type="both" value="${report.added}" dateStyle="short" timeStyle="short" />
+                <javatime:format value="${report.added}" style="SS" />
               </td>
             </tr>
             </c:forEach>
@@ -91,10 +91,9 @@
       <a class="btn btn-primary" href="/student/report/new">Submit Report</a>
     </div>
     <div class="col-md-6">
-      <p>Report is due on ${experiment.reportDueDate}<fmt:formatDate type="date" value="${experiment.reportDueDate}" dateStyle="long" />.</p>
+      <p>Report is due on <javatime:format value="${experiment.reportDueDate}" style="L-" />.</p>
     </div>
   </div>
-  --%>
 </div>
 
 </t:userpage>

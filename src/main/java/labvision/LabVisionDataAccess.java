@@ -146,6 +146,7 @@ public class LabVisionDataAccess {
 		if (prefetch) {
 			e.fetch("course", JoinType.LEFT);
 			e.fetch("measurements", JoinType.LEFT).fetch("parameters", JoinType.LEFT);
+			e.fetch("reportedResults", JoinType.LEFT);
 		}
 		cq.select(e).where(cb.equal(e.get("id"), id));
 		
