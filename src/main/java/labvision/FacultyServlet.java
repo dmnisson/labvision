@@ -346,6 +346,8 @@ public class FacultyServlet extends HttpServlet {
 		navbarModel.addNavLink("Dashboard", "/faculty/dashboard");
 		navbarModel.addNavLink("Experiments", "/faculty/experiments");
 		
+		navbarModel.setLogoutLink("/logout");
+		
 		req.setAttribute("navbarModel", navbarModel);
 	}
 

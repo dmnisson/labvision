@@ -17,7 +17,7 @@
       <c:if test="${empty experiments}">
       <p>No experiments to display.</p>
       </c:if>
-      <c:if test="${not experiments}">
+      <c:if test="${not empty experiments}">
       <div class="table-responsive">
         <table class="table table-fixed">
           <thead>
