@@ -2,6 +2,7 @@ package labvision;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -174,13 +175,13 @@ public class StudentServlet extends HttpServlet {
 						Function.identity(),
 						e -> dataAccess.getReportedResults(e, student))));
 		experimentsTableModel.setLastReportUpdated(experimentsStream.get()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						e -> dataAccess.getLastReportUpdated(e, student))));
+				.collect(HashMap::new,
+						(m, e) -> m.put(e, dataAccess.getLastReportUpdated(e, student)),
+						HashMap::putAll));
 		experimentsTableModel.setTotalReportScore(experimentsStream.get()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						e -> dataAccess.getTotalReportScore(e, student))));
+				.collect(HashMap::new,
+						(m, e) -> m.put(e, dataAccess.getTotalReportScore(e, student)),
+						HashMap::putAll));
 		
 		request.setAttribute("experimentsTableModel", experimentsTableModel);
 		request.getRequestDispatcher("/WEB-INF/student/experiments.jsp").forward(request, response);

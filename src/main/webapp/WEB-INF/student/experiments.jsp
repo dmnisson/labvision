@@ -2,6 +2,7 @@
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/fmt" prefix = "fmt" %>
+<%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <t:userpage title="Experiments">
@@ -45,17 +46,16 @@
 	                  <a href="/student/experiment/${experiment.id}">${experiment.name}</a>
 	                </td>
 	                <td class="col-3">
-	                  <fmt:formatDate value="${experiment.reportDueDate}" dateStyle="short"></fmt:formatDate>
+	                  <javatime:format value="${experiment.reportDueDate}" style="S-" />
 	                </td>
 	                <td class="col-3">
 	                  <c:if test="${not empty experimentsTableModel.reportedResults[experiment]}">
 	                    <a href="/student/experiment/${experiment.id}#reports">
-	                      Last updated <fmt:formatDate value="${experimentsTableModel.lastReportUpdated[experiment]}"
-	                         dateStyle="short"></fmt:formatDate>
+	                      Last updated <javatime:format value="${experimentsTableModel.lastReportUpdated[experiment]}" style="S-" />
 	                    </a>
 	                  </c:if>
 	                  <c:if test="${empty experimentsTableModel.reportedResults[experiment]}">
-	                    <a href="/student/report/new">Submit</a>
+	                    <a href="/student/report/new" class="btn btn-primary">Submit</a>
 	                  </c:if>
 	                </td>
 	                <td class="col-3">
