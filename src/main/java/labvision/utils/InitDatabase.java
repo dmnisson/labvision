@@ -9,11 +9,14 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.Root;
 
 import labvision.LabVisionConfig;
 import labvision.LabVisionDataAccess;
 import labvision.entities.Instructor;
 import labvision.entities.Student;
+import labvision.entities.User;
 
 /**
  * Initialize the database with test users
@@ -45,9 +48,13 @@ public class InitDatabase {
 		
 		// clear users
 		EntityManager manager = emf.createEntityManager();
+		CriteriaBuilder cb = manager.getCriteriaBuilder();
+		CriteriaDelete<User> cd = cb.createCriteriaDelete(User.class);
+		cd.from(User.class);
+		
 		EntityTransaction tx = manager.getTransaction();
 		tx.begin();
-		manager.createQuery("DELETE FROM User").executeUpdate();
+		manager.createQuery(cd).executeUpdate();
 		tx.commit();
 		
 		LabVisionDataAccess dataAccess = new LabVisionDataAccess(emf);
