@@ -23,16 +23,25 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
 import labvision.entities.Course;
+import labvision.entities.CourseClass;
+import labvision.entities.CourseClass_;
+import labvision.entities.Course_;
 import labvision.entities.Device;
 import labvision.entities.Experiment;
+import labvision.entities.Experiment_;
 import labvision.entities.Instructor;
+import labvision.entities.Instructor_;
 import labvision.entities.LabVisionEntity;
 import labvision.entities.Measurement;
+import labvision.entities.Measurement_;
 import labvision.entities.MeasurementValue;
+import labvision.entities.MeasurementValue_;
 import labvision.entities.Parameter;
 import labvision.entities.ParameterValue;
 import labvision.entities.ReportedResult;
+import labvision.entities.ReportedResult_;
 import labvision.entities.Student;
+import labvision.entities.Student_;
 import labvision.entities.User;
 
 /**
@@ -136,23 +145,46 @@ public class LabVisionDataAccess {
 	}
 	
 	public Experiment getExperiment(int id) {
-		return getExperiment(id, false);
+		return getExperiment(id, ExperimentPrefetch.NO_PREFETCH);
 	}
 	
-	public Experiment getExperiment(int id, boolean prefetch) {
+	public Experiment getExperiment(int id, ExperimentPrefetch prefetch) {
 		EntityManager manager = entityManagerFactory.createEntityManager();
 		CriteriaBuilder cb = manager.getCriteriaBuilder();
 		CriteriaQuery<Experiment> cq = cb.createQuery(Experiment.class);
 		Root<Experiment> e = cq.from(Experiment.class);
-		if (prefetch) {
-			e.fetch("course", JoinType.LEFT);
-			e.fetch("measurements", JoinType.LEFT).fetch("parameters", JoinType.LEFT);
-			e.fetch("reportedResults", JoinType.LEFT);
+		Fetch<Experiment, Measurement> m = null;
+		if (!prefetch.equals(ExperimentPrefetch.NO_PREFETCH)) {
+			e.fetch(Experiment_.course, JoinType.LEFT);
+			m = e.fetch(Experiment_.measurements, JoinType.LEFT);
+			m.fetch(Measurement_.parameters, JoinType.LEFT);
+			e.fetch(Experiment_.reportedResults, JoinType.LEFT);
 		}
 		cq.select(e).where(cb.equal(e.get("id"), id));
 		
 		TypedQuery<Experiment> query = manager.createQuery(cq);
 		Experiment exp = query.getSingleResult();
+		
+		// fetch course classes ans students after initial query to avoid Cartesian product
+		if (!prefetch.equals(ExperimentPrefetch.NO_PREFETCH)) {
+			exp.getCourse().getCourseClasses().size();
+			exp.getCourse().getCourseClasses().stream()
+				.forEach(courseClass -> {
+					courseClass.getStudents().size();
+				});
+		}
+		
+		if (m != null && prefetch.equals(ExperimentPrefetch.PREFETCH_VALUES)) {
+			// fetch values after the initial query to avoid Cartesian product
+			exp.getMeasurements().stream()
+				.flatMap(measurement -> {
+					measurement.getValues().size();
+					return measurement.getValues().stream();
+				})
+				.forEach(value -> {
+					value.getParameterValues().size();
+				});
+		}
 		
 		manager.close();
 		
@@ -322,7 +354,23 @@ public class LabVisionDataAccess {
 	}
 
 	public List<ReportedResult> getReportedResults(Experiment experiment, Instructor instructor) {
-		// TODO Auto-generated method stub
-		return null;
+		EntityManager manager = entityManagerFactory.createEntityManager();
+		CriteriaBuilder cb = manager.getCriteriaBuilder();
+		
+		CriteriaQuery<ReportedResult> cq = cb.createQuery(ReportedResult.class);
+		Root<ReportedResult> rr = cq.from(ReportedResult.class);
+		Join<ReportedResult, Experiment> e = rr.join(ReportedResult_.experiment);
+		Join<ReportedResult, Student> s = rr.join(ReportedResult_.student);
+		Join<Student, CourseClass> cc = s.join(Student_.courseClasses);
+		Join<CourseClass, Instructor> i = cc.join(CourseClass_.instructors);
+		cq.select(rr).where(cb.and(
+				cb.equal(e.get(Experiment_.id), experiment.getId()),
+				cb.equal(i.get(Instructor_.id), instructor.getId())
+				));
+		
+		TypedQuery<ReportedResult> query = manager.createQuery(cq);
+		List<ReportedResult> reportedResults = query.getResultList();
+		manager.close();
+		return reportedResults;
 	}
 }

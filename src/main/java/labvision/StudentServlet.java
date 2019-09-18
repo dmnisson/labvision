@@ -128,7 +128,7 @@ public class StudentServlet extends HttpServlet {
 				.getAttribute(LabVisionServletContextListener.ENTITY_MANAGER_FACTORY_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
-		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId), true);
+		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId), ExperimentPrefetch.PREFETCH_NO_VALUES);
 		List<Measurement> measurements = experiment.getMeasurements().stream()
 				.collect(Collectors.toCollection(ArrayList::new));
 		

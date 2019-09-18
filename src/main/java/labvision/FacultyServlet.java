@@ -3,6 +3,7 @@ package labvision;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -140,7 +141,7 @@ public class FacultyServlet extends HttpServlet {
 		// needed for lazy loading of measurements
 		EntityManager manager = emf.createEntityManager();
 		
-		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId));
+		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId), ExperimentPrefetch.PREFETCH_VALUES);
 		
 		experimentViewModel.setMeasurementUnits(experiment.getMeasurements().stream()
 				.collect(Collectors.toMap(
@@ -162,9 +163,9 @@ public class FacultyServlet extends HttpServlet {
 									))
 						)));
 		experimentViewModel.setReportDisplay(dataAccess.getReportedResults(experiment, instructor).stream()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						ExperimentViewModel.REPORT_DISPLAY_FUNCTION)));
+				.collect(HashMap::new,
+						(m, rr) -> m.put(rr, ExperimentViewModel.REPORT_DISPLAY_FUNCTION.apply(rr)),
+						HashMap::putAll));
 		
 		manager.close();
 		
@@ -180,7 +181,7 @@ public class FacultyServlet extends HttpServlet {
 		Instructor instructor = (Instructor) session.getAttribute("user");
 		FacultyExperimentsTableModel experimentsTableModel = new FacultyExperimentsTableModel();
 		
-		List<Experiment> experiments = instructor.getExperiments();
+		Set<Experiment> experiments = instructor.getExperiments();
 		
 		experimentsTableModel.setAverageStudentScores(experiments.stream()
 				.collect(HashMap::new,

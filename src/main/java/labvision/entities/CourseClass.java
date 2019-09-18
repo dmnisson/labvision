@@ -1,6 +1,7 @@
 package labvision.entities;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -25,10 +26,10 @@ public class CourseClass implements LabVisionEntity {
 	private Course course;
 	
 	@ManyToMany( targetEntity=Student.class )
-	private List<Student> students;
+	private Set<Student> students;
 	
 	@ManyToMany( targetEntity=Instructor.class )
-	private List<Instructor> instructors;
+	private Set<Instructor> instructors;
 	
 	@OneToMany( mappedBy="courseClass", targetEntity=MeasurementValue.class )
 	private List<MeasurementValue> measurementValues;
@@ -57,11 +58,11 @@ public class CourseClass implements LabVisionEntity {
 		this.course = course;
 	}
 
-	public List<Student> getStudents() {
+	public Set<Student> getStudents() {
 		return students;
 	}
 
-	public void setStudents(List<Student> students) {
+	public void setStudents(Set<Student> students) {
 		this.students = students;
 	}
 
@@ -73,11 +74,11 @@ public class CourseClass implements LabVisionEntity {
 		this.measurementValues = measurementValues;
 	}
 
-	public List<Instructor> getInstructors() {
+	public Set<Instructor> getInstructors() {
 		return instructors;
 	}
 
-	public void setInstructors(List<Instructor> instructors) {
+	public void setInstructors(Set<Instructor> instructors) {
 		this.instructors = instructors;
 	}
 }

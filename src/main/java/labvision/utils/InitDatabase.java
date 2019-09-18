@@ -6,6 +6,9 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -79,7 +82,7 @@ public class InitDatabase {
 		rodLengthExperiment.setDescription("Measure the rod length using the ruler the best that you can.");
 		rodLengthExperiment.setReportDueDate(LocalDateTime.of(2100, 1, 1, 0, 0));
 		student1.setActiveExperiments(Arrays.asList(rodLengthExperiment));
-		instructor1.setExperiments(Arrays.asList(rodLengthExperiment));
+		instructor1.setExperiments(Stream.of(rodLengthExperiment).collect(Collectors.toSet()));
 		EntityTransaction tx1 = manager.getTransaction();
 		tx1.begin();
 		manager.persist(rodLengthExperiment);
@@ -94,8 +97,8 @@ public class InitDatabase {
 		CourseClass courseClass = new CourseClass();
 		courseClass.setName("Test Physics 101 Class");
 		courseClass.setCourse(course);
-		List<Student> courseClassStudents = Arrays.asList(student1);
-		List<Instructor> courseClassInstructors = Arrays.asList(instructor1);
+		Set<Student> courseClassStudents = Stream.of(student1).collect(Collectors.toSet());
+		Set<Instructor> courseClassInstructors = Stream.of(instructor1).collect(Collectors.toSet());
 		courseClass.setStudents(courseClassStudents);
 		courseClass.setInstructors(courseClassInstructors);
 		

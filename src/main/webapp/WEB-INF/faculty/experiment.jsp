@@ -45,7 +45,7 @@
             <c:forEach var="student" items="${courseClass.students}">
             <tr data-toggle="collapse" id="student${student.id}">
               <td></td>
-              <td>${student.name}</td>
+              <td>${empty student.name ? student.username : student.name}</td>
               <td>
               <c:choose>
               <c:when test="${fn:contains(courseClass.students, student)}">

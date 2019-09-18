@@ -1,6 +1,7 @@
 package labvision.entities;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,10 +17,10 @@ public class Instructor extends User {
 	private String email;
 	
 	@ManyToMany( mappedBy="instructors" )
-	private List<CourseClass> courseClasses;
+	private Set<CourseClass> courseClasses;
 	
 	@ManyToMany( targetEntity=Experiment.class )
-	private List<Experiment> experiments;
+	private Set<Experiment> experiments;
 	
 	@Override
 	public UserRole getRole() {
@@ -42,19 +43,19 @@ public class Instructor extends User {
 		this.email = email;
 	}
 
-	public List<CourseClass> getCourseClasses() {
+	public Set<CourseClass> getCourseClasses() {
 		return courseClasses;
 	}
 
-	public void setCourseClasses(List<CourseClass> courseClasses) {
+	public void setCourseClasses(Set<CourseClass> courseClasses) {
 		this.courseClasses = courseClasses;
 	}
 
-	public List<Experiment> getExperiments() {
+	public Set<Experiment> getExperiments() {
 		return experiments;
 	}
 
-	public void setExperiments(List<Experiment> experiments) {
+	public void setExperiments(Set<Experiment> experiments) {
 		this.experiments = experiments;
 	}
 
