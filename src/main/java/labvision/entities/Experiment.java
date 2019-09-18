@@ -53,8 +53,7 @@ public class Experiment implements LabVisionEntity {
 	@OneToMany( mappedBy="experiment", targetEntity=ReportedResult.class )
 	private List<ReportedResult> reportedResults;
 	
-	@Temporal(TemporalType.DATE)
-	private Date reportDueDate;
+	private LocalDateTime reportDueDate;
 
 	public int getId() {
 		return id;
@@ -112,11 +111,11 @@ public class Experiment implements LabVisionEntity {
 		this.obtainedResults = obtainedResults;
 	}
 
-	public Date getReportDueDate() {
+	public LocalDateTime getReportDueDate() {
 		return reportDueDate;
 	}
 
-	public void setReportDueDate(Date reportDueDate) {
+	public void setReportDueDate(LocalDateTime reportDueDate) {
 		this.reportDueDate = reportDueDate;
 	}
 

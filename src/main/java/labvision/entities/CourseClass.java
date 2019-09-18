@@ -72,4 +72,12 @@ public class CourseClass implements LabVisionEntity {
 	public void setMeasurementValues(List<MeasurementValue> measurementValues) {
 		this.measurementValues = measurementValues;
 	}
+
+	public List<Instructor> getInstructors() {
+		return instructors;
+	}
+
+	public void setInstructors(List<Instructor> instructors) {
+		this.instructors = instructors;
+	}
 }

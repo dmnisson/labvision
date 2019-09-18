@@ -2,6 +2,7 @@ package labvision.entities;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javax.measure.Dimension;
 import javax.measure.Unit;
@@ -109,8 +110,13 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 	}
 	
 	public void updateDimensionObject(Dimension dimension) {
-		this.dimension = dimension.getBaseDimensions().entrySet().stream()
-				.map(e -> e.getKey().toString().substring(1, 2) + e.getValue())
-				.reduce("", (s1, s2) -> String.join(" ", s1, s2));
+		Map<? extends Dimension, Integer> baseDimensions = dimension.getBaseDimensions();
+		if (baseDimensions == null) {
+			this.dimension = dimension.toString().substring(1, 2) + "1";
+		} else {
+			this.dimension = baseDimensions.entrySet().stream()
+					.map(e -> e.getKey().toString().substring(1, 2) + e.getValue())
+					.reduce("", (s1, s2) -> String.join(" ", s1, s2));
+		}
 	}
 }
