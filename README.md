@@ -15,3 +15,12 @@ Instructors will be able to:
 * Compute results from students' measurements using an entered formula and compare it to students' obtained results
 * See results of all students and analyze deviations from accepted values classroom-wide
 * Retrieve submitted lab reports and score them using either a numeric system of points or a letter grade
+
+# Setup
+Although many of the pages in this project have not been completed, developers are welcome to test the current state on their system and contribute ideas for what has not yet been implemented. If you would like to do so, then all you need is Apache Maven 3.6.2 and JDK 1.8 or later.
+
+The quickest way to set up LabVision on your local system is to clone the repository, change to the directory where your clone is located, and run the command
+
+```
+mvn jetty:run
+```
