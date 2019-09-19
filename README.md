@@ -19,8 +19,12 @@ Instructors will be able to:
 # Setup
 Although many of the pages in this project have not been completed, developers are welcome to test the current state on their system and contribute ideas for what has not yet been implemented. If you would like to do so, then all you need is Apache Maven 3.6.2 and JDK 1.8 or later.
 
-The quickest way to set up LabVision on your local system is to clone the repository, change to the directory where your clone is located, and run the command
+The quickest way to set up LabVision on your local system is to clone the repository, and change to the directory where your clone is located. LabVision is configured to accept connections only on HTTPS, so you will need to generate a public and private key and put it into a keystore that you can install for testing
+
+Once you have the certificate and keys, you can run the command
 
 ```
 mvn jetty:run
 ```
+
+and then visit https://localhost:8443 in your browser to reach the home page.
