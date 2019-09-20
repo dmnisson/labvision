@@ -27,4 +27,9 @@ Once you have the certificate and keys, you can run the command
 mvn jetty:run
 ```
 
-and then visit https://localhost:8443 in your browser to reach the home page.
+and then visit https://localhost:8443 in your browser to reach the home page. However, this isn't very useful if you want to test the user pages. The default user accounts are:
+
+| Username      | Password      |
+|---------------|---------------|
+| `student1`    | `Password123` |
+| `instructor1` | `Password123` |
