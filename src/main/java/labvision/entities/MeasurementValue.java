@@ -36,7 +36,7 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 	
 	private PersistableAmount value;
 	
-	@Column( columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" )
+	@Column( insertable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" )
 	private LocalDateTime taken;
 	
 	@OneToMany( mappedBy="measurementValue", targetEntity=ParameterValue.class )
