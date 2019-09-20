@@ -67,7 +67,7 @@ public class AuthServlet extends HttpServlet {
 				} else {
 					String redirect = req.getParameter("redirect");
 					if (Objects.isNull(redirect)) {
-						redirect = dashboardRedirectFor(user);
+						redirect = req.getContextPath() + dashboardRedirectFor(user);
 					}
 					resp.sendRedirect(redirect);
 				}
@@ -92,7 +92,7 @@ public class AuthServlet extends HttpServlet {
 			doPostLogout(req, resp);
 			break;
 		default:
-			resp.sendRedirect("/login");
+			resp.sendRedirect(req.getContextPath() + "/login");
 		}
 	}
 
@@ -136,7 +136,7 @@ public class AuthServlet extends HttpServlet {
 				
 				String redirect = req.getParameter("redirect");
 				if (Objects.isNull(redirect)) {
-					redirect = dashboardRedirectFor(user);
+					redirect = req.getContextPath() + dashboardRedirectFor(user);
 				}
 				resp.sendRedirect(redirect);
 			}
@@ -155,6 +155,6 @@ public class AuthServlet extends HttpServlet {
 		HttpSession session = req.getSession();
 		session.invalidate();
 		
-		resp.sendRedirect("/login");
+		resp.sendRedirect(req.getContextPath() + "/login");
 	}
 }

@@ -2,7 +2,6 @@ package labvision.measure;
 
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -12,6 +11,8 @@ import javax.measure.Quantity;
 import javax.measure.Unit;
 import javax.measure.spi.SystemOfUnits;
 
+import labvision.entities.QuantityTypeId;
+import labvision.entities.Variable;
 import tec.units.ri.AbstractSystemOfUnits;
 import tec.units.ri.AbstractUnit;
 import tec.units.ri.unit.Units;
@@ -50,7 +51,6 @@ public class SI extends AbstractSystemOfUnits {
 				.collect(Collectors.toSet());
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public <Q extends Quantity<Q>> Unit<Q> getUnit(Class<Q> quantityType) {
 		final SystemOfUnits unitsInstance = Units.getInstance();
@@ -63,9 +63,10 @@ public class SI extends AbstractSystemOfUnits {
 				if (baseDimensions == null) unit = null;
 				unit = baseDimensions.entrySet().stream()
 						.filter(e -> !unitsInstance.getUnits(e.getKey()).isEmpty())
-						.<Unit>map(e -> unitsInstance.getUnits(e.getKey()).stream()
+						.<Unit<?>>map(e -> unitsInstance.getUnits(e.getKey()).stream()
 								.findAny().get().pow(e.getValue()))
-						.reduce(AbstractUnit.ONE, (u1, u2) -> u1.multiply(u2));
+						.reduce(AbstractUnit.ONE, Unit::multiply)
+						.asType(quantityType);
 			} catch (InstantiationException | IllegalAccessException e) {
 				unit = null;
 			}
@@ -76,18 +77,52 @@ public class SI extends AbstractSystemOfUnits {
 	/**
 	 * Creates a new derived SI unit with the given dimension
 	 * @param dimension the dimension
-	 * @return the derived unit
+	 * @return the derived unit, or the corresponding base unit if the dimension is a
+	 * base dimension, or null if no SI unit can be found for the given dimension
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Unit<?> makeDerivedUnit(Dimension dimension) {
-		Unit<?> derivedUnit = dimension.getBaseDimensions().entrySet().stream()
-				.<Unit>map(e -> Units.getInstance().getUnits(e.getKey()).stream()
-						.filter(u -> Objects.isNull(u.getBaseUnits()))
-						.findAny().orElseThrow(() -> new RuntimeException(
-								"cannot find SI unit for dimension " + dimension.toString()))
-						.pow(e.getValue()))
-				.reduce(AbstractUnit.ONE, Unit::multiply);
-		derivedUnits.add(derivedUnit);
-		return derivedUnit;
+	public Unit<?> makeOrGetUnit(Dimension dimension) {
+		Map<? extends Dimension, Integer> baseDimensions = dimension.getBaseDimensions();
+		if (baseDimensions == null) {
+			return Units.getInstance().getUnits(dimension).stream()
+					.filter(u -> u.getBaseUnits() == null)
+					.findAny().orElse(null);
+		}
+		
+	    try {
+			Unit<?> derivedUnit = baseDimensions.entrySet().stream()
+					.<Unit<?>>map(e -> {
+						Unit<?> baseUnit = makeOrGetUnit(e.getKey());
+						if (baseUnit == null) {
+							throw new NoSystemUnitFoundException(this, e.getKey());
+						}
+						return baseUnit.pow(e.getValue());
+					})
+					.reduce(AbstractUnit.ONE, Unit::multiply);
+			derivedUnits.add(derivedUnit);
+			return derivedUnit;
+	    } catch (NoSystemUnitFoundException e) {
+	    	return null;
+	    }
+	}
+
+	/**
+	 * Get the SI units for a given variable, based on the quantity type or
+	 * dimension if quantity type is unknown
+	 * @param variable
+	 * @param quantityType the quantity type expected for the variable
+	 * @return
+	 * @throws ClassCastException if the supplied quantity class does not match
+	 * the class of the quantity type
+	 */
+	public <Q extends Quantity<Q> > Unit<Q> getUnitFor(Variable<?, ?> variable, Class<Q> quantityType) {
+		QuantityTypeId quantityTypeId = variable.getQuantityTypeId();
+		if (quantityTypeId.equals(QuantityTypeId.UNKNOWN)) {
+			return makeOrGetUnit(variable.dimensionObject()).asType(quantityType);
+		} else {
+			// make sure we throw ClassCastException if there is a mismatch between
+			// the parameters and the stored variable's quantity type
+			quantityTypeId.getQuantityClass().getQuantityType().asSubclass(quantityType);
+			return getUnit(quantityType);
+		}
 	}
 }

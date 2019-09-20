@@ -138,20 +138,19 @@ public class FacultyServlet extends HttpServlet {
 		Instructor instructor = (Instructor) session.getAttribute("user");
 		FacultyExperimentViewModel experimentViewModel = new FacultyExperimentViewModel();
 		
-		// needed for lazy loading of measurements
-		EntityManager manager = emf.createEntityManager();
-		
 		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId), ExperimentPrefetch.PREFETCH_VALUES);
 		
 		experimentViewModel.setMeasurementUnits(experiment.getMeasurements().stream()
 				.collect(Collectors.toMap(
 						Function.identity(),
-						m -> m.systemUnit().getSymbol())));
+						m -> m.systemUnit(m.getQuantityTypeId().getQuantityClass().getQuantityType())
+							.getSymbol())));
 		experimentViewModel.setParameterUnits(experiment.getMeasurements().stream()
 				.flatMap(m -> m.getParameters().stream())
 				.collect(Collectors.toMap(
 						Function.identity(),
-						p -> p.systemUnit().getSymbol())));
+						p -> p.systemUnit(p.getQuantityTypeId().getQuantityClass().getQuantityType())
+						.getSymbol())));
 		experimentViewModel.setMeasurementValues(experiment.getMeasurements().stream()
 				.collect(Collectors.toMap(
 						Function.identity(),
@@ -167,8 +166,6 @@ public class FacultyServlet extends HttpServlet {
 						(m, rr) -> m.put(rr, ExperimentViewModel.REPORT_DISPLAY_FUNCTION.apply(rr)),
 						HashMap::putAll));
 		
-		manager.close();
-		
 		req.setAttribute("experiment", experiment);
 		req.setAttribute("experimentViewModel", experimentViewModel);
 		req.getRequestDispatcher("/WEB-INF/faculty/experiment.jsp").forward(req, resp);
@@ -178,7 +175,9 @@ public class FacultyServlet extends HttpServlet {
 		LabVisionDataAccess dataAccess = (LabVisionDataAccess)
 				getServletContext().getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
 		
-		Instructor instructor = (Instructor) session.getAttribute("user");
+		Instructor instructor = dataAccess.getInstructorWithExperiments(
+				((Instructor) session.getAttribute("user")).getId(),
+				true);
 		FacultyExperimentsTableModel experimentsTableModel = new FacultyExperimentsTableModel();
 		
 		Set<Experiment> experiments = instructor.getExperiments();

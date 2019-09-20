@@ -61,20 +61,19 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 		return sampleStandardDeviation;
 	}
 	
-	@SuppressWarnings("unchecked")
 	private <Q extends Quantity<Q>> Amount<Q> helpComputeAverage(Unit<Q> unit) {
 		Amount<Q> avg = this.values.stream()
-				.map(mv -> mv.getValue().asAmount(this, unit))
+				.map(mv -> mv.getValue().asAmount(unit))
 				.reduce(new Amount<>(0, 0, unit), (a1, a2) -> a1.add(a2))
 				.divideAmount(this.values.size());
 		this.mean = new PersistableAmount();
-		this.mean.setAmount(this, avg, (Class<Q>) getQuantityTypeId().getQuantityClass());
+		this.mean.setAmount(this, avg);
 		return avg;
 	}
 	
 	private <Q extends Quantity<Q>, V extends Quantity<V>> Amount<V> helpComputeVariance(Amount<Q> avg, Unit<V> varianceUnit) {
 		return this.values.stream()
-				.map(mv -> mv.getValue().asAmount(this, avg.getUnit()).subtract(avg))
+				.map(mv -> mv.getValue().asAmount(avg.getUnit()).subtract(avg))
 				.map(d -> {
 					Amount<?> d2 = d.multiply(d);
 					UnitConverter converter;
@@ -94,7 +93,6 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 				.reduce(new Amount<V>(0, 0, varianceUnit), (a1, a2) -> a1.add(a2));
 	}
 	
-	@SuppressWarnings("unchecked")
 	private <Q extends Quantity<Q>, V extends Quantity<V>> void helpComputeSampleStandardDeviation(
 			Amount<V> variance, Unit<Q> unit) {
 		Amount<Q> ssd = Amount.fromQuantity(
@@ -102,11 +100,11 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 						.divide(this.values.size() - 1)
 						.getValue(), unit), 0);
 		this.sampleStandardDeviation = new PersistableAmount();
-		this.sampleStandardDeviation.setAmount(this, ssd, (Class<Q>) getQuantityTypeId().getQuantityClass());
+		this.sampleStandardDeviation.setAmount(this, ssd);
 	}
 	
 	public void computeStatistics() {
-		Unit<?> systemUnit = systemUnit();
+		Unit<?> systemUnit = systemUnit(getQuantityTypeId().getQuantityClass().getQuantityType());
 		
 		if (this.values.size() > 0) {
 			Amount<?> avg = helpComputeAverage(systemUnit);

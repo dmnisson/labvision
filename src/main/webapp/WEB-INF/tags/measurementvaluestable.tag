@@ -25,10 +25,10 @@
     <tbody>
       <c:forEach var="measurementValue" items="${measurementvalues}">
       <tr>
-        <td class="col-3">${measurementValue.value} ± ${measurementValue.uncertainty}</td>
+        <td class="col-3">${measurementValue.value.value} ± ${measurementValue.value.uncertainty}</td>
         <c:forEach var="parameterValue" items="${measurementValue.parameterValues}">
         <td class="col-3">
-          ${parameterValue.value} ± ${parameterValue.uncertainty}
+          ${parameterValue.value.value} ± ${parameterValue.value.uncertainty}
         </td>
         </c:forEach>
         <td class="col-3">${measurementValue.taken}</td>
@@ -39,11 +39,25 @@
     <tfoot>
       <tr class="form-row">
        <td class="col-3">
-         <input class="form-control" id="measurementValueInput" name="measurementValue" type="number" step="any" />
+         <div class="form-row">
+           <div class="col">
+             <input class="form-control" id="measurementValueInput" name="measurementValue" type="number" step="any" />
+           </div>
+           <div class="col">
+             <input class="form-control" id="measurementUncertaintyInput" name="measurementUncertainty" type="number" step="any" />
+           </div>
+         </div>
        </td>
        <c:forEach var="parameter" items="${measurement.parameters}">
        <td class="col-3">
-         <input class="form-control" id="parameterValueInput${parameter.id}" name="parameterValue${parameter.id}" type="number" step="any" />
+         <div class="form-row">
+           <div class="col">
+             <input class="form-control" id="parameterValueInput${parameter.id}" name="parameterValue${parameter.id}" type="number" step="any" />
+           </div>
+           <div class="col">
+             <input class="form-control" id="parameterUncertaintyInput${parameter.id}" name="parameterUncertainty${parameter.id}" type="number" step="any" />
+           </div>
+         </div>
        </td>
        </c:forEach>
        <td class="col-3">

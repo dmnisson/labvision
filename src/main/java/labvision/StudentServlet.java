@@ -2,6 +2,7 @@ package labvision;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -10,6 +11,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.measure.Quantity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.servlet.ServletException;
@@ -19,10 +21,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import labvision.entities.PersistableAmount;
+import labvision.entities.Amount;
 import labvision.entities.Experiment;
 import labvision.entities.Measurement;
+import labvision.entities.MeasurementValue;
 import labvision.entities.Parameter;
 import labvision.entities.Student;
+import labvision.measure.SI;
 import labvision.viewmodels.ExperimentViewModel;
 import labvision.viewmodels.NavbarModel;
 import labvision.viewmodels.StudentDashboard;
@@ -134,16 +139,17 @@ public class StudentServlet extends HttpServlet {
 		
 		StudentExperimentViewModel experimentViewModel = new StudentExperimentViewModel();
 		
-		// needed for lazy loading of measurements
 		experimentViewModel.setMeasurementUnits(measurements.stream()
 				.collect(Collectors.toMap(
 						Function.identity(),
-						m -> m.systemUnit().getSymbol())));
+						m -> m.systemUnit(m.getQuantityTypeId().getQuantityClass().getQuantityType())
+							.getSymbol())));
 		experimentViewModel.setParameterUnits(measurements.stream()
 				.flatMap(m -> m.getParameters().stream())
 				.collect(Collectors.toMap(
 						Function.identity(),
-						p -> p.systemUnit().getSymbol())));
+						p -> p.systemUnit(p.getQuantityTypeId().getQuantityClass().getQuantityType())
+							.getSymbol())));
 		experimentViewModel.setMeasurementValues(measurements.stream()
 				.collect(Collectors.toMap(
 						Function.identity(),
@@ -195,10 +201,11 @@ public class StudentServlet extends HttpServlet {
 		
 		StudentDashboard dashboardModel = new StudentDashboard();
 			
-		Student student = (Student) session.getAttribute("user");
+		Student student = dataAccess.getStudentWithActiveExperiments(
+				((Student) session.getAttribute("user")).getId());
 		dashboardModel.setStudent(student);
 		dashboardModel.setCurrentExperiments(student.getActiveExperiments().stream()
-				.collect(Collectors.toMap(Experiment::getCourse, e -> e)));		
+				.collect(Collectors.toMap(Experiment::getCourse, Function.identity(), (e1, e2) -> e1)));		
 		dashboardModel.setRecentExperiments(dataAccess.getRecentExperiments(student));
 		dashboardModel.setRecentCourses(dataAccess.getRecentCourses(student));
 		dashboardModel.setMaxRecentExperiments(config.getStudentDashboardMaxRecentExperiments());
@@ -220,7 +227,7 @@ public class StudentServlet extends HttpServlet {
 			String[] pathParts = request.getPathInfo().split("/");
 			switch (pathParts[1]) {
 			case "measurement":
-				doPostMeasurement(request, response, session, pathParts[2]);
+				doPostMeasurement(request, response, session, Arrays.copyOfRange(pathParts, 2, pathParts.length));
 				break;
 			case "report":
 				doPostReport(request, response, session, pathParts[2]);
@@ -238,9 +245,37 @@ public class StudentServlet extends HttpServlet {
 	}
 
 	private void doPostMeasurement(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-			String string) {
-		// TODO Auto-generated method stub
+			String[] info) throws IOException {
+		LabVisionDataAccess dataAccess = (LabVisionDataAccess) 
+				getServletContext().getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
 		
+		Student student = (Student) session.getAttribute("user");
+		
+		switch (info[0]) {
+		case "newvalue":
+			Measurement measurement = dataAccess.getMeasurement(Integer.parseInt(info[1]), true, true, true);
+			MeasurementValue measurementValue = new MeasurementValue();
+			measurementValue.setStudent(student);
+			measurementValue.setCourseClass(
+					dataAccess.getCourseClass(
+							measurement.getExperiment()
+							.getCourse(), 
+							student));
+			measurementValue.setVariable(measurement);
+			PersistableAmount value = new PersistableAmount();
+			value.setAmount(measurement, new Amount<>(
+					Double.parseDouble(request.getParameter("measurementValue")),
+					Double.parseDouble(request.getParameter("measurementUncertainty")),
+					SI.getInstance().getUnitFor(measurement, measurement.getQuantityTypeId()
+							.getQuantityClass().getQuantityType())));
+			measurementValue.setValue(value);
+			
+			// TODO set parameter values as well
+			
+			dataAccess.addMeasurementValue(measurementValue);
+			
+			response.sendRedirect(request.getContextPath() + "/student/experiment/" + measurement.getExperiment().getId());
+		}
 	}
 
 	private void doPost404(HttpServletRequest request, HttpServletResponse response) throws IOException {

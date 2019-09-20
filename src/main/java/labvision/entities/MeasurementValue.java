@@ -2,9 +2,9 @@ package labvision.entities;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
-import javax.measure.Quantity;
-import javax.measure.Unit;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -13,6 +13,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+
+import labvision.measure.SI;
 
 @Entity( name="MeasurementValue" )
 public class MeasurementValue extends VariableValue<Measurement, MeasurementValue> implements LabVisionEntity {
@@ -34,6 +36,7 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 	
 	private PersistableAmount value;
 	
+	@Column( columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" )
 	private LocalDateTime taken;
 	
 	@OneToMany( mappedBy="measurementValue", targetEntity=ParameterValue.class )
@@ -46,8 +49,8 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 	
 	@Override
 	public void setVariable(Measurement variable) {
-		if (this.variable == null) {
-			 // remove from old measurement's statistics statistics
+		if (!Objects.isNull(this.variable)) {
+			 // remove from old measurement's statistics
 			this.variable.computeStatistics();
 		}
 		this.variable = variable;
@@ -61,13 +64,17 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 	}
 
 	public void setValue(PersistableAmount value) {
-		setValueHelper(value, variable.systemUnit());
-	}
-	
-	@SuppressWarnings("unchecked")
-	private <Q extends Quantity<Q>> void setValueHelper(PersistableAmount value, Unit<Q> unit) {
-		this.value.setAmount(variable, value.asAmount(variable, unit), 
-				(Class<Q>) variable.getQuantityTypeId().getQuantityClass());
+		if (Objects.isNull(this.value)) {
+			this.value = new PersistableAmount();
+		}
+		
+		if (variable.getQuantityTypeId().equals(QuantityTypeId.UNKNOWN)) {
+			this.value.setAmount(variable, value.asAmount(
+					SI.getInstance().makeOrGetUnit(variable.dimensionObject())));
+		} else {
+			this.value.setAmount(variable, value.asAmount(variable.systemUnit(variable.getQuantityTypeId()
+					.getQuantityClass().getQuantityType())));
+		}
 	}
 	
 	public Student getStudent() {

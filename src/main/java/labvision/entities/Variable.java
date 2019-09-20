@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.measure.Dimension;
+import javax.measure.Quantity;
 import javax.measure.Unit;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,6 +17,7 @@ import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 
+import labvision.measure.SI;
 import tec.units.ri.quantity.QuantityDimension;
 
 @Entity
@@ -81,9 +83,14 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 		this.quantityTypeId = quantityTypeId;
 	}
 	
-	public Unit<?> systemUnit() {
-		return getQuantityTypeId().getSystemUnit(
-				dimensionObjectFor(getDimension()));
+	public <Q extends Quantity<Q>> Unit<Q> systemUnit(Class<Q> quantityType) {
+		if (quantityTypeId.equals(QuantityTypeId.UNKNOWN)) {
+			return SI.getInstance().makeOrGetUnit(dimensionObjectFor(dimension))
+					.asType(quantityType);
+		} else {
+			return SI.getInstance().getUnit(quantityTypeId.getQuantityClass().getQuantityType()
+					.asSubclass(quantityType));
+		}
 	}
 
 	public abstract List<A> getValues();
