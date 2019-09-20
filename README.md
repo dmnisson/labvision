@@ -33,7 +33,7 @@ and then visit https://localhost:8443 in your browser to reach the home page. Ho
 mvn exec:exec
 ```
 
-This command reads all of the necessary information to run a Java class from the `pom.xml` file, which for this project is already configured with the `labvision.utils.InitDatabase` class.
+This command reads all of the necessary information to run a Java class from the `pom.xml` file, which for this project is already configured to run the `labvision.utils.InitDatabase` class for the `exec` goal.
 
 The default user accounts are:
 
