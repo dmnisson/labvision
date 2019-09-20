@@ -27,4 +27,17 @@ Once you have the certificate and keys, you can run the command
 mvn jetty:run
 ```
 
-and then visit https://localhost:8443 in your browser to reach the home page.
+and then visit https://localhost:8443 in your browser to reach the home page. However, this isn't very useful if you want to test the user pages. To do so, you must create the users by running the Java executable class `labvision.utils.InitDatabase`. The easiest way to run this class is to simply run the command:
+
+```
+mvn exec:exec
+```
+
+This command reads all of the necessary information to run a Java class from the `pom.xml` file, which for this project is already configured to run the `labvision.utils.InitDatabase` class for the `exec` goal.
+
+The default user accounts are:
+
+| Username      | Password      |
+|---------------|---------------|
+| `student1`    | `Password123` |
+| `instructor1` | `Password123` |
