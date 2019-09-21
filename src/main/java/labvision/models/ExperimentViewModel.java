@@ -1,4 +1,4 @@
-package labvision.viewmodels;
+package labvision.models;
 
 import java.util.HashMap;
 import java.util.Map;

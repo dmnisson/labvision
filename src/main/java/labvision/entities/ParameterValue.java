@@ -1,5 +1,7 @@
 package labvision.entities;
 
+import java.util.Objects;
+
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -29,5 +31,23 @@ public class ParameterValue extends VariableValue<Parameter, ParameterValue> {
 
 	@Override
 	public void setVariable(Parameter parameter) {
+		if (!Objects.isNull(measurementValue)
+				&& !parameter.getMeasurement().equals(measurementValue.getVariable())) {
+			throw new IllegalArgumentException(
+					"parameter value's measurement and parameter's measurement don't match");
+		}
 		this.variable = parameter;
+	}
+
+	public MeasurementValue getMeasurementValue() {
+		return measurementValue;
+	}
+
+	public void setMeasurementValue(MeasurementValue measurementValue) {
+		if (!Objects.isNull(variable)
+				&& !variable.getMeasurement().equals(measurementValue.getVariable())) {
+			throw new IllegalArgumentException(
+					"parameter value's measurement and parameter's measurement don't match");
+		}
+		this.measurementValue = measurementValue;
 	}}

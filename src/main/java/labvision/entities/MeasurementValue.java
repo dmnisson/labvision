@@ -14,8 +14,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import labvision.measure.SI;
-
 @Entity( name="MeasurementValue" )
 public class MeasurementValue extends VariableValue<Measurement, MeasurementValue> implements LabVisionEntity {
 	@Id
@@ -33,8 +31,6 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 	@ManyToOne( fetch=FetchType.LAZY )
 	@JoinColumn( name="CourseClass_id" )
 	private CourseClass courseClass;
-	
-	private PersistableAmount value;
 	
 	@Column( insertable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" )
 	private LocalDateTime taken;
@@ -59,24 +55,6 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 		this.variable.computeStatistics();
 	}
 
-	public PersistableAmount getValue() {
-		return value;
-	}
-
-	public void setValue(PersistableAmount value) {
-		if (Objects.isNull(this.value)) {
-			this.value = new PersistableAmount();
-		}
-		
-		if (variable.getQuantityTypeId().equals(QuantityTypeId.UNKNOWN)) {
-			this.value.setAmount(variable, value.asAmount(
-					SI.getInstance().makeOrGetUnit(variable.dimensionObject())));
-		} else {
-			this.value.setAmount(variable, value.asAmount(variable.systemUnit(variable.getQuantityTypeId()
-					.getQuantityClass().getQuantityType())));
-		}
-	}
-	
 	public Student getStudent() {
 		return student;
 	}
@@ -101,6 +79,11 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 		this.parameterValues = parameterValues;
 	}
 
+	public void addParameterValue(ParameterValue parameterValue) {
+		this.parameterValues.add(parameterValue);
+		parameterValue.setMeasurementValue(this);
+	}
+	
 	public LocalDateTime getTaken() {
 		return taken;
 	}

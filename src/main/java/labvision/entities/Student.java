@@ -48,6 +48,16 @@ public class Student extends User {
 	public void setCourseClasses(Set<CourseClass> courseClasses) {
 		this.courseClasses = courseClasses;
 	}
+	
+	public void addCourseClass(CourseClass courseClass) {
+		courseClasses.add(courseClass);
+		courseClass.getStudents().add(this);
+	}
+	
+	public void removeCourseClass(CourseClass courseClass) {
+		courseClasses.remove(courseClass);
+		courseClass.getStudents().remove(this);
+	}
 
 	public List<MeasurementValue> getMeasurementValues() {
 		return measurementValues;
@@ -55,6 +65,11 @@ public class Student extends User {
 
 	public void setMeasurementValues(List<MeasurementValue> measurementValues) {
 		this.measurementValues = measurementValues;
+	}
+	
+	public void addMeasurementValue(MeasurementValue measurementValue) {
+		measurementValues.add(measurementValue);
+		measurementValue.setStudent(this);
 	}
 
 	public List<Experiment> getActiveExperiments() {
@@ -65,6 +80,10 @@ public class Student extends User {
 		this.activeExperiments = activeExperiments;
 	}
 
+	public void addActiveExperiment(Experiment activeExperiment) {
+		this.activeExperiments.add(activeExperiment);
+	}
+	
 	public StudentPreferences getStudentPreferences() {
 		return studentPreferences;
 	}

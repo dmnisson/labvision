@@ -97,10 +97,21 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 	
 	public abstract void setValues(List<A> values);
 	
+	public abstract void addValue(A value);
+	
 	public Dimension dimensionObject() {
 		return dimensionObjectFor(dimension);
 	}
 	
+	public void updateDimensionObject(Dimension dimension) {
+		this.dimension = dimensionStringFor(dimension);
+	}
+	
+	/**
+	 * Get a Dimension object from a string representation that was in the database
+	 * @param dimension the dimension object
+	 * @return the string representation
+	 */
 	static Dimension dimensionObjectFor(String dimension) {
 		if (dimension == null || dimension == "") {
 			return QuantityDimension.NONE;
@@ -116,14 +127,45 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 		.reduce(QuantityDimension.NONE, Dimension::multiply);
 	}
 	
-	public void updateDimensionObject(Dimension dimension) {
+	
+	/**
+	 * Create string representation that is used to store the dimension in the database
+	 * @param dimension the dimension object
+	 * @return the string representation as it would appear in the database
+	 */
+	static String dimensionStringFor(Dimension dimension) {
 		Map<? extends Dimension, Integer> baseDimensions = dimension.getBaseDimensions();
 		if (baseDimensions == null) {
-			this.dimension = dimension.toString().substring(1, 2) + "1";
+			if (dimension.equals(QuantityDimension.NONE)) {
+				return "";
+			}
+			return dimension.toString().substring(1, 2) + "1";
 		} else {
-			this.dimension = baseDimensions.entrySet().stream()
+			return baseDimensions.entrySet().stream()
 					.map(e -> e.getKey().toString().substring(1, 2) + e.getValue())
 					.reduce("", (s1, s2) -> String.join(" ", s1, s2));
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + id;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Variable<?, ?> other = (Variable<?, ?>) obj;
+		if (id != other.id)
+			return false;
+		return true;
 	}
 }

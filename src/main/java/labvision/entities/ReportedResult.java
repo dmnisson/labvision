@@ -80,6 +80,10 @@ public class ReportedResult implements LabVisionEntity {
 	public void setResults(List<Result> results) {
 		this.results = results;
 	}
+	
+	public void addResult(Result result) {
+		this.results.add(result);
+	}
 
 	public LocalDateTime getAdded() {
 		return added;
@@ -103,5 +107,27 @@ public class ReportedResult implements LabVisionEntity {
 
 	public void setScore(BigDecimal score) {
 		this.score = score;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 8191;
+		int result = 1;
+		result = prime * result + id;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ReportedResult other = (ReportedResult) obj;
+		if (id != other.id)
+			return false;
+		return true;
 	}
 }

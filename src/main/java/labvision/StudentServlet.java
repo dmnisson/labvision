@@ -21,18 +21,18 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import labvision.entities.PersistableAmount;
-import labvision.entities.Amount;
 import labvision.entities.Experiment;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
 import labvision.entities.Parameter;
 import labvision.entities.Student;
+import labvision.measure.Amount;
 import labvision.measure.SI;
-import labvision.viewmodels.ExperimentViewModel;
-import labvision.viewmodels.NavbarModel;
-import labvision.viewmodels.StudentDashboard;
-import labvision.viewmodels.StudentExperimentViewModel;
-import labvision.viewmodels.StudentExperimentsTableModel;
+import labvision.models.ExperimentViewModel;
+import labvision.models.NavbarModel;
+import labvision.models.StudentDashboard;
+import labvision.models.StudentExperimentViewModel;
+import labvision.models.StudentExperimentsTableModel;
 
 public class StudentServlet extends HttpServlet {
 	/**

@@ -43,6 +43,8 @@ import labvision.entities.ReportedResult_;
 import labvision.entities.Student;
 import labvision.entities.Student_;
 import labvision.entities.User;
+import labvision.entities.VariableValue;
+import labvision.services.UserService;
 
 /**
  * Provides access to the database to load and maniuplate entity objects.
@@ -51,6 +53,7 @@ import labvision.entities.User;
  */
 public class LabVisionDataAccess {
 	private EntityManagerFactory entityManagerFactory;
+	public UserService userService = new UserService(entityManagerFactory);
 	
 	/**
 	 * A query that selects for entities related to a given student and another entity
@@ -103,6 +106,8 @@ public class LabVisionDataAccess {
 	public LabVisionDataAccess(EntityManagerFactory entityManagerFactory) {
 		this.entityManagerFactory = entityManagerFactory;
 	}
+	
+	
 	
 	public User getUser(String username) {
 		EntityManager manager = entityManagerFactory.createEntityManager();
@@ -465,7 +470,7 @@ public class LabVisionDataAccess {
 		return courseClass;
 	}
 
-	public void addMeasurementValue(MeasurementValue measurementValue) {
+	public void addMeasurementValue(VariableValue<Measurement, MeasurementValue> measurementValue) {
 		EntityManager manager = entityManagerFactory.createEntityManager();
 		EntityTransaction transaction = manager.getTransaction();
 		transaction.begin();

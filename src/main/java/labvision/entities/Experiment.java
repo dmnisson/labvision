@@ -2,7 +2,6 @@ package labvision.entities;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -17,8 +16,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 import labvision.ReportStatus;
 
@@ -38,7 +35,7 @@ public class Experiment implements LabVisionEntity {
 	private Course course;
 	
 	@ManyToMany( mappedBy="experiments", targetEntity=Instructor.class )
-	private List<Instructor> instructors;
+	private Set<Instructor> instructors;
 	
 	@OneToMany( mappedBy="experiment", targetEntity=Measurement.class )
 	private Set<Measurement> measurements;
@@ -87,6 +84,11 @@ public class Experiment implements LabVisionEntity {
 	public void setMeasurements(Set<Measurement> measurements) {
 		this.measurements = measurements;
 	}
+	
+	public void addMeasurement(Measurement measurement) {
+		this.measurements.add(measurement);
+		measurement.setExperiment(this);
+	}
 
 	public List<Result> getAcceptedResults() {
 		return acceptedResults;
@@ -94,6 +96,10 @@ public class Experiment implements LabVisionEntity {
 
 	public void setAcceptedResults(List<Result> acceptedResults) {
 		this.acceptedResults = acceptedResults;
+	}
+	
+	public void addAcceptedResult(Result acceptedResult) {
+		this.acceptedResults.add(acceptedResult);
 	}
 
 	public String getDescription() {
@@ -111,6 +117,10 @@ public class Experiment implements LabVisionEntity {
 	public void setObtainedResults(List<Result> obtainedResults) {
 		this.obtainedResults = obtainedResults;
 	}
+	
+	public void addObtainedResult(Result obtainedResult) {
+		this.obtainedResults.add(obtainedResult);
+	}
 
 	public LocalDateTime getReportDueDate() {
 		return reportDueDate;
@@ -126,6 +136,16 @@ public class Experiment implements LabVisionEntity {
 	
 	public void setReportedResults(Set<ReportedResult> reportedResults) {
 		this.reportedResults = reportedResults;
+	}
+	
+	public void addReportedResult(ReportedResult reportedResult) {
+		this.reportedResults.add(reportedResult);
+		reportedResult.setExperiment(this);
+	}
+	
+	public void removeReportedResult(ReportedResult reportedResult) {
+		this.reportedResults.remove(reportedResult);
+		reportedResult.setExperiment(null);
 	}
 	
 	public LocalDateTime getLastReportUpdated() {
@@ -162,5 +182,45 @@ public class Experiment implements LabVisionEntity {
 	
 	private static <E> boolean isNullOrEmpty(Collection<E> coll) {
 		return Objects.isNull(coll) || coll.isEmpty();
+	}
+
+	public Set<Instructor> getInstructors() {
+		return instructors;
+	}
+
+	public void setInstructors(Set<Instructor> instructors) {
+		this.instructors = instructors;
+	}
+	
+	public void addInstructor(Instructor instructor) {
+		this.instructors.add(instructor);
+		instructor.getExperiments().add(this);
+	}
+	
+	public void removeInstructor(Instructor instructor) {
+		this.instructors.remove(instructor);
+		instructor.getExperiments().remove(this);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 127;
+		int result = 1;
+		result = prime * result + id;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Experiment other = (Experiment) obj;
+		if (id != other.id)
+			return false;
+		return true;
 	}
 }

@@ -46,11 +46,21 @@ public class Course implements LabVisionEntity {
 		this.courseClasses = courseClasses;
 	}
 
+	public void addCourseClass(CourseClass courseClass) {
+		this.courseClasses.add(courseClass);
+		courseClass.setCourse(this);
+	}
+	
 	public List<Experiment> getExperiments() {
 		return experiments;
 	}
 
 	public void setExperiments(List<Experiment> experiments) {
 		this.experiments = experiments;
+	}
+	
+	public void addExperiment(Experiment experiment) {
+		this.experiments.add(experiment);
+		experiment.setCourse(this);
 	}
 }

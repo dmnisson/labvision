@@ -1,4 +1,4 @@
-package labvision.viewmodels;
+package labvision.models;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

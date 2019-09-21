@@ -18,12 +18,12 @@ import javax.servlet.http.HttpSession;
 import labvision.entities.Experiment;
 import labvision.entities.Instructor;
 import labvision.entities.MeasurementValue;
+import labvision.models.ExperimentViewModel;
+import labvision.models.FacultyDashboardModel;
+import labvision.models.FacultyExperimentViewModel;
+import labvision.models.FacultyExperimentsTableModel;
+import labvision.models.NavbarModel;
 import labvision.utils.Pair;
-import labvision.viewmodels.ExperimentViewModel;
-import labvision.viewmodels.FacultyDashboardModel;
-import labvision.viewmodels.FacultyExperimentViewModel;
-import labvision.viewmodels.FacultyExperimentsTableModel;
-import labvision.viewmodels.NavbarModel;
 
 /**
  * Servlet for handling faculty endpoints

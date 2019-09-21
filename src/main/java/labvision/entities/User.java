@@ -205,5 +205,15 @@ public abstract class User implements LabVisionEntity {
 		this.devices = devices;
 	}
 	
+	public void addDevice(Device device) {
+		devices.add(device);
+		device.setUser(this);
+	}
+	
+	public void removeDevice(Device device) {
+		devices.remove(device);
+		device.setUser(null);
+	}
+	
 	public abstract UserRole getRole();
 }

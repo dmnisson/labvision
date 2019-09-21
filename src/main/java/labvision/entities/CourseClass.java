@@ -25,10 +25,10 @@ public class CourseClass implements LabVisionEntity {
 	@JoinColumn( name="Course_id" )
 	private Course course;
 	
-	@ManyToMany( targetEntity=Student.class )
+	@ManyToMany( mappedBy="courseClasses", targetEntity=Student.class )
 	private Set<Student> students;
 	
-	@ManyToMany( targetEntity=Instructor.class )
+	@ManyToMany( mappedBy="courseClasses", targetEntity=Instructor.class )
 	private Set<Instructor> instructors;
 	
 	@OneToMany( mappedBy="courseClass", targetEntity=MeasurementValue.class )
@@ -65,6 +65,16 @@ public class CourseClass implements LabVisionEntity {
 	public void setStudents(Set<Student> students) {
 		this.students = students;
 	}
+	
+	public void addStudent(Student student) {
+		this.students.add(student);
+		student.getCourseClasses().add(this);
+	}
+	
+	public void removeStudent(Student student) {
+		this.students.remove(student);
+		student.getCourseClasses().remove(this);
+	}
 
 	public List<MeasurementValue> getMeasurementValues() {
 		return measurementValues;
@@ -73,6 +83,11 @@ public class CourseClass implements LabVisionEntity {
 	public void setMeasurementValues(List<MeasurementValue> measurementValues) {
 		this.measurementValues = measurementValues;
 	}
+	
+	public void addMeasurementValue(MeasurementValue measurementValue) {
+		this.measurementValues.add(measurementValue);
+		measurementValue.setCourseClass(this);
+	}
 
 	public Set<Instructor> getInstructors() {
 		return instructors;
@@ -80,5 +95,37 @@ public class CourseClass implements LabVisionEntity {
 
 	public void setInstructors(Set<Instructor> instructors) {
 		this.instructors = instructors;
+	}
+	
+	public void addInstructor(Instructor instructor) {
+		this.instructors.add(instructor);
+		instructor.getCourseClasses().add(this);
+	}
+	
+	public void removeInstructor(Instructor instructor) {
+		this.instructors.remove(instructor);
+		instructor.getCourseClasses().remove(this);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + id;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CourseClass other = (CourseClass) obj;
+		if (id != other.id)
+			return false;
+		return true;
 	}
 }

@@ -15,8 +15,45 @@ import javax.persistence.OneToMany;
 public class ResultComputation {
 	@OneToMany( targetEntity=Measurement.class )
 	@JoinColumn( name="ResultComputation_id" )
-	List<Measurement> measurements;
+	private List<Measurement> measurements;
 	
 	/** mXparser formula */
-	String formula;
+	private String formula;
+	
+	/** variable names */
+	@OneToMany( targetEntity=MXParserVariableName.class )
+	@JoinColumn( name="ResultComputation_id" )
+	private List<MXParserVariableName<?, ?>> variableNames;
+
+	public List<Measurement> getMeasurements() {
+		return measurements;
+	}
+
+	public void setMeasurements(List<Measurement> measurements) {
+		this.measurements = measurements;
+	}
+	
+	public void addMeasurement(Measurement measurement) {
+		this.measurements.add(measurement);
+	}
+
+	public String getFormula() {
+		return formula;
+	}
+
+	public void setFormula(String formula) {
+		this.formula = formula;
+	}
+
+	public List<MXParserVariableName<?, ?>> getVariableNames() {
+		return variableNames;
+	}
+
+	public void setVariableNames(List<MXParserVariableName<?, ?>> variableNames) {
+		this.variableNames = variableNames;
+	}
+	
+	public void addMXParserVariableName(MXParserVariableName<?, ?> name) {
+		variableNames.add(name);
+	}
 }

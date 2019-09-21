@@ -1,4 +1,4 @@
-package labvision.entities;
+package labvision.measure;
 
 import javax.measure.Quantity;
 import javax.measure.UnconvertibleException;

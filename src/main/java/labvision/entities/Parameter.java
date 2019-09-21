@@ -3,8 +3,6 @@ package labvision.entities;
 import java.util.List;
 
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -26,9 +24,6 @@ public class Parameter extends Variable<Parameter, ParameterValue> {
 	
 	@OneToMany( mappedBy="variable", targetEntity=ParameterValue.class )
 	private List<ParameterValue> values;
-
-	@Enumerated(EnumType.STRING)
-	private QuantityTypeId quantityTypeId;
 	
 	public Measurement getMeasurement() {
 		return measurement;
@@ -48,11 +43,9 @@ public class Parameter extends Variable<Parameter, ParameterValue> {
 		this.values = parameterValues;
 	}
 
-	public QuantityTypeId getQuantityTypeId() {
-		return quantityTypeId;
-	}
-
-	public void setQuantityTypeId(QuantityTypeId quantityTypeId) {
-		this.quantityTypeId = quantityTypeId;
+	@Override
+	public void addValue(ParameterValue value) {
+		this.values.add(value);
+		value.setVariable(this);
 	}
 }

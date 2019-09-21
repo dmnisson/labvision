@@ -52,6 +52,10 @@ public class Result implements LabVisionEntity {
 		this.measurementValues = measurementValues;
 	}
 	
+	public void addMeasurementValue(MeasurementValue measurementValue) {
+		this.measurementValues.add(measurementValue);
+	}
+	
 	public ResultComputation getComputation() {
 		return computation;
 	}

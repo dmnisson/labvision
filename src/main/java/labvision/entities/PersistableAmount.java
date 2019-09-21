@@ -5,6 +5,7 @@ import javax.measure.UnconvertibleException;
 import javax.measure.Unit;
 import javax.persistence.Embeddable;
 
+import labvision.measure.Amount;
 import labvision.measure.SI;
 
 /**

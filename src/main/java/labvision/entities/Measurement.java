@@ -17,6 +17,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import labvision.measure.Amount;
 import tec.units.ri.quantity.Quantities;
 
 @Entity( name="Measurement" )
@@ -51,6 +52,11 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 	}
 	public void setParameters(List<Parameter> parameters) {
 		this.parameters = parameters;
+	}
+	
+	public void addParameter(Parameter parameter) {
+		this.parameters.add(parameter);
+		parameter.setMeasurement(this);
 	}
 
 	public PersistableAmount getMean() {
@@ -139,5 +145,10 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 		});
 		computeStatistics();
 	}
-
+	@Override
+	public void addValue(MeasurementValue value) {
+		this.values.add(value);
+		value.setVariable(this);
+		computeStatistics();
+	}
 }
