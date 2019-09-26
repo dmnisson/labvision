@@ -1,5 +1,6 @@
 package labvision.entities;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -16,10 +17,10 @@ public class Instructor extends User {
 	private String email;
 	
 	@ManyToMany( targetEntity=CourseClass.class )
-	private Set<CourseClass> courseClasses;
+	private Set<CourseClass> courseClasses = new HashSet<>();
 	
 	@ManyToMany( targetEntity=Experiment.class )
-	private Set<Experiment> experiments;
+	private Set<Experiment> experiments = new HashSet<>();
 	
 	@Override
 	public UserRole getRole() {

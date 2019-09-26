@@ -1,6 +1,7 @@
 package labvision.entities;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,7 +37,7 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 	private LocalDateTime taken;
 	
 	@OneToMany( mappedBy="measurementValue", targetEntity=ParameterValue.class )
-	private List<ParameterValue> parameterValues;
+	private List<ParameterValue> parameterValues = new ArrayList<>();
 
 	@Override
 	public Measurement getVariable() {

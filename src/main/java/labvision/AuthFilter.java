@@ -1,6 +1,8 @@
 package labvision;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -21,6 +23,7 @@ import org.jboss.logging.Logger;
 import labvision.auth.DeviceAuthentication;
 import labvision.auth.DeviceToken;
 import labvision.entities.User;
+import labvision.services.UserService;
 
 public class AuthFilter implements Filter {
 	private FilterConfig filterConfig;
@@ -40,8 +43,8 @@ public class AuthFilter implements Filter {
 		
 		LabVisionConfig config = (LabVisionConfig) filterConfig.getServletContext()
 				.getAttribute(LabVisionServletContextListener.CONFIG_ATTR);
-		LabVisionDataAccess dataAccess = (LabVisionDataAccess) filterConfig.getServletContext()
-				.getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
+		UserService userService = (UserService) filterConfig.getServletContext()
+				.getAttribute(LabVisionServletContextListener.USER_SERVICE_ATTR);
 		
 		boolean isForbidden = false;
 		if (session == null || session.getAttribute("user") == null) {
@@ -49,10 +52,10 @@ public class AuthFilter implements Filter {
 			if (token == null) {
 				isForbidden = true;
 			} else {
-				DeviceAuthentication deviceAuth = new DeviceAuthentication(config, dataAccess);
+				DeviceAuthentication deviceAuth = new DeviceAuthentication(config, userService);
 				try {
 					isForbidden = !deviceAuth.verifyDeviceToken(token,
-							dataAccess.getUser(token.getUserId()),
+							userService.getUser(token.getUserId(), true),
 							httpRequest);
 				} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
 						| SignatureException e) {
@@ -78,7 +81,8 @@ public class AuthFilter implements Filter {
 		}
 		
 		if (isForbidden) {
-			httpResponse.sendRedirect("/login");
+			httpResponse.sendRedirect("/login?redirect=" + 
+					URLEncoder.encode(httpRequest.getRequestURI(), StandardCharsets.UTF_8.toString()));
 		} else {
 			chain.doFilter(request, response);
 		}

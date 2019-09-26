@@ -1,11 +1,14 @@
 package labvision.entities;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -35,21 +38,23 @@ public class Experiment implements LabVisionEntity {
 	private Course course;
 	
 	@ManyToMany( mappedBy="experiments", targetEntity=Instructor.class )
-	private Set<Instructor> instructors;
+	private Set<Instructor> instructors = new HashSet<>();
 	
-	@OneToMany( mappedBy="experiment", targetEntity=Measurement.class )
-	private Set<Measurement> measurements;
+	@OneToMany( mappedBy="experiment", 
+			targetEntity=Measurement.class,
+			cascade=CascadeType.ALL )
+	private Set<Measurement> measurements = new HashSet<>();
 	
 	@OneToMany
 	@JoinColumn( name="accepted_experiment_id" )
-	private List<Result> acceptedResults;
+	private List<Result> acceptedResults = new ArrayList<>();
 	
 	@OneToMany
 	@JoinColumn( name="obtaining_experiment_id" )
-	private List<Result> obtainedResults;
+	private List<Result> obtainedResults = new ArrayList<>();
 	
 	@OneToMany( mappedBy="experiment", targetEntity=ReportedResult.class )
-	private Set<ReportedResult> reportedResults;
+	private Set<ReportedResult> reportedResults = new HashSet<>();
 	
 	private LocalDateTime reportDueDate;
 

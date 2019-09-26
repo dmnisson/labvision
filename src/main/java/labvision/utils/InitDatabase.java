@@ -3,12 +3,7 @@ package labvision.utils;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -16,10 +11,8 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
-import javax.persistence.criteria.Root;
 
 import labvision.LabVisionConfig;
-import labvision.LabVisionDataAccess;
 import labvision.entities.Course;
 import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
@@ -28,6 +21,9 @@ import labvision.entities.Measurement;
 import labvision.entities.QuantityTypeId;
 import labvision.entities.Student;
 import labvision.entities.User;
+import labvision.services.CourseService;
+import labvision.services.ExperimentService;
+import labvision.services.UserService;
 import tec.units.ri.quantity.QuantityDimension;
 
 /**
@@ -46,6 +42,7 @@ public class InitDatabase {
 			System.out.println("Aborted");
 			System.exit(0);
 		}
+		sc.close();
 		
 		String configPath;
 		if (args.length > 0) {
@@ -67,9 +64,8 @@ public class InitDatabase {
 		clearTable(Experiment.class, manager);
 		clearTable(Course.class, manager);
 		clearTable(User.class, manager);
-		
-		LabVisionDataAccess dataAccess = new LabVisionDataAccess(emf);
-		
+		manager.close();
+				
 		// users
 		Student student1 = new Student();
 		student1.setUsername("student1");
@@ -81,57 +77,48 @@ public class InitDatabase {
 		rodLengthExperiment.setName("How Long is the Rod?");
 		rodLengthExperiment.setDescription("Measure the rod length using the ruler the best that you can.");
 		rodLengthExperiment.setReportDueDate(LocalDateTime.of(2100, 1, 1, 0, 0));
-		student1.setActiveExperiments(Arrays.asList(rodLengthExperiment));
-		instructor1.setExperiments(Stream.of(rodLengthExperiment).collect(Collectors.toSet()));
-		EntityTransaction tx1 = manager.getTransaction();
-		tx1.begin();
-		manager.persist(rodLengthExperiment);
-		tx1.commit();
 		
 		// course
 		Course course = new Course();
 		course.setName("Physics 101");
-		rodLengthExperiment.setCourse(course);
+		course.addExperiment(rodLengthExperiment);
 		
 		// course class
 		CourseClass courseClass = new CourseClass();
 		courseClass.setName("Test Physics 101 Class");
-		courseClass.setCourse(course);
-		Set<Student> courseClassStudents = Stream.of(student1).collect(Collectors.toSet());
-		Set<Instructor> courseClassInstructors = Stream.of(instructor1).collect(Collectors.toSet());
-		courseClass.setStudents(courseClassStudents);
-		courseClass.setInstructors(courseClassInstructors);
+		courseClass.addStudent(student1);
+		courseClass.addInstructor(instructor1);
+		course.addCourseClass(courseClass);
 		
 		// measurement
 		Measurement rodLengthMeasurement = new Measurement();
 		rodLengthMeasurement.setName("Length");
 		rodLengthMeasurement.setQuantityTypeId(QuantityTypeId.LENGTH);
 		rodLengthMeasurement.updateDimensionObject(QuantityDimension.LENGTH);
-		rodLengthMeasurement.setExperiment(rodLengthExperiment);
+		rodLengthExperiment.addMeasurement(rodLengthMeasurement);
+		
+		student1.addActiveExperiment(rodLengthExperiment);
+		instructor1.addExperiment(rodLengthExperiment);
+		
+		CourseService courseService = new CourseService(emf);
+		ExperimentService experimentService = new ExperimentService(emf);
+		UserService userService = new UserService(emf);
+		
+		courseService.addCourse(course);
+		experimentService.addExperiment(rodLengthExperiment);
 		
 		SecureRandom random = new SecureRandom();
 		try {
 			student1.updatePassword(config, random, "Password123");
-			dataAccess.addUser(student1);
+			userService.addUser(student1);
 			System.out.println("User student1 added");
 			
 			instructor1.updatePassword(config, random, "Password123");
-			dataAccess.addUser(instructor1);
+			userService.addUser(instructor1);
 			System.out.println("User instructor1 added");
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
-		
-		// persist experiment, course, course class, and measurement
-		EntityTransaction tx = manager.getTransaction();
-		tx.begin();
-		
-		manager.persist(course);
-		manager.merge(rodLengthExperiment);
-		manager.persist(rodLengthMeasurement);
-		manager.persist(courseClass);
-		
-		tx.commit();
 		
 		emf.close();
 	}

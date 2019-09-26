@@ -1,5 +1,6 @@
 package labvision.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Embeddable;
@@ -15,7 +16,7 @@ import javax.persistence.OneToMany;
 public class ResultComputation {
 	@OneToMany( targetEntity=Measurement.class )
 	@JoinColumn( name="ResultComputation_id" )
-	private List<Measurement> measurements;
+	private List<Measurement> measurements = new ArrayList<>();
 	
 	/** mXparser formula */
 	private String formula;
@@ -23,7 +24,7 @@ public class ResultComputation {
 	/** variable names */
 	@OneToMany( targetEntity=MXParserVariableName.class )
 	@JoinColumn( name="ResultComputation_id" )
-	private List<MXParserVariableName<?, ?>> variableNames;
+	private List<MXParserVariableName<?, ?>> variableNames = new ArrayList<>();
 
 	public List<Measurement> getMeasurements() {
 		return measurements;

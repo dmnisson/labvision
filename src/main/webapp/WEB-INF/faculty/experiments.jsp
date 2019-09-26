@@ -34,7 +34,7 @@
                 <a href="/faculty/experiment/${experiment.id}">${experiment.name}</a>
               </td>
               <td>
-                ${fn:length(experiment.reportedResults)}
+                ${fn:length(experimentsTableModel.reportedResults)}
               </td>
               <td>
                 <c:choose>

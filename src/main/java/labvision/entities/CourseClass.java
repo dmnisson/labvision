@@ -1,5 +1,7 @@
 package labvision.entities;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -26,13 +28,13 @@ public class CourseClass implements LabVisionEntity {
 	private Course course;
 	
 	@ManyToMany( mappedBy="courseClasses", targetEntity=Student.class )
-	private Set<Student> students;
+	private Set<Student> students = new HashSet<>();
 	
 	@ManyToMany( mappedBy="courseClasses", targetEntity=Instructor.class )
-	private Set<Instructor> instructors;
+	private Set<Instructor> instructors = new HashSet<>();
 	
 	@OneToMany( mappedBy="courseClass", targetEntity=MeasurementValue.class )
-	private List<MeasurementValue> measurementValues;
+	private List<MeasurementValue> measurementValues = new ArrayList<>();
 	
 	public int getId() {
 		return id;

@@ -4,6 +4,7 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -50,7 +51,7 @@ public abstract class User implements LabVisionEntity {
 	 * The user's devices
 	 */
 	@OneToMany( mappedBy="user", targetEntity = Device.class )
-	private List<Device> devices;
+	private List<Device> devices = new ArrayList<>();
 
 	public String getUsername() {
 		return username;
@@ -216,4 +217,26 @@ public abstract class User implements LabVisionEntity {
 	}
 	
 	public abstract UserRole getRole();
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + id;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		User other = (User) obj;
+		if (id != other.id)
+			return false;
+		return true;
+	}
 }

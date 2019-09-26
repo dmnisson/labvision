@@ -5,9 +5,17 @@ import javax.persistence.Persistence;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import labvision.services.ExperimentService;
+import labvision.services.InstructorService;
+import labvision.services.StudentService;
+import labvision.services.UserService;
+
 public class LabVisionServletContextListener implements ServletContextListener {
 
-	public static final String DATA_ACCESS_ATTR = "dataAccess";
+	public static final String STUDENT_SERVICE_ATTR = "studentService";
+	public static final String EXPERIMENT_SERVICE_ATTR = "experimentService";
+	public static final String INSTRUCTOR_SERVICE_ATTR = "instructorService";
+	public static final String USER_SERVICE_ATTR = "userService";
 	public static final String ENTITY_MANAGER_FACTORY_ATTR = "emf";
 	public static final String CONFIG_ATTR = "config";
 
@@ -23,9 +31,17 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		
 		event.getServletContext().setAttribute(ENTITY_MANAGER_FACTORY_ATTR, emf);
 		
-		LabVisionDataAccess dataAccess = new LabVisionDataAccess(emf);
+		UserService userService = new UserService(emf);
+		event.getServletContext().setAttribute(USER_SERVICE_ATTR, userService);
 		
-		event.getServletContext().setAttribute(DATA_ACCESS_ATTR, dataAccess);
+		StudentService studentService = new StudentService(emf, config);
+		event.getServletContext().setAttribute(STUDENT_SERVICE_ATTR, studentService);
+		
+		InstructorService instructorService = new InstructorService(emf);
+		event.getServletContext().setAttribute(INSTRUCTOR_SERVICE_ATTR, instructorService);
+		
+		ExperimentService experimentService = new ExperimentService(emf);
+		event.getServletContext().setAttribute(EXPERIMENT_SERVICE_ATTR, experimentService);
 	}
 
 	@Override

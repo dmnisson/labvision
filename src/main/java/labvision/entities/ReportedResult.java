@@ -2,6 +2,7 @@ package labvision.entities;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Basic;
@@ -37,7 +38,7 @@ public class ReportedResult implements LabVisionEntity {
 	
 	@OneToMany
 	@JoinColumn( name="ReportedResult_id" )
-	private List<Result> results;
+	private List<Result> results = new ArrayList<>();
 
 	@Basic(optional = false)
 	@Column( name="added", insertable = false, updatable = false)

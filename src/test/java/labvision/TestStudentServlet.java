@@ -21,6 +21,7 @@ import labvision.entities.QuantityTypeId;
 import labvision.entities.Student;
 import labvision.entities.VariableValue;
 import labvision.measure.Amount;
+import labvision.services.StudentService;
 import tec.units.ri.unit.Units;
 
 class TestStudentServlet {
@@ -49,10 +50,10 @@ class TestStudentServlet {
 		student.addActiveExperiment(activeExperiment1);
 		
 		ServletContext servletContext = mock(ServletContext.class);
-		LabVisionDataAccess dataAccess = mock(LabVisionDataAccess.class);
+		StudentService studentService = mock(StudentService.class);
 		
-		when(servletContext.getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR))
-			.thenReturn(dataAccess);
+		when(servletContext.getAttribute(LabVisionServletContextListener.STUDENT_SERVICE_ATTR))
+			.thenReturn(studentService);
 		
 		when(req.getPathInfo()).thenReturn("/dashboard");
 		when(session.getAttribute("user")).thenReturn(student);

@@ -1,5 +1,6 @@
 package labvision.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.measure.IncommensurableException;
@@ -28,10 +29,10 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 	private Experiment experiment;
 	
 	@OneToMany( mappedBy="measurement", targetEntity=Parameter.class )
-	private List<Parameter> parameters;
+	private List<Parameter> parameters = new ArrayList<>();
 	
 	@OneToMany( mappedBy="variable", targetEntity=MeasurementValue.class )
-	private List<MeasurementValue> values;
+	private List<MeasurementValue> values = new ArrayList<>();
 
 	@AttributeOverrides({
 		@AttributeOverride( name="value", column=@Column( name="mean_value" ) ),

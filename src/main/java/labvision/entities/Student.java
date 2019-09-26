@@ -1,6 +1,9 @@
 package labvision.entities;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -21,17 +24,17 @@ public class Student extends User {
 	@Column
 	private String name;
 	
-	@ManyToMany( mappedBy="students" )
-	private Set<CourseClass> courseClasses;
+	@ManyToMany( targetEntity=CourseClass.class )
+	private Set<CourseClass> courseClasses = new HashSet<>();
 	
 	@OneToMany( mappedBy="student", targetEntity=MeasurementValue.class )
-	private List<MeasurementValue> measurementValues;
+	private List<MeasurementValue> measurementValues = new ArrayList<>();
 
 	@OneToOne
 	private StudentPreferences studentPreferences;
 	
 	@ManyToMany
-	private List<Experiment> activeExperiments;
+	private List<Experiment> activeExperiments = new ArrayList<>();
 	
 	public String getName() {
 		return name;
@@ -82,6 +85,11 @@ public class Student extends User {
 
 	public void addActiveExperiment(Experiment activeExperiment) {
 		this.activeExperiments.add(activeExperiment);
+	}
+	
+	public void removeActiveExperiment(Experiment activeExperiment) {
+		this.activeExperiments.removeIf(
+				e -> !Objects.isNull(e) && e.equals(activeExperiment));
 	}
 	
 	public StudentPreferences getStudentPreferences() {

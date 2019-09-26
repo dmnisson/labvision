@@ -18,6 +18,7 @@ import org.jboss.logging.Logger;
 import labvision.auth.DeviceAuthentication;
 import labvision.auth.DeviceToken;
 import labvision.entities.User;
+import labvision.services.UserService;
 
 public class AuthServlet extends HttpServlet {
 	/**
@@ -48,18 +49,18 @@ public class AuthServlet extends HttpServlet {
 			throws ServletException, IOException {
 		
 		LabVisionConfig config = (LabVisionConfig) 
-				this.getServletContext().getAttribute("config");
-		LabVisionDataAccess dataAccess = (LabVisionDataAccess)
-				this.getServletContext().getAttribute("dataAccess");
+				this.getServletContext().getAttribute(LabVisionServletContextListener.CONFIG_ATTR);
+		UserService userService = (UserService)
+				this.getServletContext().getAttribute(LabVisionServletContextListener.USER_SERVICE_ATTR);
 		
 		DeviceToken deviceToken = DeviceAuthentication.getDeviceToken(req);
 		DeviceAuthentication deviceAuthentication = 
-				new DeviceAuthentication(config, dataAccess);
+				new DeviceAuthentication(config, userService);
 		
 		if (Objects.isNull(deviceToken)) {
 			req.getRequestDispatcher("/WEB-INF/login.jsp").forward(req, resp);
 		} else {
-			User user = dataAccess.getUser(deviceToken.getUserId());
+			User user = userService.getUser(deviceToken.getUserId(), true);
 			
 			try {
 				if (!deviceAuthentication.verifyDeviceToken(deviceToken, user, req)) {
@@ -103,11 +104,11 @@ public class AuthServlet extends HttpServlet {
 		boolean rememberMe = req.getParameter("rememberMe") != null;
 		
 		LabVisionConfig config = (LabVisionConfig) this.getServletContext()
-				.getAttribute("config");
-		LabVisionDataAccess dataAccess = (LabVisionDataAccess) this.getServletContext()
-				.getAttribute("dataAccess");
+				.getAttribute(LabVisionServletContextListener.CONFIG_ATTR);
+		UserService userService = (UserService) this.getServletContext()
+				.getAttribute(LabVisionServletContextListener.USER_SERVICE_ATTR);
 		
-		User user = dataAccess.getUser(username);
+		User user = userService.getUser(username, true);
 		
 		if (user == null) {
 			// redirect to login page with error message
@@ -118,7 +119,7 @@ public class AuthServlet extends HttpServlet {
 		try {
 			DeviceToken deviceToken = DeviceAuthentication.getDeviceToken(req);
 			DeviceAuthentication deviceAuthentication = 
-					new DeviceAuthentication(config, dataAccess);
+					new DeviceAuthentication(config, userService);
 			if (!user.passwordMatches(password)) {
 				req.getRequestDispatcher("/WEB-INF/login.jsp").forward(req, resp);
 			} else {

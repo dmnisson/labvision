@@ -1,5 +1,6 @@
 package labvision.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Embedded;
@@ -20,7 +21,7 @@ public class Result implements LabVisionEntity {
 	  
 	@OneToMany
 	@JoinColumn( name="Result_id" )
-	private List<MeasurementValue> measurementValues;
+	private List<MeasurementValue> measurementValues = new ArrayList<>();
 	
 	@Embedded
 	private ResultComputation computation;

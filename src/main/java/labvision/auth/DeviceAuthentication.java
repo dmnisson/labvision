@@ -24,9 +24,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import labvision.LabVisionConfig;
-import labvision.LabVisionDataAccess;
 import labvision.entities.Device;
 import labvision.entities.User;
+import labvision.services.UserService;
 
 /**
  * Device-based authentication for users who select "Remember Me"
@@ -36,11 +36,11 @@ import labvision.entities.User;
 public class DeviceAuthentication {
 	private static final String DEVICE_TOKEN_COOKIE_NAME = "dt";
 	private LabVisionConfig config;
-	private LabVisionDataAccess dataAccess;
+	private UserService userService;
 	
-	public DeviceAuthentication(LabVisionConfig config, LabVisionDataAccess dataAccess) {
+	public DeviceAuthentication(LabVisionConfig config, UserService userService) {
 		this.config = config;
-		this.dataAccess = dataAccess;
+		this.userService = userService;
 	}
 
 	/**
@@ -73,7 +73,9 @@ public class DeviceAuthentication {
 
 	public DeviceToken createDeviceToken(User user, HttpServletRequest req) throws IOException {
 		// first add the device to the database
-		Device device = dataAccess.addNewDevice(user);
+		Device device = new Device();
+		device.setUser(user);
+		device = userService.addDevice(user, device);
 		
 		// then create the device token
 		OffsetDateTime expiration = OffsetDateTime.now(ZoneOffset.UTC)

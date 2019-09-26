@@ -1,7 +1,9 @@
 package labvision.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,11 +18,13 @@ public class Course implements LabVisionEntity {
 	
 	private String name;
 	
-	@OneToMany( mappedBy="course", targetEntity=CourseClass.class )
-	private List<CourseClass> courseClasses;
+	@OneToMany( mappedBy="course",
+			targetEntity=CourseClass.class,
+			cascade=CascadeType.ALL )
+	private List<CourseClass> courseClasses = new ArrayList<>();
 
 	@OneToMany( mappedBy="course", targetEntity=Experiment.class )
-	private List<Experiment> experiments;
+	private List<Experiment> experiments = new ArrayList<>();
 	
 	public String getName() {
 		return name;
@@ -47,6 +51,7 @@ public class Course implements LabVisionEntity {
 	}
 
 	public void addCourseClass(CourseClass courseClass) {
+		
 		this.courseClasses.add(courseClass);
 		courseClass.setCourse(this);
 	}

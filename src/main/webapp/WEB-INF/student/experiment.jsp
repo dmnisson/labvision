@@ -39,6 +39,7 @@
           <form method="POST" action="/student/measurement/newvalue/${measurement.id}">
 	          <t:measurementvaluestable
 	            measurement="${measurement}"
+	            measurementvalues="${experimentViewModel.measurementValues[measurement]}"
 	            measurementunitsymbol="${experimentViewModel.measurementUnits[measurement]}"
 	            parameterunitsymbols="${experimentViewModel.parameterUnits}"
 	            id="measurement-values-table"

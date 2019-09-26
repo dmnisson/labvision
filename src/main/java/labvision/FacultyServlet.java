@@ -23,6 +23,8 @@ import labvision.models.FacultyDashboardModel;
 import labvision.models.FacultyExperimentViewModel;
 import labvision.models.FacultyExperimentsTableModel;
 import labvision.models.NavbarModel;
+import labvision.services.ExperimentService;
+import labvision.services.InstructorService;
 import labvision.utils.Pair;
 
 /**
@@ -129,16 +131,16 @@ public class FacultyServlet extends HttpServlet {
 	}
 
 	private void doGetExperiment(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String experimentId) throws ServletException, IOException {
-		LabVisionDataAccess dataAccess = (LabVisionDataAccess)
-				getServletContext().getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
-		EntityManagerFactory emf = (EntityManagerFactory)
-				getServletContext().getAttribute(LabVisionServletContextListener.ENTITY_MANAGER_FACTORY_ATTR);
-		
+		InstructorService instructorService = (InstructorService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.INSTRUCTOR_SERVICE_ATTR);
+		ExperimentService experimentService = (ExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
 		
 		Instructor instructor = (Instructor) session.getAttribute("user");
 		FacultyExperimentViewModel experimentViewModel = new FacultyExperimentViewModel();
 		
-		Experiment experiment = dataAccess.getExperiment(Integer.parseInt(experimentId), ExperimentPrefetch.PREFETCH_VALUES);
+		Experiment experiment = experimentService.getExperiment(
+				Integer.parseInt(experimentId), ExperimentPrefetch.PREFETCH_VALUES);
 		
 		experimentViewModel.setMeasurementUnits(experiment.getMeasurements().stream()
 				.collect(Collectors.toMap(
@@ -154,14 +156,14 @@ public class FacultyServlet extends HttpServlet {
 		experimentViewModel.setMeasurementValues(experiment.getMeasurements().stream()
 				.collect(Collectors.toMap(
 						Function.identity(),
-						m -> m.getValues().stream()
+						m -> experimentService.getMeasurementValues(m, true, true, true).stream()
 							.collect(Collectors.groupingBy(
 									MeasurementValue::getCourseClass,
 									Collectors.groupingBy(
 											MeasurementValue::getStudent)
 									))
 						)));
-		experimentViewModel.setReportDisplay(dataAccess.getReportedResults(experiment, instructor).stream()
+		experimentViewModel.setReportDisplay(experimentService.getReportedResults(experiment, instructor).stream()
 				.collect(HashMap::new,
 						(m, rr) -> m.put(rr, ExperimentViewModel.REPORT_DISPLAY_FUNCTION.apply(rr)),
 						HashMap::putAll));
@@ -171,20 +173,22 @@ public class FacultyServlet extends HttpServlet {
 		req.getRequestDispatcher("/WEB-INF/faculty/experiment.jsp").forward(req, resp);
 	}
 
-	private void doGetExperiments(HttpServletRequest req, HttpServletResponse resp, HttpSession session) throws ServletException, IOException {
-		LabVisionDataAccess dataAccess = (LabVisionDataAccess)
-				getServletContext().getAttribute(LabVisionServletContextListener.DATA_ACCESS_ATTR);
+	private void doGetExperiments(HttpServletRequest req, HttpServletResponse resp, HttpSession session) throws ServletException, IOException {		
+		ExperimentService experimentService = (ExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
 		
-		Instructor instructor = dataAccess.getInstructorWithExperiments(
-				((Instructor) session.getAttribute("user")).getId(),
-				true);
 		FacultyExperimentsTableModel experimentsTableModel = new FacultyExperimentsTableModel();
 		
-		Set<Experiment> experiments = instructor.getExperiments();
+		Instructor instructor = (Instructor) session.getAttribute("user");
+		Set<Experiment> experiments = experimentService.getExperiments(instructor);
 		
 		experimentsTableModel.setAverageStudentScores(experiments.stream()
 				.collect(HashMap::new,
-						(m, e) -> m.put(e, dataAccess.getAverageStudentReportScore(e)),
+						(m, e) -> m.put(e, experimentService.getAverageStudentReportScore(e)),
+						HashMap::putAll));
+		experimentsTableModel.setReportedResults(experiments.stream()
+				.collect(HashMap::new,
+						(m, e) -> m.put(e, experimentService.getReportedResults(e, instructor)),
 						HashMap::putAll));
 		
 		req.setAttribute("experiments", experiments);
