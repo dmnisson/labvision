@@ -58,6 +58,7 @@ public abstract class VariableValue<V extends Variable<V, A>, A extends Variable
 	 * variable
 	 * @throws UnconvertibleException if the units of the amount are not compatible
 	 * with the variable
+	 * @throws NullPointerException if getVariable() returns null
 	 */
 	public void setAmountValue(Amount<?> amount) {
 		if (Objects.isNull(value)) {
