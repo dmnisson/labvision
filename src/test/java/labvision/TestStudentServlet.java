@@ -19,6 +19,7 @@ import labvision.entities.MeasurementValue;
 import labvision.entities.PersistableAmount;
 import labvision.entities.QuantityTypeId;
 import labvision.entities.Student;
+import labvision.entities.User;
 import labvision.entities.VariableValue;
 import labvision.measure.Amount;
 import labvision.services.StudentService;
@@ -60,7 +61,7 @@ class TestStudentServlet {
 		
 		new StudentServlet().doGet(req, resp);
 		
-		
+		assertEquals(((User) req.getAttribute("student")).getId(), 17);
 	}
 
 }
