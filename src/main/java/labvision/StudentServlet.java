@@ -169,8 +169,11 @@ public class StudentServlet extends HttpServlet {
 	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException {
 		ExperimentService experimentService = (ExperimentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
+		StudentService studentService = (StudentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.STUDENT_SERVICE_ATTR);
 		
-		Student student = (Student) session.getAttribute("user");
+		Student student = studentService.getStudent(((Student) session.getAttribute("user")).getId(), 
+				true, false, false);
 		StudentExperimentsTableModel experimentsTableModel = new StudentExperimentsTableModel();
 		
 		experimentsTableModel.setCurrentExperiments(student.getActiveExperiments());

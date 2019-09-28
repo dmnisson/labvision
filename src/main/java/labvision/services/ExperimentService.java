@@ -181,7 +181,9 @@ public class ExperimentService extends JpaService {
 			TypedQuery<LocalDateTime> query = manager.createQuery(queryString, LocalDateTime.class);
 			query.setParameter("experimentid", experiment.getId());
 			query.setParameter("studentid", student.getId());
-			return query.getResultStream().findAny().orElse(null);
+			return query.getResultStream()
+					.filter(Objects::nonNull)
+					.findAny().orElse(null);
 		});
 	}
 
@@ -194,17 +196,21 @@ public class ExperimentService extends JpaService {
 			TypedQuery<BigDecimal> query = manager.createQuery(queryString, BigDecimal.class);
 			query.setParameter("experimentid", experiment.getId());
 			query.setParameter("studentid", student.getId());
-			return query.getResultStream().findAny().orElse(null);
+			return query.getResultStream()
+					.filter(Objects::nonNull)
+					.findAny().orElse(null);
 		});
 	}
 
 	public List<Experiment> getPastExperiments(Student student) {
 		return withEntityManager(manager -> {
 			String queryString = "SELECT e FROM Experiment e " +
-					"JOIN e.student s " +
+					"JOIN e.course c " +
+					"JOIN c.courseClasses cc " +
+					"JOIN cc.students s " +
 					"WHERE s.id=:studentid AND e.id!=ANY(" +
 						"SELECT ae.id FROM Student st " +
-						"JOIN st.activeExperiments ae" +
+						"JOIN st.activeExperiments ae " +
 						"WHERE st.id=:studentid)";
 			TypedQuery<Experiment> query = manager.createQuery(queryString, Experiment.class);
 			query.setParameter("studentid", student.getId());
