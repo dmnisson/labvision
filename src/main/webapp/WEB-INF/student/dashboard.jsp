@@ -7,7 +7,7 @@
 <div class="container-fluid p-lg-5 userpage-container">
   <div class="row">
     <div class="col">
-      <h1>Welcome, ${dashboardModel.student.username}!</h1>
+      <h1>Welcome, ${dashboardModel.student.displayName}!</h1>
     </div>
   </div>
   <div class="row py-2">

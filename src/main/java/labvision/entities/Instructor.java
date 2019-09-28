@@ -1,6 +1,7 @@
 package labvision.entities;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -74,4 +75,9 @@ public class Instructor extends User {
 		experiment.getInstructors().add(this);
 	}
 
+	@Override
+	public String getDisplayName() {
+		return Objects.isNull(name) || name.isEmpty()
+				? super.getDisplayName() : name;
+	}
 }

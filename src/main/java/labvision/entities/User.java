@@ -218,6 +218,10 @@ public abstract class User implements LabVisionEntity {
 	
 	public abstract UserRole getRole();
 
+	public String getDisplayName() {
+		return username;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

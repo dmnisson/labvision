@@ -26,7 +26,7 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-sm-6">
+    <div class="col-md-4">
       <div class="table-responsive">
         <table class="table table-fixed" role="treegrid">
           <thead>
@@ -38,23 +38,33 @@
           </thead>
           <tbody>
             <c:forEach var="courseClass" items="${experiment.course.courseClasses}">
-            <tr data-toggle="collapse" id="courseClass${courseClass.id}" data-target=".students${courseClass.id}" role="treeitem" aria-level="1">
-              <td colspan="3">${courseClass.name}</td>
+            <tr id="courseClass${courseClass.id}" >
+              <td colspan="3">
+                <button class="btn btn-link" type="button" data-toggle="collapse" data-target=".students${courseClass.id}" role="treeitem" aria-level="1">
+                  ${courseClass.name}
+                </button>
+              </td>
             </tr>
             
             <c:forEach var="student" items="${courseClass.students}">
-            <tr data-toggle="collapse" id="student${student.id}">
+            <tr class="collapse students${courseClass.id}" id="student${student.id}">
               <td></td>
-              <td>${empty student.name ? student.username : student.name}</td>
               <td>
-              <c:choose>
-              <c:when test="${fn:contains(courseClass.students, student)}">
-                Yes
-              </c:when>
-              <c:otherwise>
-                No
-              </c:otherwise>
-              </c:choose>
+                <button class="btn btn-link p-2" type="button" data-toggle="collapse" data-target="#measurementValues-${courseClass.id}-${student.id}" role="treeitem" aria-level="2">
+                  ${student.displayName}
+                </button>
+              </td>
+              <td>
+              <span class="d-inline-block p-2 tree-table-cell">
+	              <c:choose>
+	              <c:when test="${fn:contains(courseClass.students, student)}">
+	                Yes
+	              </c:when>
+	              <c:otherwise>
+	                No
+	              </c:otherwise>
+	              </c:choose>
+              </span>
               </td>
             </tr>
             </c:forEach>
@@ -63,7 +73,7 @@
         </table>
       </div>
     </div>
-    <div class="col-sm-6">
+    <div class="col-md-8">
       <div class="row">
         <div class="col">
           <h3>Measurement Values</h3>
@@ -84,14 +94,17 @@
         <div class="col">
           <c:forEach var="courseClass" items="${experiment.course.courseClasses}">
           <c:forEach var="student" items="${courseClass.students}">
-          <t:measurementvaluestable 
-            measurement="${measurement}"
-            measurementunitsymbol="${experimentViewModel.measurementUnits[measurement]}"
-            measurementvalues="${experimentViewModel.measurementValues[measurement][courseClass][student]}"
-            parameterunitsymbols="${experimentViewModel.parameterUnits}"
-            id="measurementValuesTable${measurement.id}-${courseClass.id}-${student.id}"
-            addnewform="false"
-          />
+          <div class="collapse" id="measurementValues-${courseClass.id}-${student.id}">
+            <h5>${student.displayName} for ${courseClass.name}</h5>
+	          <t:measurementvaluestable 
+	            measurement="${measurement}"
+	            measurementunitsymbol="${experimentViewModel.measurementUnits[measurement]}"
+	            measurementvalues="${experimentViewModel.measurementValues[measurement][courseClass][student]}"
+	            parameterunitsymbols="${experimentViewModel.parameterUnits}"
+	            id="measurementValuesTable${measurement.id}-${courseClass.id}-${student.id}"
+	            addnewform="false"
+	          />
+          </div>
           </c:forEach>
           </c:forEach>
         </div>

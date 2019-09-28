@@ -7,7 +7,7 @@
 <div class="container-fluid p-lg-5 userpage-container">
   <div class="row">
     <div class="col">
-      <h1>Welcome, ${empty dashboardModel.instructor.name ? dashboardModel.instructor.username : dashboardModel.instructor.name}!</h1>
+      <h1>Welcome, ${dashboardModel.instructor.displayName}!</h1>
     </div>
   </div>
 </div>

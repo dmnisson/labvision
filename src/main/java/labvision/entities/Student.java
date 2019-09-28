@@ -104,4 +104,10 @@ public class Student extends User {
 	public UserRole getRole() {
 		return UserRole.STUDENT;
 	}
+
+	@Override
+	public String getDisplayName() {
+		return Objects.isNull(name) || name.isEmpty()
+				? super.getDisplayName() : name;
+	}
 }
