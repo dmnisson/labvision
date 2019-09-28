@@ -32,7 +32,6 @@ import labvision.measure.Amount;
 import labvision.measure.SI;
 import labvision.models.ExperimentViewModel;
 import labvision.models.NavbarModel;
-import labvision.models.StudentDashboard;
 import labvision.models.StudentExperimentViewModel;
 import labvision.models.StudentExperimentsTableModel;
 import labvision.services.ExperimentService;
