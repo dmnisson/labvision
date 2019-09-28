@@ -36,6 +36,7 @@ import labvision.models.StudentDashboard;
 import labvision.models.StudentExperimentViewModel;
 import labvision.models.StudentExperimentsTableModel;
 import labvision.services.ExperimentService;
+import labvision.services.StudentDashboardService;
 import labvision.services.StudentService;
 
 public class StudentServlet extends HttpServlet {
@@ -199,25 +200,16 @@ public class StudentServlet extends HttpServlet {
 	}
 
 	private void doGetDashboard(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException, ServletException {
-		LabVisionConfig config = (LabVisionConfig) getServletContext()
-				.getAttribute(LabVisionServletContextListener.CONFIG_ATTR);
-		StudentService studentService = (StudentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.STUDENT_SERVICE_ATTR);
+		StudentDashboardService dashboardService = (StudentDashboardService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.STUDENT_DASHBOARD_SERVICE_ATTR);
+
+		Student student = (Student) session.getAttribute("user");
+		int studentId = student.getId();
 		
-		StudentDashboard dashboardModel = new StudentDashboard();
-			
-		Student student = studentService.getStudent(
-				((Student) session.getAttribute("user")).getId(),
-				true, false, false);
-		
-		dashboardModel.setStudent(student);
-		dashboardModel.setCurrentExperiments(studentService.getCurrentExperimentsMap(student));		
-		dashboardModel.setRecentExperiments(studentService.getRecentExperiments(student));
-		dashboardModel.setRecentCourses(studentService.getRecentCourses(student));
-		dashboardModel.setMaxRecentExperiments(config.getStudentDashboardMaxRecentExperiments());
-		dashboardModel.setMaxRecentCourses(config.getStudentDashboardMaxRecentCourses());
-		
-		request.setAttribute("dashboardModel", dashboardModel);
+		request.setAttribute("student", student);
+		request.setAttribute("currentExperiments", dashboardService.getCurrentExperiments(studentId));
+		request.setAttribute("recentExperiments", dashboardService.getRecentExperiments(studentId));
+		request.setAttribute("recentCourses", dashboardService.getRecentCourses(studentId));
 		request.getRequestDispatcher("/WEB-INF/student/dashboard.jsp").forward(request, response);
 	}
 	

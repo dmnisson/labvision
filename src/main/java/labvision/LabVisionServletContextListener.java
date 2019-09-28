@@ -5,6 +5,7 @@ import javax.persistence.Persistence;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import labvision.services.StudentDashboardService;
 import labvision.services.ExperimentService;
 import labvision.services.InstructorService;
 import labvision.services.StudentService;
@@ -12,6 +13,7 @@ import labvision.services.UserService;
 
 public class LabVisionServletContextListener implements ServletContextListener {
 
+	public static final String STUDENT_DASHBOARD_SERVICE_ATTR = "studentDashboardService";
 	public static final String STUDENT_SERVICE_ATTR = "studentService";
 	public static final String EXPERIMENT_SERVICE_ATTR = "experimentService";
 	public static final String INSTRUCTOR_SERVICE_ATTR = "instructorService";
@@ -42,6 +44,9 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		
 		ExperimentService experimentService = new ExperimentService(emf);
 		event.getServletContext().setAttribute(EXPERIMENT_SERVICE_ATTR, experimentService);
+		
+		StudentDashboardService studentDashboardService = new StudentDashboardService(emf, config);
+		event.getServletContext().setAttribute(STUDENT_DASHBOARD_SERVICE_ATTR, studentDashboardService);
 	}
 
 	@Override

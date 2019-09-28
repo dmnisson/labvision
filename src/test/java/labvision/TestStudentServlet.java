@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -15,13 +17,16 @@ import javax.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import labvision.dto.student.dashboard.CurrentExperimentForStudentDashboard;
+import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
+import labvision.dto.student.dashboard.RecentExperimentForStudentDashboard;
 import labvision.entities.Experiment;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
 import labvision.entities.QuantityTypeId;
 import labvision.entities.Student;
 import labvision.measure.Amount;
-import labvision.models.StudentDashboard;
+import labvision.services.StudentDashboardService;
 import labvision.services.StudentService;
 import tec.units.ri.unit.Units;
 
@@ -40,32 +45,39 @@ class TestStudentServlet {
 		when(session.getAttribute("user")).thenReturn(student);
 		when(req.getSession(anyBoolean() )).thenReturn(session);
 		
-		Experiment activeExperiment1 = spy(new Experiment());
-		activeExperiment1.setName("Test Experiment 1");
-		activeExperiment1.setId(19);
-		
-		Measurement measurement11 = new Measurement();
-		measurement11.setQuantityTypeId(QuantityTypeId.ANGLE);
-		MeasurementValue measurementValue111 = new MeasurementValue();
-		measurementValue111.setVariable(measurement11);
-		measurementValue111.setAmountValue(new Amount<>(1.3, 0.11, Units.RADIAN));
-		measurementValue111.setTaken(LocalDateTime.now().minusHours(3));
-		measurement11.addValue(measurementValue111);
-		activeExperiment1.addMeasurement(measurement11);
-		student.addActiveExperiment(activeExperiment1);
+		CurrentExperimentForStudentDashboard activeExperiment1 =
+				new CurrentExperimentForStudentDashboard(
+						6, 
+						"Test Experiment 1", 
+						8, 
+						"Test Course 1");
+		RecentExperimentForStudentDashboard recentExperiment1 = 
+				new RecentExperimentForStudentDashboard(
+						6, 
+						"Test Experiment 1", 
+						LocalDateTime.now().minusHours(2));
+		RecentCourseForStudentDashboard recentCourse1 =
+				new RecentCourseForStudentDashboard(
+						8,
+						"Test Course 1",
+						LocalDateTime.now().minusHours(2));
 		
 		ServletConfig servletConfig = mock(ServletConfig.class);
 		ServletContext servletContext = mock(ServletContext.class);
 		LabVisionConfig labVisionConfig = mock(LabVisionConfig.class);
-		StudentService studentService = mock(StudentService.class);
+		StudentDashboardService studentDashboardService = mock(StudentDashboardService.class);
 		
-		when(studentService.getStudent(anyInt(), anyBoolean(), anyBoolean(), anyBoolean()))
-			.thenReturn(student);
+		when(studentDashboardService.getCurrentExperiments(student.getId()))
+			.thenReturn(Arrays.asList(activeExperiment1));
+		when(studentDashboardService.getRecentExperiments(student.getId()))
+			.thenReturn(Arrays.asList(recentExperiment1));
+		when(studentDashboardService.getRecentCourses(student.getId()))
+			.thenReturn(Arrays.asList(recentCourse1));
 		
 		when(servletContext.getAttribute(LabVisionServletContextListener.CONFIG_ATTR))
 			.thenReturn(labVisionConfig);
-		when(servletContext.getAttribute(LabVisionServletContextListener.STUDENT_SERVICE_ATTR))
-			.thenReturn(studentService);
+		when(servletContext.getAttribute(LabVisionServletContextListener.STUDENT_DASHBOARD_SERVICE_ATTR))
+			.thenReturn(studentDashboardService);
 		
 		when(servletConfig.getServletContext()).thenReturn(servletContext);
 		
@@ -75,14 +87,14 @@ class TestStudentServlet {
 		RequestDispatcher dispatcher = mock(RequestDispatcher.class);
 		when(req.getRequestDispatcher(anyString() )).thenReturn(dispatcher);
 		
-		ArgumentCaptor<StudentDashboard> dashboardModelCaptor = ArgumentCaptor.forClass(StudentDashboard.class);
-		doNothing().when(req).setAttribute(eq("dashboardModel"), dashboardModelCaptor.capture());
+		ArgumentCaptor<Student> studentCaptor = ArgumentCaptor.forClass(Student.class);
+		doNothing().when(req).setAttribute(eq("student"), studentCaptor.capture());
 		
 		StudentServlet servlet = new StudentServlet();
 		servlet.init(servletConfig);
 		servlet.doGet(req, resp);
 		
-		assertEquals(((StudentDashboard) dashboardModelCaptor.getValue()).getStudent().getId(), 17);
+		assertEquals(((Student) studentCaptor.getValue()).getId(), 17);
 	}
 
 }
