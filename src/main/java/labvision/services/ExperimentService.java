@@ -255,6 +255,7 @@ public class ExperimentService extends JpaService {
 			EntityTransaction tx = manager.getTransaction();
 			tx.begin();
 			Measurement mergedMeasurement = manager.merge(measurement);
+			Student mergedStudent = manager.merge(student);
 			
 			MeasurementValue measurementValue = new MeasurementValue();
 			measurementValue.setVariable(mergedMeasurement); // necessary for setAmountValue to know correct dimensions
@@ -265,7 +266,6 @@ public class ExperimentService extends JpaService {
 					true)
 				.addMeasurementValue(measurementValue);
 			
-			Student mergedStudent = manager.merge(student);
 			mergedStudent.addMeasurementValue(measurementValue);
 			
 			// add parameter values
