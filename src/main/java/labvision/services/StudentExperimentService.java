@@ -12,7 +12,6 @@ import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
-import labvision.entities.ReportedResult;
 
 public class StudentExperimentService extends ExperimentService {
 	

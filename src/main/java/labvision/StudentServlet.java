@@ -30,9 +30,7 @@ import labvision.entities.Parameter;
 import labvision.entities.Student;
 import labvision.measure.Amount;
 import labvision.measure.SI;
-import labvision.models.ExperimentViewModel;
 import labvision.models.NavbarModel;
-import labvision.models.StudentExperimentViewModel;
 import labvision.services.ExperimentService;
 import labvision.services.StudentDashboardService;
 import labvision.services.StudentExperimentService;
@@ -131,21 +129,19 @@ public class StudentServlet extends HttpServlet {
 
 	private void doGetExperiment(HttpServletRequest request, HttpServletResponse response, HttpSession session,
 			String experimentIdString) throws ServletException, IOException {
-		ExperimentService experimentService = (ExperimentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
 		StudentExperimentService studentExperimentService = (StudentExperimentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
 		int studentId = student.getId();
 		int experimentId = Integer.parseInt(experimentIdString);
-		Experiment experiment = experimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
+		Experiment experiment = studentExperimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
 		List<Measurement> measurements = experiment.getMeasurements().stream()
 				.collect(Collectors.toCollection(ArrayList::new));
 		
 		request.setAttribute("experiment", experiment);
-		request.setAttribute("measurementUnits", experimentService.getMeasurementUnits(experimentId));
-		request.setAttribute("parameterUnits", experimentService.getParameterUnits(experimentId));
+		request.setAttribute("measurementUnits", studentExperimentService.getMeasurementUnits(experimentId));
+		request.setAttribute("parameterUnits", studentExperimentService.getParameterUnits(experimentId));
 		request.setAttribute("measurementValues", studentExperimentService.getMeasurementValues(experimentId, studentId));
 		request.setAttribute("reportedResults", studentExperimentService.getReportedResults(experimentId, studentId));
 		request.getRequestDispatcher("/WEB-INF/student/experiment.jsp").forward(request, response);
