@@ -39,9 +39,9 @@
           <form method="POST" action="/student/measurement/newvalue/${measurement.id}">
 	          <t:measurementvaluestable
 	            measurement="${measurement}"
-	            measurementvalues="${experimentViewModel.measurementValues[measurement]}"
-	            measurementunitsymbol="${experimentViewModel.measurementUnits[measurement]}"
-	            parameterunitsymbols="${experimentViewModel.parameterUnits}"
+	            measurementvalues="${measurementValues[measurement]}"
+	            measurementunitsymbol="${measurementUnits[measurement]}"
+	            parameterunitsymbols="${parameterUnits}"
 	            id="measurement-values-table"
 	            addnewform="true"
 	          />
@@ -71,10 +71,10 @@
             </tr>
           </thead>
           <tbody>
-            <c:forEach var="report" items="${experiment.reportedResults}">
+            <c:forEach var="report" items="${reportedResults}">
             <tr>
               <td class="col-6">
-                <a href="/student/report/${report.id}">${experimentViewModel.reportDisplay[report]}</a>
+                <a href="/student/report/${report.id}">${report.reportDisplay}</a>
               </td>
               <td class="col-6">
                 <javatime:format value="${report.added}" style="SS" />

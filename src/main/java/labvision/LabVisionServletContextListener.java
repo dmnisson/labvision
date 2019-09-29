@@ -14,7 +14,7 @@ import labvision.services.UserService;
 
 public class LabVisionServletContextListener implements ServletContextListener {
 
-	public static final String STUDENT_EXPERIMENT_TABLE_SERVICE_ATTR = "studentExperimentTableService";
+	public static final String STUDENT_EXPERIMENT_SERVICE_ATTR = "studentExperimentService";
 	public static final String STUDENT_DASHBOARD_SERVICE_ATTR = "studentDashboardService";
 	public static final String STUDENT_SERVICE_ATTR = "studentService";
 	public static final String EXPERIMENT_SERVICE_ATTR = "experimentService";
@@ -50,8 +50,8 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		StudentDashboardService studentDashboardService = new StudentDashboardService(emf, config);
 		event.getServletContext().setAttribute(STUDENT_DASHBOARD_SERVICE_ATTR, studentDashboardService);
 		
-		StudentExperimentService studentExperimentTableService = new StudentExperimentService(emf);
-		event.getServletContext().setAttribute(STUDENT_EXPERIMENT_TABLE_SERVICE_ATTR, studentExperimentTableService);
+		ExperimentService studentExperimentTableService = new StudentExperimentService(emf);
+		event.getServletContext().setAttribute(STUDENT_EXPERIMENT_SERVICE_ATTR, studentExperimentTableService);
 		
 	}
 

@@ -305,4 +305,35 @@ public class ExperimentService extends JpaService {
 			return mergedParameter;
 		});
 	}
+
+	public Map<Measurement, String> getMeasurementUnits(int experimentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT m FROM Measurement m " +
+					"LEFT JOIN FETCH m.parameters p " +
+					"WHERE m.experiment.id=:experimentid";
+			TypedQuery<Measurement> query = manager.createQuery(queryString, Measurement.class);
+			query.setParameter("experimentid", experimentId);
+			return query.getResultStream()
+					.collect(Collectors.toMap(
+							Function.identity(),
+							m -> m.systemUnit(m.getQuantityTypeId().getQuantityClass().getQuantityType())
+							.getSymbol()));
+		});
+	}
+
+	public Map<Parameter, String> getParameterUnits(int experimentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT DISTINCT p FROM Parameter p " +
+					"WHERE p.measurement.experiment.id=:experimentid";
+			TypedQuery<Parameter> query = manager.createQuery(queryString, Parameter.class);
+			query.setParameter("experimentid", experimentId);
+			return query.getResultStream()
+					.collect(Collectors.toMap(
+							Function.identity(),
+							p -> p.systemUnit(p.getQuantityTypeId().getQuantityClass().getQuantityType())
+							.getSymbol()));
+		});
+	}
 }

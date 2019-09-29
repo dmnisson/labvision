@@ -130,45 +130,30 @@ public class StudentServlet extends HttpServlet {
 	}
 
 	private void doGetExperiment(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-			String experimentId) throws ServletException, IOException {
+			String experimentIdString) throws ServletException, IOException {
 		ExperimentService experimentService = (ExperimentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
+		StudentExperimentService studentExperimentService = (StudentExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
-		Experiment experiment = experimentService.getExperiment(Integer.parseInt(experimentId), ExperimentPrefetch.PREFETCH_VALUES);
+		int studentId = student.getId();
+		int experimentId = Integer.parseInt(experimentIdString);
+		Experiment experiment = experimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
 		List<Measurement> measurements = experiment.getMeasurements().stream()
 				.collect(Collectors.toCollection(ArrayList::new));
 		
-		StudentExperimentViewModel experimentViewModel = new StudentExperimentViewModel();
-		
-		experimentViewModel.setMeasurementUnits(measurements.stream()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						m -> m.systemUnit(m.getQuantityTypeId().getQuantityClass().getQuantityType())
-							.getSymbol())));
-		experimentViewModel.setParameterUnits(measurements.stream()
-				.flatMap(m -> m.getParameters().stream())
-				.collect(Collectors.toMap(
-						Function.identity(),
-						p -> p.systemUnit(p.getQuantityTypeId().getQuantityClass().getQuantityType())
-							.getSymbol())));
-		experimentViewModel.setMeasurementValues(measurements.stream()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						m -> experimentService.getMeasurementValues(m, student, true))));
-		experimentViewModel.setReportDisplay(experimentService.getReportedResults(experiment, student).stream()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						ExperimentViewModel.REPORT_DISPLAY_FUNCTION)));
-		
 		request.setAttribute("experiment", experiment);
-		request.setAttribute("experimentViewModel", experimentViewModel);
+		request.setAttribute("measurementUnits", experimentService.getMeasurementUnits(experimentId));
+		request.setAttribute("parameterUnits", experimentService.getParameterUnits(experimentId));
+		request.setAttribute("measurementValues", studentExperimentService.getMeasurementValues(experimentId, studentId));
+		request.setAttribute("reportedResults", studentExperimentService.getReportedResults(experimentId, studentId));
 		request.getRequestDispatcher("/WEB-INF/student/experiment.jsp").forward(request, response);
 	}
 
 	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException {
 		StudentExperimentService studentExperimentTableService = (StudentExperimentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_TABLE_SERVICE_ATTR);
+				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR);
 		
 		int studentId = ((Student) session.getAttribute("user")).getId();
 		

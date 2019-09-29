@@ -1,15 +1,21 @@
 package labvision.services;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
+import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
+import labvision.entities.Measurement;
+import labvision.entities.MeasurementValue;
+import labvision.entities.ReportedResult;
 
-public class StudentExperimentService extends JpaService {
-
+public class StudentExperimentService extends ExperimentService {
+	
 	public StudentExperimentService(EntityManagerFactory entityManagerFactory) {
 		super(entityManagerFactory);
 	}
@@ -61,6 +67,45 @@ public class StudentExperimentService extends JpaService {
 			TypedQuery<PastExperimentForStudentExperimentTable> query = manager.createQuery(
 					queryString,
 					PastExperimentForStudentExperimentTable.class);
+			query.setParameter("studentid", studentId);
+			return query.getResultList();
+		});
+	}
+	
+	public Map<Measurement, List<MeasurementValue>> getMeasurementValues(int experimentId, int studentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT mv FROM MeasurementValue mv " +
+					"JOIN mv.courseClass cc " +
+					"JOIN cc.course c " +
+					"JOIN c.experiments e " +
+					"LEFT JOIN FETCH mv.variable v " +
+					"LEFT JOIN FETCH mv.parameterValues pv " +
+					"WHERE e.id=:experimentid AND mv.student.id=:studentid";
+			TypedQuery<MeasurementValue> query = manager.createQuery(queryString, MeasurementValue.class);
+			query.setParameter("experimentid", experimentId);
+			query.setParameter("studentid", studentId);
+			return query.getResultStream()
+					.collect(Collectors.groupingBy(
+							MeasurementValue::getVariable));
+		});
+	}
+	
+	public List<ReportedResultForStudentExperimentView> getReportedResults(int experimentId, int studentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.student.experiment.ReportedResultForStudentExperimentView(" +
+				    "	rr.id," +
+				    "	rd.filename," +
+				    "	rr.added" +
+				    ") " +
+				    "FROM ReportedResult rr " +
+				    "LEFT JOIN rr.reportDocument rd " +
+				    "WHERE rr.experiment.id=:experimentid AND rr.student.id=:studentid";
+			TypedQuery<ReportedResultForStudentExperimentView> query = manager.createQuery(
+					queryString,
+					ReportedResultForStudentExperimentView.class);
+			query.setParameter("experimentid", experimentId);
 			query.setParameter("studentid", studentId);
 			return query.getResultList();
 		});
