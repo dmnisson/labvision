@@ -35,7 +35,7 @@ import labvision.models.NavbarModel;
 import labvision.models.StudentExperimentViewModel;
 import labvision.services.ExperimentService;
 import labvision.services.StudentDashboardService;
-import labvision.services.StudentExperimentTableService;
+import labvision.services.StudentExperimentService;
 import labvision.services.StudentService;
 
 public class StudentServlet extends HttpServlet {
@@ -167,7 +167,7 @@ public class StudentServlet extends HttpServlet {
 	}
 
 	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException {
-		StudentExperimentTableService studentExperimentTableService = (StudentExperimentTableService) getServletContext()
+		StudentExperimentService studentExperimentTableService = (StudentExperimentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_TABLE_SERVICE_ATTR);
 		
 		int studentId = ((Student) session.getAttribute("user")).getId();

@@ -8,9 +8,9 @@ import javax.persistence.TypedQuery;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 
-public class StudentExperimentTableService extends JpaService {
+public class StudentExperimentService extends JpaService {
 
-	public StudentExperimentTableService(EntityManagerFactory entityManagerFactory) {
+	public StudentExperimentService(EntityManagerFactory entityManagerFactory) {
 		super(entityManagerFactory);
 	}
 

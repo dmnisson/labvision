@@ -6,7 +6,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import labvision.services.StudentDashboardService;
-import labvision.services.StudentExperimentTableService;
+import labvision.services.StudentExperimentService;
 import labvision.services.ExperimentService;
 import labvision.services.InstructorService;
 import labvision.services.StudentService;
@@ -50,7 +50,7 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		StudentDashboardService studentDashboardService = new StudentDashboardService(emf, config);
 		event.getServletContext().setAttribute(STUDENT_DASHBOARD_SERVICE_ATTR, studentDashboardService);
 		
-		StudentExperimentTableService studentExperimentTableService = new StudentExperimentTableService(emf);
+		StudentExperimentService studentExperimentTableService = new StudentExperimentService(emf);
 		event.getServletContext().setAttribute(STUDENT_EXPERIMENT_TABLE_SERVICE_ATTR, studentExperimentTableService);
 		
 	}
