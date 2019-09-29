@@ -33,9 +33,9 @@ import labvision.measure.SI;
 import labvision.models.ExperimentViewModel;
 import labvision.models.NavbarModel;
 import labvision.models.StudentExperimentViewModel;
-import labvision.models.StudentExperimentsTableModel;
 import labvision.services.ExperimentService;
 import labvision.services.StudentDashboardService;
+import labvision.services.StudentExperimentTableService;
 import labvision.services.StudentService;
 
 public class StudentServlet extends HttpServlet {
@@ -167,34 +167,13 @@ public class StudentServlet extends HttpServlet {
 	}
 
 	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException {
-		ExperimentService experimentService = (ExperimentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
-		StudentService studentService = (StudentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.STUDENT_SERVICE_ATTR);
+		StudentExperimentTableService studentExperimentTableService = (StudentExperimentTableService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_TABLE_SERVICE_ATTR);
 		
-		Student student = studentService.getStudent(((Student) session.getAttribute("user")).getId(), 
-				true, false, false);
-		StudentExperimentsTableModel experimentsTableModel = new StudentExperimentsTableModel();
+		int studentId = ((Student) session.getAttribute("user")).getId();
 		
-		experimentsTableModel.setCurrentExperiments(student.getActiveExperiments());
-		experimentsTableModel.setPastExperiments(experimentService.getPastExperiments(student));
-		Supplier<Stream<Experiment> > experimentsStream = () -> Stream.concat(
-				experimentsTableModel.getCurrentExperiments().stream(),
-				experimentsTableModel.getPastExperiments().stream());
-		experimentsTableModel.setReportedResults(experimentsStream.get()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						e -> experimentService.getReportedResults(e, student))));
-		experimentsTableModel.setLastReportUpdated(experimentsStream.get()
-				.collect(HashMap::new,
-						(m, e) -> m.put(e, experimentService.getLastReportUpdated(e, student)),
-						HashMap::putAll));
-		experimentsTableModel.setTotalReportScore(experimentsStream.get()
-				.collect(HashMap::new,
-						(m, e) -> m.put(e, experimentService.getTotalReportScore(e, student)),
-						HashMap::putAll));
-		
-		request.setAttribute("experimentsTableModel", experimentsTableModel);
+		request.setAttribute("currentExperiments", studentExperimentTableService.getCurrentExperiments(studentId));
+		request.setAttribute("pastExperiments", studentExperimentTableService.getPastExperiments(studentId));
 		request.getRequestDispatcher("/WEB-INF/student/experiments.jsp").forward(request, response);
 	}
 

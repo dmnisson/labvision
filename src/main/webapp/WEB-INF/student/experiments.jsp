@@ -25,10 +25,10 @@
       </ul>
       <div class="tab-content" id="experimentsTabContent">
         <div class="tab-pane show active" id="current" role="tabpanel" aria-labelledby="current-tab">
-          <c:if test="${empty experimentsTableModel.currentExperiments}">
+          <c:if test="${empty currentExperiments}">
           <div class="text-center">No current experiments.</div>
           </c:if>
-          <c:if test="${not empty experimentsTableModel.currentExperiments}">
+          <c:if test="${not empty currentExperiments}">
           <div class="table-responsive">
 	          <table class="table table-fixed">
 	            <thead>
@@ -40,7 +40,7 @@
 	              </tr>
 	            </thead>
 	            <tbody>
-	              <c:forEach var="experiment" items="${experimentsTableModel.currentExperiments}">
+	              <c:forEach var="experiment" items="${currentExperiments}">
 	              <tr>
 	                <td class="col-3">
 	                  <a href="/student/experiment/${experiment.id}">${experiment.name}</a>
@@ -49,20 +49,20 @@
 	                  <javatime:format value="${experiment.reportDueDate}" style="S-" />
 	                </td>
 	                <td class="col-3">
-	                  <c:if test="${not empty experimentsTableModel.reportedResults[experiment]}">
+	                  <c:if test="${not empty experiment.lastReportUpdated}">
 	                    <a href="/student/experiment/${experiment.id}#reports">
-	                      Last updated <javatime:format value="${experimentsTableModel.lastReportUpdated[experiment]}" style="S-" />
+	                      Last updated <javatime:format value="${experiment.lastReportUpdated}" style="S-" />
 	                    </a>
 	                  </c:if>
-	                  <c:if test="${empty experimentsTableModel.reportedResults[experiment]}">
+	                  <c:if test="${empty experiment.lastReportUpdated}">
 	                    <a href="/student/report/new" class="btn btn-primary">Submit</a>
 	                  </c:if>
 	                </td>
 	                <td class="col-3">
-	                  <c:if test="${experimentsTableModel.totalReportScore[experiment]}">
-                      ${experimentsTableModel.totalReportScore[experiment]}
+	                  <c:if test="${experiment.totalReportScore}">
+                      ${experiment.totalReportScore}
                     </c:if>
-                    <c:if test="${not experimentsTableModel.totalReportScore[experiment]}">
+                    <c:if test="${not experiment.totalReportScore}">
                       —
                     </c:if>
 	                </td>
@@ -74,10 +74,10 @@
 	        </c:if>
         </div>
         <div class="tab-pane" id="past" role="tabpanel" aria-labelledby="past-tab">
-          <c:if test="${empty experimentsTableModel.pastExperiments}">
+          <c:if test="${empty pastExperiments}">
           <div class="text-center">No past experiments.</div>
           </c:if>
-          <c:if test="${not empty experimentsTableModel.pastExperiments}">
+          <c:if test="${not empty pastExperiments}">
           <div class="table-responsive">
             <table class="table table-fixed">
               <thead>
@@ -89,32 +89,32 @@
                 </tr>
               </thead>
               <tbody>
-                <c:forEach var="experiment" items="${experimentsTableModel.pastExperiments}">
+                <c:forEach var="experiment" items="${pastExperiments}">
                 <tr>
                   <td class="col-3">
                     <a href="/student/experiment/${experiment.id}">${experiment.name}</a>
                   </td>
                   <td class="col-3">
                     <a href="/student/experiment/${experiment.id}#reports">
-                      ${fn:length(experimentsTableModel.reportedResults[experiment])}
+                      ${experiment.reportCount}
                     </a>
                   </td>
                   <td class="col-3">
                     <c:choose>
-                    <c:when test="${empty experimentsTableModel.lastReportUpdated[experiment]}">
+                    <c:when test="${empty experiment.lastReportUpdated}">
                     –
                     </c:when>
                     <c:otherwise>
-                    <fmt:formatDate value="${experimentsTableModel.lastReportUpdated[experiment]}"
+                    <fmt:formatDate value="${experiment.lastReportUpdated}"
                       dateStyle="short" />
                     </c:otherwise>
                     </c:choose>
                   </td>
                   <td class="col-3">
-                   <c:if test="${not empty experimentsTableModel.totalReportScore[experiment]}">
-                      ${experimentsTableModel.totalReportScore[experiment]}
+                   <c:if test="${not empty experiment.totalReportScore}">
+                      ${experiment.totalReportScore}
                     </c:if>
-                    <c:if test="${empty experimentsTableModel.totalReportScore[experiment]}">
+                    <c:if test="${empty experiment.totalReportScore}">
                       —
                     </c:if>
                   </td>
