@@ -52,6 +52,7 @@ public class ExperimentService extends JpaService {
 						JoinType.LEFT);
 				e.fetch(Experiment_.course, JoinType.LEFT);
 				e.fetch(Experiment_.reportedResults, JoinType.LEFT);
+				e.fetch(Experiment_.instructors, JoinType.LEFT);
 			}
 			cq.select(e).where(cb.equal(e.get(Experiment_.id), id));
 			

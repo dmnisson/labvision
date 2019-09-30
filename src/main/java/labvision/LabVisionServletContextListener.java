@@ -8,12 +8,14 @@ import javax.servlet.ServletContextListener;
 import labvision.services.StudentDashboardService;
 import labvision.services.StudentExperimentService;
 import labvision.services.ExperimentService;
+import labvision.services.InstructorExperimentService;
 import labvision.services.InstructorService;
 import labvision.services.StudentService;
 import labvision.services.UserService;
 
 public class LabVisionServletContextListener implements ServletContextListener {
 
+	public static final String INSTRUCTOR_EXPERIMENT_SERVICE_ATTR = "instructorExperimentService";
 	public static final String STUDENT_EXPERIMENT_SERVICE_ATTR = "studentExperimentService";
 	public static final String STUDENT_DASHBOARD_SERVICE_ATTR = "studentDashboardService";
 	public static final String STUDENT_SERVICE_ATTR = "studentService";
@@ -50,9 +52,11 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		StudentDashboardService studentDashboardService = new StudentDashboardService(emf, config);
 		event.getServletContext().setAttribute(STUDENT_DASHBOARD_SERVICE_ATTR, studentDashboardService);
 		
-		ExperimentService studentExperimentTableService = new StudentExperimentService(emf);
-		event.getServletContext().setAttribute(STUDENT_EXPERIMENT_SERVICE_ATTR, studentExperimentTableService);
+		StudentExperimentService studentExperimentService = new StudentExperimentService(emf);
+		event.getServletContext().setAttribute(STUDENT_EXPERIMENT_SERVICE_ATTR, studentExperimentService);
 		
+		InstructorExperimentService instructorExperimentService = new InstructorExperimentService(emf);
+		event.getServletContext().setAttribute(INSTRUCTOR_EXPERIMENT_SERVICE_ATTR, instructorExperimentService);
 	}
 
 	@Override

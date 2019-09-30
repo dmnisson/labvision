@@ -98,9 +98,9 @@
             <h5>${student.displayName} for ${courseClass.name}</h5>
 	          <t:measurementvaluestable 
 	            measurement="${measurement}"
-	            measurementunitsymbol="${experimentViewModel.measurementUnits[measurement]}"
-	            measurementvalues="${experimentViewModel.measurementValues[measurement][courseClass][student]}"
-	            parameterunitsymbols="${experimentViewModel.parameterUnits}"
+	            measurementunitsymbol="${measurementUnits[measurement]}"
+	            measurementvalues="${measurementValues[measurement][courseClass][student]}"
+	            parameterunitsymbols="${parameterUnits}"
 	            id="measurementValuesTable${measurement.id}-${courseClass.id}-${student.id}"
 	            addnewform="false"
 	          />

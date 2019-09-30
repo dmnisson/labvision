@@ -15,17 +15,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import labvision.dto.faculty.experiment.ExperimentForFacultyExperimentTable;
 import labvision.entities.Experiment;
 import labvision.entities.Instructor;
 import labvision.entities.MeasurementValue;
-import labvision.models.ExperimentViewModel;
-import labvision.models.FacultyDashboardModel;
-import labvision.models.FacultyExperimentViewModel;
-import labvision.models.FacultyExperimentsTableModel;
 import labvision.models.NavbarModel;
 import labvision.services.ExperimentService;
+import labvision.services.InstructorExperimentService;
 import labvision.services.InstructorService;
-import labvision.utils.Pair;
 
 /**
  * Servlet for handling faculty endpoints
@@ -130,78 +127,39 @@ public class FacultyServlet extends HttpServlet {
 		
 	}
 
-	private void doGetExperiment(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String experimentId) throws ServletException, IOException {
-		InstructorService instructorService = (InstructorService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.INSTRUCTOR_SERVICE_ATTR);
-		ExperimentService experimentService = (ExperimentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
+	private void doGetExperiment(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String experimentIdString) throws ServletException, IOException {
+		InstructorExperimentService instructorExperimentService = (InstructorExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.INSTRUCTOR_EXPERIMENT_SERVICE_ATTR);
 		
 		Instructor instructor = (Instructor) session.getAttribute("user");
-		FacultyExperimentViewModel experimentViewModel = new FacultyExperimentViewModel();
-		
-		Experiment experiment = experimentService.getExperiment(
-				Integer.parseInt(experimentId), ExperimentPrefetch.PREFETCH_VALUES);
-		
-		experimentViewModel.setMeasurementUnits(experiment.getMeasurements().stream()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						m -> m.systemUnit(m.getQuantityTypeId().getQuantityClass().getQuantityType())
-							.getSymbol())));
-		experimentViewModel.setParameterUnits(experiment.getMeasurements().stream()
-				.flatMap(m -> m.getParameters().stream())
-				.collect(Collectors.toMap(
-						Function.identity(),
-						p -> p.systemUnit(p.getQuantityTypeId().getQuantityClass().getQuantityType())
-						.getSymbol())));
-		experimentViewModel.setMeasurementValues(experiment.getMeasurements().stream()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						m -> experimentService.getMeasurementValues(m, true, true, true).stream()
-							.collect(Collectors.groupingBy(
-									MeasurementValue::getCourseClass,
-									Collectors.groupingBy(
-											MeasurementValue::getStudent)
-									))
-						)));
-		experimentViewModel.setReportDisplay(experimentService.getReportedResults(experiment, instructor).stream()
-				.collect(HashMap::new,
-						(m, rr) -> m.put(rr, ExperimentViewModel.REPORT_DISPLAY_FUNCTION.apply(rr)),
-						HashMap::putAll));
+		int instructorId = instructor.getId();
+		int experimentId = Integer.parseInt(experimentIdString);
+		Experiment experiment = instructorExperimentService.getExperiment(
+				experimentId, ExperimentPrefetch.PREFETCH_VALUES);
 		
 		req.setAttribute("experiment", experiment);
-		req.setAttribute("experimentViewModel", experimentViewModel);
+		req.setAttribute("measurementUnits", instructorExperimentService.getMeasurementUnits(experimentId));
+		req.setAttribute("measurementValues", instructorExperimentService.getMeasurementValues(experimentId, instructorId));
+		req.setAttribute("parameterUnits", instructorExperimentService.getParameterUnits(experimentId));
 		req.getRequestDispatcher("/WEB-INF/faculty/experiment.jsp").forward(req, resp);
 	}
 
 	private void doGetExperiments(HttpServletRequest req, HttpServletResponse resp, HttpSession session) throws ServletException, IOException {		
-		ExperimentService experimentService = (ExperimentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
-		
-		FacultyExperimentsTableModel experimentsTableModel = new FacultyExperimentsTableModel();
-		
+		InstructorExperimentService instructorExperimentService = (InstructorExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.INSTRUCTOR_EXPERIMENT_SERVICE_ATTR);
+				
 		Instructor instructor = (Instructor) session.getAttribute("user");
-		Set<Experiment> experiments = experimentService.getExperiments(instructor);
-		
-		experimentsTableModel.setAverageStudentScores(experiments.stream()
-				.collect(HashMap::new,
-						(m, e) -> m.put(e, experimentService.getAverageStudentReportScore(e)),
-						HashMap::putAll));
-		experimentsTableModel.setReportedResults(experiments.stream()
-				.collect(HashMap::new,
-						(m, e) -> m.put(e, experimentService.getReportedResults(e, instructor)),
-						HashMap::putAll));
+		int instructorId = instructor.getId();
+		List<ExperimentForFacultyExperimentTable> experiments = instructorExperimentService.getExperiments(instructorId);
 		
 		req.setAttribute("experiments", experiments);
-		req.setAttribute("experimentsTableModel", experimentsTableModel);
 		req.getRequestDispatcher("/WEB-INF/faculty/experiments.jsp").forward(req, resp);
 	}
 
 	private void doGetDashboard(HttpServletRequest req, HttpServletResponse resp, HttpSession session) throws ServletException, IOException {
 		Instructor instructor = (Instructor) session.getAttribute("user");
-		FacultyDashboardModel dashboardModel = new FacultyDashboardModel();
-		dashboardModel.setInstructor(instructor);
 		
-		req.setAttribute("dashboardModel", dashboardModel);
+		req.setAttribute("instructor", instructor);
 		req.getRequestDispatcher("/WEB-INF/faculty/dashboard.jsp").forward(req, resp);
 	}
 	

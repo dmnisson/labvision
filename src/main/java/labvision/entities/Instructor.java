@@ -77,7 +77,7 @@ public class Instructor extends User {
 
 	@Override
 	public String getDisplayName() {
-		return Objects.isNull(name) || name.isEmpty()
+		return (Objects.isNull(name) || name.isEmpty())
 				? super.getDisplayName() : name;
 	}
 }

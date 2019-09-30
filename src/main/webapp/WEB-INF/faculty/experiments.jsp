@@ -34,15 +34,15 @@
                 <a href="/faculty/experiment/${experiment.id}">${experiment.name}</a>
               </td>
               <td>
-                ${fn:length(experimentsTableModel.reportedResults[experiment])}
+                ${experiment.reportedResultsCount}
               </td>
               <td>
                 <c:choose>
-	                <c:when test="${experimentsTableModel.averageStudentScores[experiment] eq null}">
+	                <c:when test="${experiment.averageStudentScore eq null}">
 	                  —
 	                </c:when>
 	                <c:otherwise>
-	                  ${experimentsTableModel.averageStudentScores[experiment]}
+	                  ${experiment.averageStudentScore}
 	                </c:otherwise>
                 </c:choose>
               </td>
