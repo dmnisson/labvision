@@ -136,8 +136,6 @@ public class StudentServlet extends HttpServlet {
 		int studentId = student.getId();
 		int experimentId = Integer.parseInt(experimentIdString);
 		Experiment experiment = studentExperimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
-		List<Measurement> measurements = experiment.getMeasurements().stream()
-				.collect(Collectors.toCollection(ArrayList::new));
 		
 		request.setAttribute("experiment", experiment);
 		request.setAttribute("measurementUnits", studentExperimentService.getMeasurementUnits(experimentId));
