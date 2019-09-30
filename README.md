@@ -19,7 +19,14 @@ Instructors will be able to:
 # Setup
 Although many of the pages in this project have not been completed, developers are welcome to test the current state on their system and contribute ideas for what has not yet been implemented. If you would like to do so, then all you need is Apache Maven 3.6.2 and JDK 1.8 or later.
 
-The quickest way to set up LabVision on your local system is to clone the repository, and change to the directory where your clone is located. LabVision is configured to accept connections only on HTTPS, so you will need to generate a public and private key and put it into a keystore that you can install for testing purposes. The keystore password will then need to be configured in the file jetty-ssl-keystore.xml, a [sample](https://github.com/dmnisson/labvision/blob/master/jetty-ssl-keystore.example.xml) of which is provided in the repository. 
+The quickest way to set up LabVision on your local system is to clone the repository, and change to the directory where your clone is located. LabVision is configured to accept connections only on HTTPS, so you will need to generate a public and private key and put it into a keystore that you can install for testing purposes. The easiest way to do this is using the JDK keytool:
+
+```
+keytool -keystore keystore -alias jetty -genkey -keyalg RSA -sigalg SHA256withRSA
+```
+
+
+The keystore password will then need to be configured in the file jetty-ssl-keystore.xml, a [sample](https://github.com/dmnisson/labvision/blob/master/jetty-ssl-keystore.example.xml) of which is provided in the repository. 
 
 Once you have the certificate and keys, you can run the command
 
