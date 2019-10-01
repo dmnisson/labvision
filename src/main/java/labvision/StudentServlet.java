@@ -23,6 +23,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import labvision.entities.PersistableAmount;
+import labvision.dto.student.dashboard.CurrentExperimentForStudentDashboard;
+import labvision.dto.student.dashboard.ExperimentForStudentDashboard;
+import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
+import labvision.dto.student.dashboard.RecentExperimentForStudentDashboard;
+import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
+import labvision.dto.student.experiment.ExperimentForStudentExperimentTable;
+import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.entities.Experiment;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
@@ -32,8 +39,12 @@ import labvision.measure.Amount;
 import labvision.measure.SI;
 import labvision.models.NavbarModel;
 import labvision.services.ExperimentService;
+import labvision.services.ServletMappingNotFoundException;
+import labvision.services.ServletNotFoundException;
+import labvision.services.StudentCourseService;
 import labvision.services.StudentDashboardService;
 import labvision.services.StudentExperimentService;
+import labvision.services.StudentReportService;
 import labvision.services.StudentService;
 
 public class StudentServlet extends HttpServlet {
@@ -57,7 +68,11 @@ public class StudentServlet extends HttpServlet {
 				doGetDashboard(request, response, session);
 				break;
 			case "experiments":
-				doGetExperiments(request, response, session);
+				try {
+					doGetExperiments(request, response, session);
+				} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
+					response.sendError(500, e.getMessage());
+				}
 				break;
 			case "experiment":
 				doGetExperiment(request, response, session, pathParts[2]);
@@ -142,31 +157,80 @@ public class StudentServlet extends HttpServlet {
 		request.setAttribute("parameterUnits", studentExperimentService.getParameterUnits(experimentId));
 		request.setAttribute("measurementValues", studentExperimentService.getMeasurementValues(experimentId, studentId));
 		request.setAttribute("reportedResults", studentExperimentService.getReportedResults(experimentId, studentId));
+		
+		request.setAttribute("newMeasurementValuePaths", studentExperimentService.getNewMeasurementValuePaths(
+				experiment.getMeasurements().stream()
+					.collect(Collectors.mapping(Measurement::getId, Collectors.toList())),
+				getServletContext()));
+		
 		request.getRequestDispatcher("/WEB-INF/student/experiment.jsp").forward(request, response);
 	}
 
-	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException {
-		StudentExperimentService studentExperimentTableService = (StudentExperimentService) getServletContext()
+	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException, ServletNotFoundException, ServletMappingNotFoundException {
+		StudentExperimentService studentExperimentService = (StudentExperimentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR);
+		StudentReportService studentReportService = (StudentReportService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.STUDENT_REPORT_SERVICE_ATTR);
 		
 		int studentId = ((Student) session.getAttribute("user")).getId();
 		
-		request.setAttribute("currentExperiments", studentExperimentTableService.getCurrentExperiments(studentId));
-		request.setAttribute("pastExperiments", studentExperimentTableService.getPastExperiments(studentId));
+		List<CurrentExperimentForStudentExperimentTable> currentExperiments = studentExperimentService.getCurrentExperiments(studentId);
+		request.setAttribute("currentExperiments", currentExperiments);
+		
+		List<PastExperimentForStudentExperimentTable> pastExperiments = studentExperimentService.getPastExperiments(studentId);
+		request.setAttribute("pastExperiments", pastExperiments);
+		
+		request.setAttribute("experimentPaths",
+				studentExperimentService.getExperimentPaths(
+						Stream.concat(currentExperiments.stream(), pastExperiments.stream())
+							.map(ExperimentForStudentExperimentTable::getId)
+							.collect(Collectors.toList()),
+						getServletContext())
+				);
+		
+		request.setAttribute("newReportPath", studentReportService.getNewReportPath(getServletContext()));
+		
 		request.getRequestDispatcher("/WEB-INF/student/experiments.jsp").forward(request, response);
 	}
 
 	private void doGetDashboard(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException, ServletException {
 		StudentDashboardService dashboardService = (StudentDashboardService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_DASHBOARD_SERVICE_ATTR);
-
+		StudentExperimentService studentExperimentService = (StudentExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR);
+		StudentCourseService studentCourseService = (StudentCourseService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.STUDENT_COURSE_SERVICE_ATTR);
+		
 		Student student = (Student) session.getAttribute("user");
 		int studentId = student.getId();
 		
 		request.setAttribute("student", student);
-		request.setAttribute("currentExperiments", dashboardService.getCurrentExperiments(studentId));
-		request.setAttribute("recentExperiments", dashboardService.getRecentExperiments(studentId));
-		request.setAttribute("recentCourses", dashboardService.getRecentCourses(studentId));
+		
+		List<CurrentExperimentForStudentDashboard> currentExperiments = dashboardService.getCurrentExperiments(studentId);
+		request.setAttribute("currentExperiments", currentExperiments);
+		
+		List<RecentExperimentForStudentDashboard> recentExperiments = dashboardService.getRecentExperiments(studentId);
+		request.setAttribute("recentExperiments", recentExperiments);
+		
+		List<RecentCourseForStudentDashboard> recentCourses = dashboardService.getRecentCourses(studentId);
+		request.setAttribute("recentCourses", recentCourses);
+		
+		request.setAttribute("experimentPaths", 
+				studentExperimentService.getExperimentPaths(
+						Stream.concat(currentExperiments.stream(), recentExperiments.stream())
+						.map(ExperimentForStudentDashboard::getId)
+						.collect(Collectors.toList()),
+				getServletContext()
+				));
+		
+		request.setAttribute("coursePaths", 
+				studentCourseService.getCoursePaths(
+						recentCourses.stream()
+						.map(RecentCourseForStudentDashboard::getId)
+						.collect(Collectors.toList()),
+				getServletContext()
+				));
+		
 		request.getRequestDispatcher("/WEB-INF/student/dashboard.jsp").forward(request, response);
 	}
 	

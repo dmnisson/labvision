@@ -82,9 +82,27 @@ public class FacultyServlet extends HttpServlet {
 		case "profile":
 			doGetProfile(req, resp, session);
 			break;
+		case "measurement":
+			doGetMeasurement(req, resp, session, pathParts[2], 
+					pathParts.length == 3 ? null : pathParts[3]);
+			break;
 		default:
 			resp.sendRedirect("/faculty/dashboard");
 		}
+	}
+
+	private void doGetMeasurement(
+			HttpServletRequest req,
+			HttpServletResponse resp,
+			HttpSession session,
+			String measurementIdString,
+			String measurementAction) {
+		if (measurementAction == null) {
+			measurementAction = "view";
+		}
+		
+		// TODO Auto-generated method stub
+		
 	}
 
 	private void doGetProfile(HttpServletRequest req, HttpServletResponse resp, HttpSession session) {
@@ -141,6 +159,7 @@ public class FacultyServlet extends HttpServlet {
 		req.setAttribute("measurementUnits", instructorExperimentService.getMeasurementUnits(experimentId));
 		req.setAttribute("measurementValues", instructorExperimentService.getMeasurementValues(experimentId, instructorId));
 		req.setAttribute("parameterUnits", instructorExperimentService.getParameterUnits(experimentId));
+		req.setAttribute("editMeasurementPaths", instructorExperimentService.getEditMeasurementPaths(instructorId, getServletContext()));
 		req.getRequestDispatcher("/WEB-INF/faculty/experiment.jsp").forward(req, resp);
 	}
 
@@ -153,6 +172,7 @@ public class FacultyServlet extends HttpServlet {
 		List<ExperimentForFacultyExperimentTable> experiments = instructorExperimentService.getExperiments(instructorId);
 		
 		req.setAttribute("experiments", experiments);
+		req.setAttribute("experimentPaths", instructorExperimentService.getExperimentPaths(instructorId, getServletContext()));
 		req.getRequestDispatcher("/WEB-INF/faculty/experiments.jsp").forward(req, resp);
 	}
 

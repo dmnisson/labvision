@@ -43,19 +43,19 @@
 	              <c:forEach var="experiment" items="${currentExperiments}">
 	              <tr>
 	                <td class="col-3">
-	                  <a href="/student/experiment/${experiment.id}">${experiment.name}</a>
+	                  <a href="${experimentPaths[experiment.id]}">${experiment.name}</a>
 	                </td>
 	                <td class="col-3">
 	                  <javatime:format value="${experiment.reportDueDate}" style="S-" />
 	                </td>
 	                <td class="col-3">
 	                  <c:if test="${not empty experiment.lastReportUpdated}">
-	                    <a href="/student/experiment/${experiment.id}#reports">
+	                    <a href="${experimentPaths[experiment.id]}#reports">
 	                      Last updated <javatime:format value="${experiment.lastReportUpdated}" style="S-" />
 	                    </a>
 	                  </c:if>
 	                  <c:if test="${empty experiment.lastReportUpdated}">
-	                    <a href="/student/report/new" class="btn btn-primary">Submit</a>
+	                    <a href="${newReportPath}?experiment=${experiment.id}" class="btn btn-primary">Submit</a>
 	                  </c:if>
 	                </td>
 	                <td class="col-3">
@@ -92,10 +92,10 @@
                 <c:forEach var="experiment" items="${pastExperiments}">
                 <tr>
                   <td class="col-3">
-                    <a href="/student/experiment/${experiment.id}">${experiment.name}</a>
+                    <a href="${experimentPaths[experiment.id]}">${experiment.name}</a>
                   </td>
                   <td class="col-3">
-                    <a href="/student/experiment/${experiment.id}#reports">
+                    <a href="${experimentPaths[experiment.id]}#reports">
                       ${experiment.reportCount}
                     </a>
                   </td>

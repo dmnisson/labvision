@@ -1,20 +1,23 @@
 package labvision.services;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
+import javax.servlet.ServletContext;
 
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
+import labvision.utils.ThrowingWrappers;
 
 public class StudentExperimentService extends ExperimentService {
-	
 	public StudentExperimentService(EntityManagerFactory entityManagerFactory) {
 		super(entityManagerFactory);
 	}
@@ -108,5 +111,23 @@ public class StudentExperimentService extends ExperimentService {
 			query.setParameter("studentid", studentId);
 			return query.getResultList();
 		});
+	}
+	
+	public Map<Integer, String> getExperimentPaths(Collection<? extends Integer> experimentIds, ServletContext context) {
+		return experimentIds.stream().distinct()
+				.collect(Collectors.toMap(
+						Function.identity(), 
+						ThrowingWrappers.throwingFunctionWrapper(
+								id -> getPathFor(STUDENT_SERVLET_NAME, "/experiment/" + id, context))
+						));
+	}
+	
+	public Map<Integer, String> getNewMeasurementValuePaths(Collection<? extends Integer> measurementIds, ServletContext context) {
+		return measurementIds.stream().distinct()
+				.collect(Collectors.toMap(
+						Function.identity(),
+						ThrowingWrappers.throwingFunctionWrapper(
+								id -> getPathFor(STUDENT_SERVLET_NAME, "/measurement/newvalue/" + id, context))
+						));
 	}
 }

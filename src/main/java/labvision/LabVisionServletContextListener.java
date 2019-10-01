@@ -7,14 +7,18 @@ import javax.servlet.ServletContextListener;
 
 import labvision.services.StudentDashboardService;
 import labvision.services.StudentExperimentService;
+import labvision.services.StudentReportService;
 import labvision.services.ExperimentService;
 import labvision.services.InstructorExperimentService;
 import labvision.services.InstructorService;
+import labvision.services.StudentCourseService;
 import labvision.services.StudentService;
 import labvision.services.UserService;
 
 public class LabVisionServletContextListener implements ServletContextListener {
 
+	public static final String STUDENT_REPORT_SERVICE_ATTR = "studentReportService";
+	public static final String STUDENT_COURSE_SERVICE_ATTR = "studentCourseService";
 	public static final String INSTRUCTOR_EXPERIMENT_SERVICE_ATTR = "instructorExperimentService";
 	public static final String STUDENT_EXPERIMENT_SERVICE_ATTR = "studentExperimentService";
 	public static final String STUDENT_DASHBOARD_SERVICE_ATTR = "studentDashboardService";
@@ -55,8 +59,14 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		StudentExperimentService studentExperimentService = new StudentExperimentService(emf);
 		event.getServletContext().setAttribute(STUDENT_EXPERIMENT_SERVICE_ATTR, studentExperimentService);
 		
+		StudentCourseService studentCourseService = new StudentCourseService(emf);
+		event.getServletContext().setAttribute(STUDENT_COURSE_SERVICE_ATTR, studentCourseService);
+		
 		InstructorExperimentService instructorExperimentService = new InstructorExperimentService(emf);
 		event.getServletContext().setAttribute(INSTRUCTOR_EXPERIMENT_SERVICE_ATTR, instructorExperimentService);
+		
+		StudentReportService studentReportService = new StudentReportService(emf);
+		event.getServletContext().setAttribute(STUDENT_REPORT_SERVICE_ATTR, studentReportService);
 	}
 
 	@Override

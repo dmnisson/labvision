@@ -2,14 +2,11 @@ package labvision.dto.student.dashboard;
 
 import java.time.LocalDateTime;
 
-public class RecentExperimentForStudentDashboard {
-	private final int id;
-	private final String name;
+public class RecentExperimentForStudentDashboard extends ExperimentForStudentDashboard {
 	private final LocalDateTime mostRecentValueTaken;
 	
 	public RecentExperimentForStudentDashboard(int id, String name, LocalDateTime mostRecentValueTaken) {
-		this.id = id;
-		this.name = name;
+		super(id, name);
 		this.mostRecentValueTaken = mostRecentValueTaken;
 	}
 

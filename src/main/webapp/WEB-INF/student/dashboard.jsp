@@ -30,10 +30,10 @@
               <c:forEach var="experiment" items="${currentExperiments}">
               <tr>
                 <td>
-                  <a href="/student/experiment/${experiment.id}">${experiment.name}</a>
+                  <a href="${experimentPaths[experiment.id]}">${experiment.name}</a>
                 </td>
                 <td>
-                  <a href="/student/course/${experiment.courseId}">${experiment.courseName}</a>
+                  <a href="${coursePaths[experiment.courseId]}">${experiment.courseName}</a>
                 </td>
               </tr>
               </c:forEach>
@@ -60,7 +60,7 @@
         <ul class="list-group list-group-flush">
           <c:forEach var="experiment" items="${recentExperiments}">
           <li class="list-group-item">
-            <a href="/student/experiment/${experiment.id}">${experiment.name}</a>
+            <a href="${experimentPaths[experiment.id]}">${experiment.name}</a>
           </li>
           </c:forEach>
         </ul>
@@ -81,7 +81,7 @@
         <ul class="list-group list-group-flush">
           <c:forEach var="course" items="${recentCourses}">
             <li class="list-group-item">
-              <a href="/student/course/${course.id}">${course.name}</a>
+              <a href="${coursePaths[experiment.courseId]}">${course.name}</a>
             </li>
           </c:forEach>
         </ul>

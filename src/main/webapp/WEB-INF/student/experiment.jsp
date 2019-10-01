@@ -36,7 +36,7 @@
       <div class="tab-content">
         <c:forEach var="measurement" items="${experiment.measurements}">
         <div class="tab-pane" id="measurement-${measurement.id}" role="tabpanel" aria-labelledby="measurement-${measurement.id}-tab">
-          <form method="POST" action="/student/measurement/newvalue/${measurement.id}">
+          <form method="POST" action="${newMeasurementValuePaths[measurement.id]}">
 	          <t:measurementvaluestable
 	            measurement="${measurement}"
 	            measurementvalues="${measurementValues[measurement]}"

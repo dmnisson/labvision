@@ -87,7 +87,7 @@
       </div>
       <div class="row">
         <div class="col">
-          <a class="btn btn-default" href="/faculty/measurement/${measurement.id}/edit">Edit Measurement</a>
+          <a class="btn btn-default" href="${editMeasurementPaths[measurement.id]}">Edit Measurement</a>
         </div>
       </div>
       <div class="row">

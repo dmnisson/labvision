@@ -31,7 +31,7 @@
             <c:forEach var="experiment" items="${experiments}">
             <tr>
               <td>
-                <a href="/faculty/experiment/${experiment.id}">${experiment.name}</a>
+                <a href="${experimentPaths[experiment.id]}">${experiment.name}</a>
               </td>
               <td>
                 ${experiment.reportedResultsCount}
