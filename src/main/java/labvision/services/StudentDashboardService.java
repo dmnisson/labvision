@@ -88,10 +88,13 @@ public class StudentDashboardService extends JpaService {
 					") " +
 					"FROM MeasurementValue mv " +
 					"JOIN mv.student s " +
+					"JOIN mv.variable m " +
+					"JOIN m.experiment e " +
 					"LEFT JOIN e.reportedResults rr " +
-					"LEFT JOIN rr.student s2" +
-					"WHERE s.id=:studentid AND s2.id=:studentid " +
-					"GROUP BY e.id, e.name " +
+					"LEFT JOIN rr.student s2 " +
+					"WHERE s.id=:studentid AND " +
+					"(s2.id IS NULL OR s2.id=:studentid) " +
+					"GROUP BY e, e.name " +
 					"ORDER BY lu DESC";
 			TypedQuery<RecentExperimentForStudentDashboard> query = manager.createQuery(
 					queryString, 
