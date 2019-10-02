@@ -3,6 +3,7 @@ package labvision.entities;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.measure.Dimension;
 import javax.measure.Quantity;
@@ -16,6 +17,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+
+import org.jboss.logging.Logger;
+import org.jboss.logging.Logger.Level;
 
 import labvision.measure.SI;
 import tec.units.ri.quantity.QuantityDimension;
@@ -81,6 +85,13 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 
 	public void setQuantityTypeId(QuantityTypeId quantityTypeId) {
 		this.quantityTypeId = quantityTypeId;
+		if (!quantityTypeId.equals(QuantityTypeId.UNKNOWN)) {
+			updateDimensionObject(
+					SI.getInstance().getUnit(
+							quantityTypeId.getQuantityClass().getQuantityType())
+						.getDimension()
+					);
+		}
 	}
 	
 	public <Q extends Quantity<Q>> Unit<Q> systemUnit(Class<Q> quantityType) {
@@ -104,7 +115,31 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 	}
 	
 	public void updateDimensionObject(Dimension dimension) {
+		if (!quantityTypeId.equals(QuantityTypeId.UNKNOWN)) {
+			Dimension quantityDimension = QuantityDimension.of(
+					quantityTypeId.getQuantityClass().getQuantityType());
+			
+			if (!Objects.isNull(quantityDimension) && 
+					!quantityDimension.equals(dimension)) {
+				throw new IllegalStateException("Dimension " + dimension.toString() + " " +
+						" is incompatible with that of the specified quantity type, " +
+						quantityDimension.toString());
+			}
+		}
 		this.dimension = dimensionStringFor(dimension);
+	}
+	
+	/**
+	 * Updates the quantityTypeId and dimension fields for the given quantity type
+	 * @param quantityType the quantity type
+	 */
+	public <Q extends Quantity<Q>> void updateQuantityType(Class<Q> quantityType) {
+		this.setQuantityTypeId(QuantityTypeId.of(quantityType));
+		if (quantityTypeId.equals(QuantityTypeId.UNKNOWN)) {
+			Logger.getLogger(this.getClass()).log(
+					Level.INFO, 
+					"Unknown quantity type set. Dimension object will need to be set separately.");
+		}
 	}
 	
 	/**
@@ -112,7 +147,7 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 	 * @param dimension the dimension object
 	 * @return the string representation
 	 */
-	static Dimension dimensionObjectFor(String dimension) {
+	private static Dimension dimensionObjectFor(String dimension) {
 		if (dimension == null || dimension == "") {
 			return QuantityDimension.NONE;
 		}
@@ -133,7 +168,7 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 	 * @param dimension the dimension object
 	 * @return the string representation as it would appear in the database
 	 */
-	static String dimensionStringFor(Dimension dimension) {
+	private static String dimensionStringFor(Dimension dimension) {
 		Map<? extends Dimension, Integer> baseDimensions = dimension.getBaseDimensions();
 		if (baseDimensions == null) {
 			if (dimension.equals(QuantityDimension.NONE)) {

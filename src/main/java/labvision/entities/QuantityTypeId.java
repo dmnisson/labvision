@@ -65,7 +65,8 @@ public enum QuantityTypeId {
 	
 	public static <Q extends Quantity<Q>> QuantityTypeId of(Class<Q> quantityType) {
 		return Stream.of(QuantityTypeId.values())
-				.filter(qt -> qt.quantityClass.getQuantityType().equals(quantityType))
+				.filter(qt -> qt.quantityClass != null && 
+					qt.quantityClass.getQuantityType().equals(quantityType))
 				.findFirst()
 				.orElse(UNKNOWN);
 	}

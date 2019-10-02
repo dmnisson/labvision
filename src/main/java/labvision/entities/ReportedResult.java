@@ -41,7 +41,7 @@ public class ReportedResult implements LabVisionEntity {
 	private List<Result> results = new ArrayList<>();
 
 	@Basic(optional = false)
-	@Column( name="added", insertable = false, updatable = false)
+	@Column( name="added" )
 	private LocalDateTime added;
 	
 	@OneToOne
