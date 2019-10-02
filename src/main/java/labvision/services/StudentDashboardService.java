@@ -11,6 +11,21 @@ import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
 import labvision.dto.student.dashboard.RecentExperimentForStudentDashboard;
 
 public class StudentDashboardService extends JpaService {
+	/**
+	 * JPQL expression used to determine date of last measurement value or report of an experiment
+	 */
+	private static final String LAST_UPDATED_FUNCTION = 
+			"	CASE WHEN MAX(CASE WHEN (" +
+			"		rr.added IS NULL AND mv.taken IS NULL) " +
+			"		THEN 1 ELSE 0 END" +
+			"		) = 0 THEN MAX(" +
+			"			CASE WHEN (rr.added IS NULL OR mv.taken > rr.added)" +
+			"				THEN mv.taken" +
+			" 				ELSE rr.added" +
+			"				END" +
+			"			)" +	
+			"		ELSE NULL END";	
+	
 	private final LabVisionConfig config;
 	
 	public StudentDashboardService(EntityManagerFactory entityManagerFactory, LabVisionConfig config) {
@@ -25,12 +40,21 @@ public class StudentDashboardService extends JpaService {
 					"	e.id," +
 					"	e.name," +
 					"	c.id," +
-					"	c.name" +
+					"	c.name," +
+					LAST_UPDATED_FUNCTION +
 					") " +
 					"FROM Student s " +
 					"JOIN s.activeExperiments e " +
 					"JOIN e.course c " +
-					"WHERE s.id=:studentid";
+					"LEFT JOIN e.measurements m " +
+					"LEFT JOIN m.values mv " +
+					"LEFT JOIN e.reportedResults rr " +
+					"LEFT JOIN mv.student s2 " +
+					"LEFT JOIN rr.student s3 " +
+					"WHERE s.id=:studentid AND " +
+					"(s2.id IS NULL OR s2.id=:studentid) AND " +
+					"(s3.id IS NULL OR s3.id=:studentid) " +
+					"GROUP BY e.id, e.name, c.id, c.name";
 			TypedQuery<CurrentExperimentForStudentDashboard> query = manager.createQuery(
 					queryString,
 					CurrentExperimentForStudentDashboard.class);
@@ -59,16 +83,16 @@ public class StudentDashboardService extends JpaService {
 					"SELECT new labvision.dto.student.dashboard.RecentExperimentForStudentDashboard(" +
 				    "	e.id," +
 				    "	e.name," +
-				    "	MAX(mv.taken)" +
+				    "	MAX(mv.taken)," +
+				    LAST_UPDATED_FUNCTION + " AS lu " +
 					") " +
 					"FROM MeasurementValue mv " +
-					"JOIN mv.courseClass cc " +
-					"JOIN cc.students s " +
-					"JOIN cc.course c " +
-					"JOIN c.experiments e " +
-					"WHERE s.id=:studentid " +
-					"GROUP BY e " +
-					"ORDER BY MAX(mv.taken) DESC";
+					"JOIN mv.student s " +
+					"LEFT JOIN e.reportedResults rr " +
+					"LEFT JOIN rr.student s2" +
+					"WHERE s.id=:studentid AND s2.id=:studentid " +
+					"GROUP BY e.id, e.name " +
+					"ORDER BY lu DESC";
 			TypedQuery<RecentExperimentForStudentDashboard> query = manager.createQuery(
 					queryString, 
 					RecentExperimentForStudentDashboard.class);

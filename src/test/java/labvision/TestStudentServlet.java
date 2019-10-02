@@ -48,11 +48,13 @@ class TestStudentServlet {
 						6, 
 						"Test Experiment 1", 
 						8, 
-						"Test Course 1");
+						"Test Course 1",
+						LocalDateTime.now().minusHours(10));
 		RecentExperimentForStudentDashboard recentExperiment1 = 
 				new RecentExperimentForStudentDashboard(
 						6, 
 						"Test Experiment 1", 
+						LocalDateTime.now().minusHours(2),
 						LocalDateTime.now().minusHours(2));
 		RecentCourseForStudentDashboard recentCourse1 =
 				new RecentCourseForStudentDashboard(

@@ -18,6 +18,7 @@ import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
 import labvision.entities.Instructor;
 import labvision.entities.Measurement;
+import labvision.entities.MeasurementValue;
 import labvision.entities.QuantityTypeId;
 import labvision.entities.Student;
 import labvision.entities.User;
@@ -58,6 +59,7 @@ public class InitDatabase {
 		
 		// clear users
 		EntityManager manager = emf.createEntityManager();
+		clearTable(MeasurementValue.class, manager);
 		clearTable(CourseClass.class, manager);
 		clearTable(Measurement.class, manager);
 		clearTable(Student.class, manager);

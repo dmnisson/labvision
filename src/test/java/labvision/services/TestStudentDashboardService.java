@@ -53,11 +53,14 @@ class TestStudentDashboardService {
 	
 	private static final String TESTING_PERSISTENCE_UNIT_NAME = "LabVisionTestingPersistence";
 	
+	private LocalDateTime initDateTime;
+	
 	@BeforeAll
 	void setUpBeforeClass() throws Exception {
 		emf = Persistence.createEntityManagerFactory(TESTING_PERSISTENCE_UNIT_NAME);
 		config = new LabVisionConfig("~/.labvision/test.properties");
 		service = new StudentDashboardService(emf, config);
+		initDateTime = LocalDateTime.now();
 		
 		// set up test database
 		EntityManager manager = emf.createEntityManager();
@@ -97,25 +100,25 @@ class TestStudentDashboardService {
 				courseClasses.get(0),
 				measurements.get(0),
 				new Amount<>(1.2, 0.1, Units.METRE),
-				LocalDateTime.now().minusHours(10)));
+				initDateTime.minusHours(10)));
 		measurementValues.add(makeTestMeasurementValue(
 				students.get(0),
 				courseClasses.get(2),
 				measurements.get(0),
 				new Amount<>(1.2, 0.1, Units.METRE),
-				LocalDateTime.now().minusHours(8)));
+				initDateTime.minusHours(8)));
 		measurementValues.add(makeTestMeasurementValue(
 				students.get(1),
 				courseClasses.get(1),
 				measurements.get(0),
 				new Amount<>(1.2, 0.1, Units.METRE),
-				LocalDateTime.now().minusHours(7)));
+				initDateTime.minusHours(7)));
 		
 		experiments.add(makeTestExperiment(courses.get(1), "Test Experiment 3", "Description for Test Experiment 3"));
 		
-		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(2), LocalDateTime.now().minusHours(7)));
-		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(2), LocalDateTime.now().minusHours(9)));
-		reportedResults.add(makeTestReportedResult(students.get(1), experiments.get(2), LocalDateTime.now().minusHours(5)));
+		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(2), initDateTime.minusHours(7)));
+		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(2), initDateTime.minusHours(9)));
+		reportedResults.add(makeTestReportedResult(students.get(1), experiments.get(2), initDateTime.minusHours(5)));
 		
 		students.get(0).addActiveExperiment(experiments.get(2));
 		
@@ -127,23 +130,23 @@ class TestStudentDashboardService {
 				courseClasses.get(1),
 				measurements.get(1),
 				new Amount<>(1.6, 0.1, Units.SECOND),
-				LocalDateTime.now().minusHours(11)));
+				initDateTime.minusHours(11)));
 		measurementValues.add(makeTestMeasurementValue(
 				students.get(0),
 				courseClasses.get(3),
 				measurements.get(1),
 				new Amount<>(1.5, 0.1, Units.SECOND),
-				LocalDateTime.now().minusHours(9)));
+				initDateTime.minusHours(9)));
 		measurementValues.add(makeTestMeasurementValue(
 				students.get(1),
 				courseClasses.get(2),
 				measurements.get(1),
 				new Amount<>(1.7, 0.1, Units.SECOND),
-				LocalDateTime.now().minusHours(7)));
+				initDateTime.minusHours(7)));
 		
-		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(3), LocalDateTime.now().minusHours(10)));
-		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(3), LocalDateTime.now().minusHours(6)));
-		reportedResults.add(makeTestReportedResult(students.get(1), experiments.get(3), LocalDateTime.now().minusHours(4)));
+		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(3), initDateTime.minusHours(10)));
+		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(3), initDateTime.minusHours(6)));
+		reportedResults.add(makeTestReportedResult(students.get(1), experiments.get(3), initDateTime.minusHours(4)));
 		
 		students.get(0).addActiveExperiment(experiments.get(3));
 		students.get(1).addActiveExperiment(experiments.get(3));
@@ -203,6 +206,10 @@ class TestStudentDashboardService {
 		
 		assertEquals("Test 102", experiment3.getCourseName());
 		assertEquals("Test 101", experiment4.getCourseName());
+		
+		assertEquals(initDateTime.minusHours(7), experiment3.getLastUpdated());
+		assertEquals(initDateTime.minusHours(6), experiment4.getLastUpdated());
+		assertEquals(initDateTime.minusHours(4), experiments2.get(0).getLastUpdated());
 	}
 
 	// helpers

@@ -33,8 +33,7 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 	@JoinColumn( name="CourseClass_id" )
 	private CourseClass courseClass;
 	
-	@Column( insertable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" )
-	private LocalDateTime taken;
+	private LocalDateTime taken = LocalDateTime.now();
 	
 	@OneToMany( mappedBy="measurementValue", targetEntity=ParameterValue.class )
 	private List<ParameterValue> parameterValues = new ArrayList<>();
