@@ -81,7 +81,7 @@
         <ul class="list-group list-group-flush">
           <c:forEach var="course" items="${recentCourses}">
             <li class="list-group-item">
-              <a href="${coursePaths[experiment.courseId]}">${course.name}</a>
+              <a href="${coursePaths[course.id]}">${course.name}</a>
             </li>
           </c:forEach>
         </ul>
