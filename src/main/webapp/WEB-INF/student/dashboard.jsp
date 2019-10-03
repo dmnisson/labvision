@@ -24,6 +24,7 @@
               <tr>
                 <th scope="col">Experiment</th>
                 <th scope="col">Course</th>
+                <th scope="col">Last Updated</th>
               </tr>
             </thead>
             <tbody>
@@ -34,6 +35,9 @@
                 </td>
                 <td>
                   <a href="${coursePaths[experiment.courseId]}">${experiment.courseName}</a>
+                </td>
+                <td>
+                  ${experiment.lastUpdated}
                 </td>
               </tr>
               </c:forEach>

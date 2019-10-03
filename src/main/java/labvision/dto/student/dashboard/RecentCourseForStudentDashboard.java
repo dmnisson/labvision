@@ -6,11 +6,13 @@ public class RecentCourseForStudentDashboard {
 	private final int id;
 	private final String name;
 	private final LocalDateTime mostRecentValueTaken;
+	private final LocalDateTime lastUpdated;
 	
-	public RecentCourseForStudentDashboard(int id, String name, LocalDateTime mostRecentValueTaken) {
+	public RecentCourseForStudentDashboard(int id, String name, LocalDateTime mostRecentValueTaken, LocalDateTime lastUpdated) {
 		this.id = id;
 		this.name = name;
 		this.mostRecentValueTaken = mostRecentValueTaken;
+		this.lastUpdated = lastUpdated;
 	}
 
 	public int getId() {
@@ -23,5 +25,9 @@ public class RecentCourseForStudentDashboard {
 
 	public LocalDateTime getMostRecentValueTaken() {
 		return mostRecentValueTaken;
+	}
+
+	public LocalDateTime getLastUpdated() {
+		return lastUpdated;
 	}
 }
