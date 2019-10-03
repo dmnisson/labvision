@@ -1,4 +1,5 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
@@ -24,6 +25,7 @@
               <tr>
                 <th scope="col">Experiment</th>
                 <th scope="col">Course</th>
+                <th scope="col">Report Due</th>
                 <th scope="col">Last Updated</th>
               </tr>
             </thead>
@@ -37,7 +39,10 @@
                   <a href="${coursePaths[experiment.courseId]}">${experiment.courseName}</a>
                 </td>
                 <td>
-                  ${experiment.lastUpdated}
+                  <javatime:format value="${experiment.reportDueDate}" style="S-" />
+                </td>
+                <td>
+                  <javatime:format value="${experiment.lastUpdated}" style="S-" />
                 </td>
               </tr>
               </c:forEach>

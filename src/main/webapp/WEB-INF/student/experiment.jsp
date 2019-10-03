@@ -74,7 +74,7 @@
             <c:forEach var="report" items="${reportedResults}">
             <tr>
               <td class="col-6">
-                <a href="/student/report/${report.id}">${report.reportDisplay}</a>
+                <a href="${reportPaths[report.id]}">${report.reportDisplay}</a>
               </td>
               <td class="col-6">
                 <javatime:format value="${report.added}" style="SS" />
@@ -89,7 +89,7 @@
   </div>
   <div class="row">
     <div class="col-md-6">
-      <a class="btn btn-primary" href="/student/report/new">Submit Report</a>
+      <a class="btn btn-primary" href="${newReportPath}">Submit Report</a>
     </div>
     <div class="col-md-6">
       <p>Report is due on <javatime:format value="${experiment.reportDueDate}" style="L-" />.</p>

@@ -22,6 +22,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.jboss.logging.Logger;
+
 import labvision.entities.PersistableAmount;
 import labvision.dto.student.dashboard.CurrentExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.ExperimentForStudentDashboard;
@@ -53,6 +55,10 @@ public class StudentServlet extends HttpServlet {
 	 */
 	private static final long serialVersionUID = -4488832460194220512L;
 
+	private static String URL_COMPUTATION_ERROR_MESSAGE = "Could not compute URLs. "
+			+ "This is likely a problem with the app configuration. "
+			+ "Please contact your institution for assistance.";
+	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		HttpSession session = request.getSession(false);
@@ -71,11 +77,19 @@ public class StudentServlet extends HttpServlet {
 				try {
 					doGetExperiments(request, response, session);
 				} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
-					response.sendError(500, e.getMessage());
+					Logger.getLogger(this.getClass())
+						.error(URL_COMPUTATION_ERROR_MESSAGE, e);
+					response.sendError(500, URL_COMPUTATION_ERROR_MESSAGE);
 				}
 				break;
 			case "experiment":
-				doGetExperiment(request, response, session, pathParts[2]);
+				try {
+					doGetExperiment(request, response, session, pathParts[2]);
+				} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
+					Logger.getLogger(this.getClass())
+						.error(URL_COMPUTATION_ERROR_MESSAGE, e);
+					response.sendError(500, URL_COMPUTATION_ERROR_MESSAGE);
+				}
 				break;
 			case "measurement":
 				doGetMeasurement(request, response, session, pathParts[2]);
@@ -143,9 +157,11 @@ public class StudentServlet extends HttpServlet {
 	}
 
 	private void doGetExperiment(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-			String experimentIdString) throws ServletException, IOException {
+			String experimentIdString) throws ServletException, IOException, ServletNotFoundException, ServletMappingNotFoundException {
 		StudentExperimentService studentExperimentService = (StudentExperimentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR);
+		StudentReportService studentReportService = (StudentReportService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.STUDENT_REPORT_SERVICE_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
 		int studentId = student.getId();
@@ -157,7 +173,8 @@ public class StudentServlet extends HttpServlet {
 		request.setAttribute("parameterUnits", studentExperimentService.getParameterUnits(experimentId));
 		request.setAttribute("measurementValues", studentExperimentService.getMeasurementValues(experimentId, studentId));
 		request.setAttribute("reportedResults", studentExperimentService.getReportedResults(experimentId, studentId));
-		
+		request.setAttribute("reportPaths", studentReportService.getReportPaths(experimentId, getServletContext()));
+		request.setAttribute("newReportPath", studentReportService.getNewReportPath(getServletContext()));
 		request.setAttribute("newMeasurementValuePaths", studentExperimentService.getNewMeasurementValuePaths(
 				experiment.getMeasurements().stream()
 					.collect(Collectors.mapping(Measurement::getId, Collectors.toList())),
