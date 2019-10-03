@@ -49,18 +49,21 @@ class TestStudentServlet {
 						"Test Experiment 1", 
 						8, 
 						"Test Course 1",
-						LocalDateTime.now().minusHours(10));
+						LocalDateTime.now().minusHours(10),
+						LocalDateTime.now().plusDays(14));
 		RecentExperimentForStudentDashboard recentExperiment1 = 
 				new RecentExperimentForStudentDashboard(
 						6, 
 						"Test Experiment 1", 
 						LocalDateTime.now().minusHours(2),
-						LocalDateTime.now().minusHours(2));
+						LocalDateTime.now().minusHours(2),
+						LocalDateTime.now().plusDays(21));
 		RecentCourseForStudentDashboard recentCourse1 =
 				new RecentCourseForStudentDashboard(
 						8,
 						"Test Course 1",
-						LocalDateTime.now().minusHours(2));
+						LocalDateTime.now().minusHours(2),
+						LocalDateTime.now().minusHours(1));
 		
 		ServletConfig servletConfig = mock(ServletConfig.class);
 		ServletContext servletContext = mock(ServletContext.class);

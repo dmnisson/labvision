@@ -6,8 +6,14 @@ public class CurrentExperimentForStudentDashboard extends ExperimentForStudentDa
 	private final String courseName;
 	private final int courseId;
 	
-	public CurrentExperimentForStudentDashboard(int id, String name, int courseId, String courseName, LocalDateTime lastUpdated) {
-		super(id, name, lastUpdated);
+	public CurrentExperimentForStudentDashboard(
+			int id,
+			String name,
+			int courseId,
+			String courseName,
+			LocalDateTime lastUpdated,
+			LocalDateTime reportDueDate) {
+		super(id, name, lastUpdated, reportDueDate);
 		this.courseName = courseName;
 		this.courseId = courseId;
 	}
@@ -18,9 +24,5 @@ public class CurrentExperimentForStudentDashboard extends ExperimentForStudentDa
 
 	public int getCourseId() {
 		return courseId;
-	}
-
-	public LocalDateTime getLastUpdated() {
-		return lastUpdated;
 	}
 }

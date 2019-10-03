@@ -5,8 +5,13 @@ import java.time.LocalDateTime;
 public class RecentExperimentForStudentDashboard extends ExperimentForStudentDashboard {
 	private final LocalDateTime mostRecentValueTaken;
 	
-	public RecentExperimentForStudentDashboard(int id, String name, LocalDateTime lastUpdated, LocalDateTime mostRecentValueTaken) {
-		super(id, name, lastUpdated);
+	public RecentExperimentForStudentDashboard(
+			int id,
+			String name,
+			LocalDateTime lastUpdated,
+			LocalDateTime mostRecentValueTaken,
+			LocalDateTime reportDueDate) {
+		super(id, name, lastUpdated, reportDueDate);
 		this.mostRecentValueTaken = mostRecentValueTaken;
 	}
 

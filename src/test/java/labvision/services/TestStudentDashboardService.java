@@ -8,14 +8,19 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.measure.Quantity;
 import javax.measure.quantity.Length;
+import javax.measure.quantity.Mass;
 import javax.measure.quantity.Time;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import javax.persistence.Tuple;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 
@@ -27,6 +32,8 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import labvision.LabVisionConfig;
 import labvision.dto.student.dashboard.CurrentExperimentForStudentDashboard;
+import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
+import labvision.dto.student.dashboard.RecentExperimentForStudentDashboard;
 import labvision.entities.Course;
 import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
@@ -73,6 +80,7 @@ class TestStudentDashboardService {
 		courses = new ArrayList<>();
 		courses.add(makeTestCourse("Test 101"));
 		courses.add(makeTestCourse("Test 102"));
+		courses.add(makeTestCourse("Test 103"));
 		
 		courseClasses = new ArrayList<>();
 		courseClasses.add(makeTestCourseClass(courses.get(0), "Test 101 Morning Class"));
@@ -91,10 +99,18 @@ class TestStudentDashboardService {
 		measurementValues = new ArrayList<>();
 		reportedResults = new ArrayList<>();
 		
-		experiments.add(makeTestExperiment(courses.get(0), "Test Experiment 1", "Description for Test Experiment 1"));
+		experiments.add(makeTestExperiment(
+				courses.get(2),
+				"Test Experiment 1", 
+				"Description for Test Experiment 1",
+				initDateTime.plusDays(7)));
 		
-		experiments.add(makeTestExperiment(courses.get(1), "Test Experiment 2", "Description for Test Experiment 2"));
-		measurements.add(makeTestMeasurement(experiments.get(0), "Length", Length.class));
+		experiments.add(makeTestExperiment(
+				courses.get(1),
+				"Test Experiment 2",
+				"Description for Test Experiment 2",
+				initDateTime.plusDays(9)));
+		measurements.add(makeTestMeasurement(experiments.get(1), "Length", Length.class));
 		measurementValues.add(makeTestMeasurementValue(
 				students.get(0),
 				courseClasses.get(0),
@@ -114,7 +130,14 @@ class TestStudentDashboardService {
 				new Amount<>(1.2, 0.1, Units.METRE),
 				initDateTime.minusHours(7)));
 		
-		experiments.add(makeTestExperiment(courses.get(1), "Test Experiment 3", "Description for Test Experiment 3"));
+		students.get(0).addActiveExperiment(experiments.get(1));
+		
+		experiments.add(makeTestExperiment(
+				courses.get(1),
+				"Test Experiment 3",
+				"Description for Test Experiment 3",
+				initDateTime.plusDays(11)
+				));
 		
 		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(2), initDateTime.minusHours(7)));
 		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(2), initDateTime.minusHours(9)));
@@ -122,7 +145,11 @@ class TestStudentDashboardService {
 		
 		students.get(0).addActiveExperiment(experiments.get(2));
 		
-		experiments.add(makeTestExperiment(courses.get(0), "Test Experiment 4", "Description for Test Experiment 4"));
+		experiments.add(makeTestExperiment(
+				courses.get(0),
+				"Test Experiment 4",
+				"Description for Test Experiment 4",
+				initDateTime.plusDays(8)));
 		
 		measurements.add(makeTestMeasurement(experiments.get(3), "Duration", Time.class));
 		measurementValues.add(makeTestMeasurementValue(
@@ -151,6 +178,15 @@ class TestStudentDashboardService {
 		students.get(0).addActiveExperiment(experiments.get(3));
 		students.get(1).addActiveExperiment(experiments.get(3));
 		
+		experiments.add(makeTestExperiment(courses.get(1), "Test Experiment 5", "Description for Test Experiment 5", initDateTime.plusDays(5)));
+		measurements.add(makeTestMeasurement(experiments.get(4), "Mass", Mass.class));
+		measurementValues.add(makeTestMeasurementValue(
+				students.get(1),
+				courseClasses.get(1),
+				measurements.get(2),
+				new Amount<>(12.5, 0.3, Units.GRAM),
+				initDateTime.minusHours(2)));
+		
 		EntityTransaction tx = manager.getTransaction();
 		tx.begin();
 	
@@ -165,7 +201,7 @@ class TestStudentDashboardService {
 		tx.commit();
 		manager.close();
 	}
-
+	
 	@AfterAll
 	void tearDownAfterClass() throws Exception {
 		EntityManager manager = emf.createEntityManager();
@@ -189,27 +225,71 @@ class TestStudentDashboardService {
 		List<CurrentExperimentForStudentDashboard> experiments1 = service.getCurrentExperiments(student1Id);
 		List<CurrentExperimentForStudentDashboard> experiments2 = service.getCurrentExperiments(student2Id);
 		
-		assertEquals(2, experiments1.size());
+		assertEquals(3, experiments1.size());
 		assertEquals(1, experiments2.size());
 		
-		CurrentExperimentForStudentDashboard experiment3 = 
-				experiments1.stream()
-				.filter(e -> e.getName().equals("Test Experiment 3"))
-				.findAny().get();
-		CurrentExperimentForStudentDashboard experiment4 = 
-				experiments1.stream()
-				.filter(e -> e.getName().equals("Test Experiment 4"))
-				.findAny().get();
+		assertEquals("Test Experiment 2", experiments1.get(0).getName());
+		assertEquals("Test Experiment 4", experiments1.get(1).getName());
+		assertEquals("Test Experiment 3", experiments1.get(2).getName());
+		assertEquals("Test Experiment 4", experiments2.get(0).getName());
 		
-		assertTrue(experiments2.stream().anyMatch(e -> 
-			e.getName().equals(experiment4.getName())));
-		
-		assertEquals("Test 102", experiment3.getCourseName());
-		assertEquals("Test 101", experiment4.getCourseName());
-		
-		assertEquals(initDateTime.minusHours(7), experiment3.getLastUpdated());
-		assertEquals(initDateTime.minusHours(6), experiment4.getLastUpdated());
+		assertEquals(initDateTime.minusHours(8), experiments1.get(0).getLastUpdated());
+		assertEquals(initDateTime.minusHours(6), experiments1.get(1).getLastUpdated());
+		assertEquals(initDateTime.minusHours(7), experiments1.get(2).getLastUpdated());
 		assertEquals(initDateTime.minusHours(4), experiments2.get(0).getLastUpdated());
+	}
+	
+	@Test
+	void testGetRecentExperiments() {
+		int student1Id = students.get(0).getId();
+		int student2Id = students.get(1).getId();
+		List<RecentExperimentForStudentDashboard> experiments1 = service.getRecentExperiments(student1Id, 5);
+		List<RecentExperimentForStudentDashboard> experiments2 = service.getRecentExperiments(student2Id, 5);
+		List<RecentExperimentForStudentDashboard> experiments2_limit3 = service.getRecentExperiments(student2Id, 3);
+		
+		assertEquals(3, experiments1.size());
+		assertEquals(4, experiments2.size());
+		assertEquals(3, experiments2_limit3.size());
+		
+		assertEquals("Test Experiment 2", experiments1.get(0).getName());
+		assertEquals("Test Experiment 4", experiments1.get(1).getName());
+		assertEquals("Test Experiment 3", experiments1.get(2).getName());
+		assertEquals("Test Experiment 5", experiments2.get(0).getName());
+		assertEquals("Test Experiment 2", experiments2.get(1).getName());
+		assertEquals("Test Experiment 4", experiments2.get(2).getName());
+		assertEquals("Test Experiment 3", experiments2.get(3).getName());
+		assertEquals("Test Experiment 5", experiments2_limit3.get(0).getName());
+		assertEquals("Test Experiment 2", experiments2_limit3.get(1).getName());
+		assertEquals("Test Experiment 4", experiments2_limit3.get(2).getName());
+		
+		assertEquals(initDateTime.minusHours(8), experiments1.get(0).getLastUpdated());
+		assertEquals(initDateTime.minusHours(6), experiments1.get(1).getLastUpdated());
+		assertEquals(initDateTime.minusHours(7), experiments1.get(2).getLastUpdated());
+		assertEquals(initDateTime.minusHours(2), experiments2.get(0).getLastUpdated());
+		assertEquals(initDateTime.minusHours(7), experiments2.get(1).getLastUpdated());
+		assertEquals(initDateTime.minusHours(4), experiments2.get(2).getLastUpdated());
+		assertEquals(initDateTime.minusHours(5), experiments2.get(3).getLastUpdated());
+	}
+	
+	@Test
+	void testGetRecentCourses() {
+		int student1Id = students.get(0).getId();
+		int student2Id = students.get(1).getId();
+		List<RecentCourseForStudentDashboard> courses1 = service.getRecentCourses(student1Id);
+		List<RecentCourseForStudentDashboard> courses2 = service.getRecentCourses(student2Id);
+		
+		assertEquals(2, courses1.size());
+		assertEquals(2, courses2.size());
+		
+		assertEquals("Test 101", courses1.get(0).getName());
+		assertEquals("Test 102", courses1.get(1).getName());
+		assertEquals("Test 102", courses2.get(0).getName());
+		assertEquals("Test 101", courses2.get(1).getName());
+		
+		assertEquals(initDateTime.minusHours(6), courses1.get(0).getLastUpdated());
+		assertEquals(initDateTime.minusHours(7), courses1.get(1).getLastUpdated());
+		assertEquals(initDateTime.minusHours(2), courses2.get(0).getLastUpdated());
+		assertEquals(initDateTime.minusHours(4), courses2.get(1).getLastUpdated());
 	}
 
 	// helpers
@@ -221,10 +301,11 @@ class TestStudentDashboardService {
 		return student;
 	}
 	
-	private Experiment makeTestExperiment(Course course, String name, String description) {
+	private Experiment makeTestExperiment(Course course, String name, String description, LocalDateTime reportDueDate) {
 		Experiment experiment = new Experiment();
 		experiment.setName(name);
 		experiment.setDescription(description);
+		experiment.setReportDueDate(reportDueDate);
 		course.addExperiment(experiment);
 		return experiment;
 	}
