@@ -1,5 +1,6 @@
 package labvision.entities;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -151,5 +152,20 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 		this.values.add(value);
 		value.setVariable(this);
 		computeStatistics();
+	}
+	
+	public MeasurementValue addValue(Student student, CourseClass courseClass, Amount<?> amount, LocalDateTime taken) {
+		MeasurementValue measurementValue = new MeasurementValue();
+		measurementValue.setVariable(this);
+		measurementValue.setAmountValue(amount);
+		measurementValue.setTaken(taken);
+		this.values.add(measurementValue);
+		
+		student.addMeasurementValue(measurementValue);
+		courseClass.addMeasurementValue(measurementValue);
+		
+		computeStatistics();
+		
+		return measurementValue;
 	}
 }

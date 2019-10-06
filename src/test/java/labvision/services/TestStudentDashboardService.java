@@ -1,15 +1,12 @@
 package labvision.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.measure.Quantity;
 import javax.measure.quantity.Length;
@@ -19,8 +16,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
-import javax.persistence.Tuple;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 
@@ -58,13 +53,11 @@ class TestStudentDashboardService {
 	private List<MeasurementValue> measurementValues;
 	private List<ReportedResult> reportedResults;
 	
-	private static final String TESTING_PERSISTENCE_UNIT_NAME = "LabVisionTestingPersistence";
-	
 	private LocalDateTime initDateTime;
 	
 	@BeforeAll
 	void setUpBeforeClass() throws Exception {
-		emf = Persistence.createEntityManagerFactory(TESTING_PERSISTENCE_UNIT_NAME);
+		emf = Persistence.createEntityManagerFactory(LabVisionConfig.TESTING_PERSISTENCE_UNIT_NAME);
 		config = new LabVisionConfig("~/.labvision/test.properties");
 		service = new StudentDashboardService(emf, config);
 		initDateTime = LocalDateTime.now();
@@ -74,19 +67,19 @@ class TestStudentDashboardService {
 		SecureRandom random = new SecureRandom();
 		
 		students = new ArrayList<>();
-		students.add(makeTestStudent("Student Tester One", "studenttester1", "password1", random));
-		students.add(makeTestStudent("Student Tester Two", "studenttester2", "password2", random));
+		students.add(new Student("Student Tester One", "studenttester1", "password1", config, random));
+		students.add(new Student("Student Tester Two", "studenttester2", "password2", config, random));
 		
 		courses = new ArrayList<>();
-		courses.add(makeTestCourse("Test 101"));
-		courses.add(makeTestCourse("Test 102"));
-		courses.add(makeTestCourse("Test 103"));
+		courses.add(new Course("Test 101"));
+		courses.add(new Course("Test 102"));
+		courses.add(new Course("Test 103"));
 		
 		courseClasses = new ArrayList<>();
-		courseClasses.add(makeTestCourseClass(courses.get(0), "Test 101 Morning Class"));
-		courseClasses.add(makeTestCourseClass(courses.get(0), "Test 101 Afternoon Class"));
-		courseClasses.add(makeTestCourseClass(courses.get(1), "Test 102 Morning Class"));
-		courseClasses.add(makeTestCourseClass(courses.get(1), "Test 102 Afternoon Class"));
+		courseClasses.add(courses.get(0).addCourseClass("Test 101 Morning Class"));
+		courseClasses.add(courses.get(0).addCourseClass("Test 101 Afternoon Class"));
+		courseClasses.add(courses.get(1).addCourseClass("Test 102 Morning Class"));
+		courseClasses.add(courses.get(1).addCourseClass("Test 102 Afternoon Class"));
 		
 		courseClasses.get(0).addStudent(students.get(0));
 		courseClasses.get(1).addStudent(students.get(0));
@@ -99,91 +92,80 @@ class TestStudentDashboardService {
 		measurementValues = new ArrayList<>();
 		reportedResults = new ArrayList<>();
 		
-		experiments.add(makeTestExperiment(
-				courses.get(2),
+		experiments.add(courses.get(2).addExperiment(
 				"Test Experiment 1", 
 				"Description for Test Experiment 1",
 				initDateTime.plusDays(7)));
 		
-		experiments.add(makeTestExperiment(
-				courses.get(1),
+		experiments.add(courses.get(1).addExperiment(
 				"Test Experiment 2",
 				"Description for Test Experiment 2",
 				initDateTime.plusDays(9)));
-		measurements.add(makeTestMeasurement(experiments.get(1), "Length", Length.class));
-		measurementValues.add(makeTestMeasurementValue(
+		measurements.add(experiments.get(1).addMeasurement("Length", Length.class));
+		measurementValues.add(measurements.get(0).addValue(
 				students.get(0),
 				courseClasses.get(0),
-				measurements.get(0),
 				new Amount<>(1.2, 0.1, Units.METRE),
 				initDateTime.minusHours(10)));
-		measurementValues.add(makeTestMeasurementValue(
+		measurementValues.add(measurements.get(0).addValue(
 				students.get(0),
 				courseClasses.get(2),
-				measurements.get(0),
 				new Amount<>(1.2, 0.1, Units.METRE),
 				initDateTime.minusHours(8)));
-		measurementValues.add(makeTestMeasurementValue(
+		measurementValues.add(measurements.get(0).addValue(
 				students.get(1),
 				courseClasses.get(1),
-				measurements.get(0),
 				new Amount<>(1.2, 0.1, Units.METRE),
 				initDateTime.minusHours(7)));
 		
 		students.get(0).addActiveExperiment(experiments.get(1));
 		
-		experiments.add(makeTestExperiment(
-				courses.get(1),
+		experiments.add(courses.get(1).addExperiment(
 				"Test Experiment 3",
 				"Description for Test Experiment 3",
 				initDateTime.plusDays(11)
 				));
 		
-		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(2), initDateTime.minusHours(7)));
-		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(2), initDateTime.minusHours(9)));
-		reportedResults.add(makeTestReportedResult(students.get(1), experiments.get(2), initDateTime.minusHours(5)));
+		reportedResults.add(experiments.get(2).addReportedResult(students.get(0), initDateTime.minusHours(7)));
+		reportedResults.add(experiments.get(2).addReportedResult(students.get(0), initDateTime.minusHours(9)));
+		reportedResults.add(experiments.get(2).addReportedResult(students.get(1), initDateTime.minusHours(5)));
 		
 		students.get(0).addActiveExperiment(experiments.get(2));
 		
-		experiments.add(makeTestExperiment(
-				courses.get(0),
+		experiments.add(courses.get(0).addExperiment(
 				"Test Experiment 4",
 				"Description for Test Experiment 4",
 				initDateTime.plusDays(8)));
 		
-		measurements.add(makeTestMeasurement(experiments.get(3), "Duration", Time.class));
-		measurementValues.add(makeTestMeasurementValue(
+		measurements.add(experiments.get(3).addMeasurement("Duration", Time.class));
+		measurementValues.add(measurements.get(1).addValue(
 				students.get(0),
 				courseClasses.get(1),
-				measurements.get(1),
 				new Amount<>(1.6, 0.1, Units.SECOND),
 				initDateTime.minusHours(11)));
-		measurementValues.add(makeTestMeasurementValue(
+		measurementValues.add(measurements.get(1).addValue(
 				students.get(0),
 				courseClasses.get(3),
-				measurements.get(1),
 				new Amount<>(1.5, 0.1, Units.SECOND),
 				initDateTime.minusHours(9)));
-		measurementValues.add(makeTestMeasurementValue(
+		measurementValues.add(measurements.get(1).addValue(
 				students.get(1),
 				courseClasses.get(2),
-				measurements.get(1),
 				new Amount<>(1.7, 0.1, Units.SECOND),
 				initDateTime.minusHours(7)));
 		
-		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(3), initDateTime.minusHours(10)));
-		reportedResults.add(makeTestReportedResult(students.get(0), experiments.get(3), initDateTime.minusHours(6)));
-		reportedResults.add(makeTestReportedResult(students.get(1), experiments.get(3), initDateTime.minusHours(4)));
+		reportedResults.add(experiments.get(3).addReportedResult(students.get(0), initDateTime.minusHours(10)));
+		reportedResults.add(experiments.get(3).addReportedResult(students.get(0), initDateTime.minusHours(6)));
+		reportedResults.add(experiments.get(3).addReportedResult(students.get(1), initDateTime.minusHours(4)));
 		
 		students.get(0).addActiveExperiment(experiments.get(3));
 		students.get(1).addActiveExperiment(experiments.get(3));
 		
-		experiments.add(makeTestExperiment(courses.get(1), "Test Experiment 5", "Description for Test Experiment 5", initDateTime.plusDays(5)));
-		measurements.add(makeTestMeasurement(experiments.get(4), "Mass", Mass.class));
-		measurementValues.add(makeTestMeasurementValue(
+		experiments.add(courses.get(1).addExperiment("Test Experiment 5", "Description for Test Experiment 5", initDateTime.plusDays(5)));
+		measurements.add(experiments.get(4).addMeasurement("Mass", Mass.class));
+		measurementValues.add(measurements.get(2).addValue(
 				students.get(1),
 				courseClasses.get(1),
-				measurements.get(2),
 				new Amount<>(12.5, 0.3, Units.GRAM),
 				initDateTime.minusHours(2)));
 		
@@ -293,63 +275,6 @@ class TestStudentDashboardService {
 	}
 
 	// helpers
-	private Student makeTestStudent(String name, String username, String password, SecureRandom random) throws NoSuchAlgorithmException {
-		Student student = new Student();
-		student.setName(name);
-		student.setUsername(username);
-		student.updatePassword(config, random, password);
-		return student;
-	}
-	
-	private Experiment makeTestExperiment(Course course, String name, String description, LocalDateTime reportDueDate) {
-		Experiment experiment = new Experiment();
-		experiment.setName(name);
-		experiment.setDescription(description);
-		experiment.setReportDueDate(reportDueDate);
-		course.addExperiment(experiment);
-		return experiment;
-	}
-	
-	private <Q extends Quantity<Q>> Measurement makeTestMeasurement(Experiment experiment, String name, Class<Q> quantityType) {
-		Measurement measurement = new Measurement();
-		measurement.setName(name);
-		measurement.updateQuantityType(quantityType);
-		experiment.addMeasurement(measurement);
-		return measurement;
-	}
-	
-	private MeasurementValue makeTestMeasurementValue(Student student, CourseClass courseClass, Measurement measurement, Amount<?> amount, LocalDateTime taken) {
-		MeasurementValue measurementValue = new MeasurementValue();
-		measurementValue.setVariable(measurement);
-		measurementValue.setAmountValue(amount);
-		measurementValue.setTaken(taken);
-		measurement.addValue(measurementValue);
-		student.addMeasurementValue(measurementValue);
-		courseClass.addMeasurementValue(measurementValue);
-		return measurementValue;
-	}
-	
-	private ReportedResult makeTestReportedResult(Student student, Experiment experiment, LocalDateTime added) {
-		ReportedResult reportedResult = new ReportedResult();
-		reportedResult.setAdded(added);
-		reportedResult.setStudent(student);
-		experiment.addReportedResult(reportedResult);
-		return reportedResult;
-	}
-	
-	private Course makeTestCourse(String name) {
-		Course course = new Course();
-		course.setName(name);
-		return course;
-	}
-	
-	private CourseClass makeTestCourseClass(Course course, String name) {
-		CourseClass courseClass = new CourseClass();
-		courseClass.setName(name);
-		course.addCourseClass(courseClass);
-		return courseClass;
-	}
-	
 	private static <T> void clearTable(Class<T> entityClass, EntityManager manager) {
 		CriteriaBuilder cb = manager.getCriteriaBuilder();
 		CriteriaDelete<T> cd = cb.createCriteriaDelete(entityClass);

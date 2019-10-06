@@ -53,6 +53,16 @@ public abstract class User implements LabVisionEntity {
 	@OneToMany( mappedBy="user", targetEntity = Device.class )
 	private List<Device> devices = new ArrayList<>();
 
+	public User() {
+		super();
+	}
+	
+	public User(String username, String password, LabVisionConfig config, SecureRandom random) throws NoSuchAlgorithmException {
+		super();
+		setUsername(username);
+		updatePassword(config, random, password);
+	}
+	
 	public String getUsername() {
 		return username;
 	}

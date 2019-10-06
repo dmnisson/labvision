@@ -1,5 +1,8 @@
 package labvision.entities;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +14,8 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+
+import labvision.LabVisionConfig;
 
 /**
  * Stores information about a student user including course classes and measurements
@@ -30,11 +35,32 @@ public class Student extends User {
 	@OneToMany( mappedBy="student", targetEntity=MeasurementValue.class )
 	private List<MeasurementValue> measurementValues = new ArrayList<>();
 
+	@OneToMany( mappedBy="student", targetEntity=ReportedResult.class )
+	private List<ReportedResult> reportedResults = new ArrayList<>();
+	
 	@OneToOne
 	private StudentPreferences studentPreferences;
 	
 	@ManyToMany
 	private List<Experiment> activeExperiments = new ArrayList<>();
+	
+	public Student() {
+		super();
+	}
+	
+	/**
+	 * Creates a new student with the given username and password
+	 * @param name name of student
+	 * @param username username
+	 * @param password password
+	 * @param config the configuration object to use to determine the hash algorithm to use
+	 * @param random the random number generator for making the salt
+	 * @throws NoSuchAlgorithmException
+	 */
+	public Student(String name, String username, String password, LabVisionConfig config, SecureRandom random) throws NoSuchAlgorithmException {
+		super(username, password, config, random);
+		setName(name);
+	}
 	
 	public String getName() {
 		return name;
@@ -74,7 +100,7 @@ public class Student extends User {
 		measurementValues.add(measurementValue);
 		measurementValue.setStudent(this);
 	}
-
+	
 	public List<Experiment> getActiveExperiments() {
 		return activeExperiments;
 	}
@@ -109,5 +135,18 @@ public class Student extends User {
 	public String getDisplayName() {
 		return (Objects.isNull(name) || name.isEmpty())
 				? super.getDisplayName() : name;
+	}
+
+	public List<ReportedResult> getReportedResults() {
+		return reportedResults;
+	}
+
+	public void setReportedResults(List<ReportedResult> reportedResults) {
+		this.reportedResults = reportedResults;
+	}
+	
+	public void addReportedResult(ReportedResult reportedResult) {
+		this.reportedResults.add(reportedResult);
+		reportedResult.setStudent(this);
 	}
 }

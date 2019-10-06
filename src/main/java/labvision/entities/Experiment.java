@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.measure.Quantity;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -94,6 +95,20 @@ public class Experiment implements LabVisionEntity {
 		this.measurements.add(measurement);
 		measurement.setExperiment(this);
 	}
+	
+	/**
+	 * Creates and adds a new measurement
+	 * @param name the name of the measurement
+	 * @param quantityType the type of quantity to be measured
+	 * @return the measurement entity
+	 */
+	public <Q extends Quantity<Q>> Measurement addMeasurement(String name, Class<Q> quantityType) {
+		Measurement measurement = new Measurement();
+		measurement.setName(name);
+		measurement.updateQuantityType(quantityType);
+		addMeasurement(measurement);
+		return measurement;
+	}
 
 	public List<Result> getAcceptedResults() {
 		return acceptedResults;
@@ -146,6 +161,14 @@ public class Experiment implements LabVisionEntity {
 	public void addReportedResult(ReportedResult reportedResult) {
 		this.reportedResults.add(reportedResult);
 		reportedResult.setExperiment(this);
+	}
+	
+	public ReportedResult addReportedResult(Student student, LocalDateTime added) {
+		ReportedResult reportedResult = new ReportedResult();
+		reportedResult.setAdded(added);
+		student.addReportedResult(reportedResult);
+		addReportedResult(reportedResult);
+		return reportedResult;
 	}
 	
 	public void removeReportedResult(ReportedResult reportedResult) {

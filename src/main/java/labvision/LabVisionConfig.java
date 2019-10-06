@@ -26,6 +26,8 @@ public class LabVisionConfig {
 	
 	public static final String DEFAULT_PERSISTENCE_UNIT = "LabVisionDefaultPersistence";
 	
+	public static final String TESTING_PERSISTENCE_UNIT_NAME = "LabVisionTestingPersistence";
+	
 	// property names
 	private static final String PERSISTENCE_UNIT_KEY = "persistenceUnit";
 
