@@ -6,6 +6,9 @@ import java.util.function.Function;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
 
@@ -66,5 +69,16 @@ public class JpaService {
 					.findFirst()
 					.orElseThrow(() -> new ServletMappingNotFoundException(servletName))
 					.replace("*", pathInfo.substring(1));
+	}
+
+	public static <T> void clearTable(Class<T> entityClass, EntityManager manager) {
+		CriteriaBuilder cb = manager.getCriteriaBuilder();
+		CriteriaDelete<T> cd = cb.createCriteriaDelete(entityClass);
+		cd.from(entityClass);
+		
+		EntityTransaction tx = manager.getTransaction();
+		tx.begin();
+		manager.createQuery(cd).executeUpdate();
+		tx.commit();
 	}
 }

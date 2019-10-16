@@ -9,11 +9,11 @@ public class CurrentExperimentForStudentExperimentTable extends ExperimentForStu
 	private final BigDecimal totalReportScore;
 	
 	public CurrentExperimentForStudentExperimentTable(int id, String name, LocalDateTime reportDueDate,
-			LocalDateTime lastReportUpdated, BigDecimal totalReportScore) {
+			LocalDateTime lastReportUpdated, Number totalReportScore) {
 		super(id, name);
 		this.reportDueDate = reportDueDate;
 		this.lastReportUpdated = lastReportUpdated;
-		this.totalReportScore = totalReportScore;
+		this.totalReportScore = new BigDecimal(totalReportScore.toString());
 	}
 
 	public LocalDateTime getReportDueDate() {

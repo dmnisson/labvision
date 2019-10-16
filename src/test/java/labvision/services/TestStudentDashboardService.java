@@ -188,13 +188,13 @@ class TestStudentDashboardService {
 	void tearDownAfterClass() throws Exception {
 		EntityManager manager = emf.createEntityManager();
 		
-		clearTable(MeasurementValue.class, manager);
-		clearTable(ReportedResult.class, manager);
-		clearTable(CourseClass.class, manager);
-		clearTable(Measurement.class, manager);
-		clearTable(Student.class, manager);
-		clearTable(Experiment.class, manager);
-		clearTable(Course.class, manager);
+		JpaService.clearTable(MeasurementValue.class, manager);
+		JpaService.clearTable(ReportedResult.class, manager);
+		JpaService.clearTable(CourseClass.class, manager);
+		JpaService.clearTable(Measurement.class, manager);
+		JpaService.clearTable(Student.class, manager);
+		JpaService.clearTable(Experiment.class, manager);
+		JpaService.clearTable(Course.class, manager);
 		
 		manager.close();
 		emf.close();
@@ -272,17 +272,5 @@ class TestStudentDashboardService {
 		assertEquals(initDateTime.minusHours(7), courses1.get(1).getLastUpdated());
 		assertEquals(initDateTime.minusHours(2), courses2.get(0).getLastUpdated());
 		assertEquals(initDateTime.minusHours(4), courses2.get(1).getLastUpdated());
-	}
-
-	// helpers
-	private static <T> void clearTable(Class<T> entityClass, EntityManager manager) {
-		CriteriaBuilder cb = manager.getCriteriaBuilder();
-		CriteriaDelete<T> cd = cb.createCriteriaDelete(entityClass);
-		cd.from(entityClass);
-		
-		EntityTransaction tx = manager.getTransaction();
-		tx.begin();
-		manager.createQuery(cd).executeUpdate();
-		tx.commit();
 	}
 }

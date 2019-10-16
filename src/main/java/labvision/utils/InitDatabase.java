@@ -7,10 +7,7 @@ import java.util.Scanner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaDelete;
 
 import labvision.LabVisionConfig;
 import labvision.entities.Course;
@@ -24,6 +21,7 @@ import labvision.entities.Student;
 import labvision.entities.User;
 import labvision.services.CourseService;
 import labvision.services.ExperimentService;
+import labvision.services.JpaService;
 import labvision.services.UserService;
 import tec.units.ri.quantity.QuantityDimension;
 
@@ -59,13 +57,13 @@ public class InitDatabase {
 		
 		// clear users
 		EntityManager manager = emf.createEntityManager();
-		clearTable(MeasurementValue.class, manager);
-		clearTable(CourseClass.class, manager);
-		clearTable(Measurement.class, manager);
-		clearTable(Student.class, manager);
-		clearTable(Experiment.class, manager);
-		clearTable(Course.class, manager);
-		clearTable(User.class, manager);
+		JpaService.clearTable(MeasurementValue.class, manager);
+		JpaService.clearTable(CourseClass.class, manager);
+		JpaService.clearTable(Measurement.class, manager);
+		JpaService.clearTable(Student.class, manager);
+		JpaService.clearTable(Experiment.class, manager);
+		JpaService.clearTable(Course.class, manager);
+		JpaService.clearTable(User.class, manager);
 		manager.close();
 				
 		// users
@@ -123,16 +121,5 @@ public class InitDatabase {
 		}
 		
 		emf.close();
-	}
-
-	private static <T> void clearTable(Class<T> entityClass, EntityManager manager) {
-		CriteriaBuilder cb = manager.getCriteriaBuilder();
-		CriteriaDelete<T> cd = cb.createCriteriaDelete(entityClass);
-		cd.from(entityClass);
-		
-		EntityTransaction tx = manager.getTransaction();
-		tx.begin();
-		manager.createQuery(cd).executeUpdate();
-		tx.commit();
 	}
 }

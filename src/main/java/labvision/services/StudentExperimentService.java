@@ -30,7 +30,7 @@ public class StudentExperimentService extends ExperimentService {
 					"	e.name," +
 					"	e.reportDueDate," +
 					"	MAX(rr.added)," +
-					"	SUM(rr.score)" +
+					"	CASE WHEN COUNT(rr.score) > 0 THEN SUM(rr.score) ELSE 0 END" +
 					") " +
 					"FROM Student s " +
 					"JOIN s.activeExperiments e " +
