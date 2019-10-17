@@ -8,8 +8,12 @@ public class CurrentExperimentForStudentExperimentTable extends ExperimentForStu
 	private final LocalDateTime lastReportUpdated;
 	private final BigDecimal totalReportScore;
 	
-	public CurrentExperimentForStudentExperimentTable(int id, String name, LocalDateTime reportDueDate,
-			LocalDateTime lastReportUpdated, Number totalReportScore) {
+	public CurrentExperimentForStudentExperimentTable(
+			int id,
+			String name,
+			LocalDateTime reportDueDate,
+			LocalDateTime lastReportUpdated,
+			Number totalReportScore) {
 		super(id, name);
 		this.reportDueDate = reportDueDate;
 		this.lastReportUpdated = lastReportUpdated;

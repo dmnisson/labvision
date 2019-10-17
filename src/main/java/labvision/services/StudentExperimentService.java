@@ -34,9 +34,9 @@ public class StudentExperimentService extends ExperimentService {
 					") " +
 					"FROM Student s " +
 					"JOIN s.activeExperiments e " +
-					"LEFT JOIN e.reportedResults rr " +
-					"WHERE s.id=:studentid AND (rr.student.id IS NULL OR rr.student.id=:studentid) " +
-					"GROUP BY e ";
+					"LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid " +
+					"WHERE s.id=:studentid " +
+					"GROUP BY e";
 			TypedQuery<CurrentExperimentForStudentExperimentTable> query = manager.createQuery(
 					queryString,
 					CurrentExperimentForStudentExperimentTable.class
