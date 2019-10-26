@@ -18,6 +18,16 @@ import javax.servlet.ServletRegistration;
  *
  */
 public class JpaService {
+	/**
+	 * JPQL expression used to determine date of last measurement value or report of an experiment
+	 */
+	protected static final String EXPERIMENT_LAST_UPDATED_FUNCTION = "	MAX(" +
+				"		CASE WHEN (rr.added IS NULL OR mv.taken > rr.added)" +
+				"			THEN mv.taken" +
+				" 			ELSE rr.added" +
+				"			END" +
+				"		)";
+
 	private final EntityManagerFactory entityManagerFactory;
 	
 	protected final String STUDENT_SERVLET_NAME = "labvision-student";

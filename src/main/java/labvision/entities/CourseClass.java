@@ -19,7 +19,7 @@ import javax.persistence.ManyToOne;
 public class CourseClass implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
-	private int id;
+	private Integer id;
 	
 	private String name;
 
@@ -111,10 +111,7 @@ public class CourseClass implements LabVisionEntity {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + id;
-		return result;
+		return 31;
 	}
 
 	@Override
@@ -126,7 +123,9 @@ public class CourseClass implements LabVisionEntity {
 		if (getClass() != obj.getClass())
 			return false;
 		CourseClass other = (CourseClass) obj;
-		if (id != other.id)
+		if (id == null)
+			return false;
+		if (!id.equals(other.id))
 			return false;
 		return true;
 	}

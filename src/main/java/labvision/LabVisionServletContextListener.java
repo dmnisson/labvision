@@ -11,6 +11,7 @@ import labvision.services.StudentReportService;
 import labvision.services.ExperimentService;
 import labvision.services.InstructorExperimentService;
 import labvision.services.InstructorService;
+import labvision.services.JpaService;
 import labvision.services.StudentCourseService;
 import labvision.services.StudentService;
 import labvision.services.UserService;
@@ -53,7 +54,7 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		ExperimentService experimentService = new ExperimentService(emf);
 		event.getServletContext().setAttribute(EXPERIMENT_SERVICE_ATTR, experimentService);
 		
-		StudentDashboardService studentDashboardService = new StudentDashboardService(emf, config);
+		JpaService studentDashboardService = new StudentDashboardService(emf, config);
 		event.getServletContext().setAttribute(STUDENT_DASHBOARD_SERVICE_ATTR, studentDashboardService);
 		
 		StudentExperimentService studentExperimentService = new StudentExperimentService(emf);

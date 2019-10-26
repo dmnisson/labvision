@@ -26,7 +26,7 @@ import javax.persistence.OneToOne;
 public class ReportedResult implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
-	private int id;
+	private Integer id;
 	
 	@ManyToOne( fetch=FetchType.LAZY )
 	@JoinColumn( name="Student_id" )
@@ -112,10 +112,7 @@ public class ReportedResult implements LabVisionEntity {
 
 	@Override
 	public int hashCode() {
-		final int prime = 8191;
-		int result = 1;
-		result = prime * result + id;
-		return result;
+		return 8191;
 	}
 
 	@Override
@@ -127,7 +124,9 @@ public class ReportedResult implements LabVisionEntity {
 		if (getClass() != obj.getClass())
 			return false;
 		ReportedResult other = (ReportedResult) obj;
-		if (id != other.id)
+		if (id == null)
+			return false;
+		if (!id.equals(other.id))
 			return false;
 		return true;
 	}

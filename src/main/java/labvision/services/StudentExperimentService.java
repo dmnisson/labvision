@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
@@ -24,10 +25,11 @@ public class StudentExperimentService extends ExperimentService {
 
 	public List<CurrentExperimentForStudentExperimentTable> getCurrentExperiments(int studentId) {
 		return withEntityManager(manager -> {
-			String queryString =
+			String baseQueryString =
 					"SELECT new labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable(" +
 					"	e.id," +
 					"	e.name," +
+					EXPERIMENT_LAST_UPDATED_FUNCTION + " AS lu," +
 					"	e.reportDueDate," +
 					"	MAX(rr.added)," +
 					"	CASE WHEN COUNT(rr.score) > 0 THEN SUM(rr.score) ELSE 0 END" +
@@ -35,14 +37,32 @@ public class StudentExperimentService extends ExperimentService {
 					"FROM Student s " +
 					"JOIN s.activeExperiments e " +
 					"LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid " +
-					"WHERE s.id=:studentid " +
-					"GROUP BY e";
-			TypedQuery<CurrentExperimentForStudentExperimentTable> query = manager.createQuery(
-					queryString,
+					"LEFT JOIN e.measurements m " +
+					"LEFT JOIN m.values mv ON mv.student.id=:studentid " +
+					"WHERE s.id=:studentid";
+			
+			String queryString1 = baseQueryString + " " +
+					"AND rr.id IS NULL AND mv.id IS NULL " +
+					"GROUP BY e " +
+					"ORDER BY e.reportDueDate ASC";
+			
+			TypedQuery<CurrentExperimentForStudentExperimentTable> query1 = manager.createQuery(
+					queryString1,
 					CurrentExperimentForStudentExperimentTable.class
 					);
-			query.setParameter("studentid", studentId);
-			return query.getResultList();
+			query1.setParameter("studentid", studentId);
+			String queryString2 = baseQueryString + " " +
+					"AND (rr.id IS NOT NULL OR mv.id IS NOT NULL) " +
+					"GROUP BY e " +
+					"ORDER BY lu DESC";
+			
+			TypedQuery<CurrentExperimentForStudentExperimentTable> query2 = manager.createQuery(
+					queryString2,
+					CurrentExperimentForStudentExperimentTable.class
+					);
+			query2.setParameter("studentid", studentId);
+			return Stream.concat(query1.getResultStream(), query2.getResultStream())
+					.collect(Collectors.toList());
 		});
 	}
 	

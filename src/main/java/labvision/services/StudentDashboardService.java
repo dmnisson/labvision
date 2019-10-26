@@ -13,17 +13,6 @@ import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
 import labvision.dto.student.dashboard.RecentExperimentForStudentDashboard;
 
 public class StudentDashboardService extends JpaService {
-	/**
-	 * JPQL expression used to determine date of last measurement value or report of an experiment
-	 */
-	private static final String LAST_UPDATED_FUNCTION = 
-			"	MAX(" +
-			"		CASE WHEN (rr.added IS NULL OR mv.taken > rr.added)" +
-			"			THEN mv.taken" +
-			" 			ELSE rr.added" +
-			"			END" +
-			"		)";
-	
 	private final LabVisionConfig config;
 	
 	public StudentDashboardService(EntityManagerFactory entityManagerFactory, LabVisionConfig config) {
@@ -39,7 +28,7 @@ public class StudentDashboardService extends JpaService {
 					"	e.name," +
 					"	c.id," +
 					"	c.name," +
-					LAST_UPDATED_FUNCTION + " AS lu," +
+					EXPERIMENT_LAST_UPDATED_FUNCTION + " AS lu," +
 					"	e.reportDueDate" +
 					") " +
 					"FROM Student s " +
@@ -99,7 +88,7 @@ public class StudentDashboardService extends JpaService {
 					"SELECT new labvision.dto.student.dashboard.RecentExperimentForStudentDashboard(" +
 				    "	e.id," +
 				    "	e.name," +
-				    LAST_UPDATED_FUNCTION + " AS lu," +
+				    EXPERIMENT_LAST_UPDATED_FUNCTION + " AS lu," +
 				    "	MAX(mv.taken)," +
 				    "	e.reportDueDate" +
 					") " +
@@ -160,7 +149,7 @@ public class StudentDashboardService extends JpaService {
 				    "	c.id," +
 				    "	c.name," +
 				    "	MAX(mv.taken)," +
-				    LAST_UPDATED_FUNCTION + " AS lu" +
+				    EXPERIMENT_LAST_UPDATED_FUNCTION + " AS lu" +
 					") " +
 				    "FROM Course c " +
 					"JOIN c.experiments e " +

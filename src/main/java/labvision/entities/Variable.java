@@ -30,7 +30,7 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 	@Id
 	@GeneratedValue( strategy=GenerationType.AUTO )
 	@Column( name = "id", updatable = false, nullable = false )
-	private int id;
+	private Integer id;
 	
 	/**
 	 * The name of the variable
@@ -184,10 +184,7 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + id;
-		return result;
+		return 19;
 	}
 
 	@Override
@@ -199,7 +196,9 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 		if (getClass() != obj.getClass())
 			return false;
 		Variable<?, ?> other = (Variable<?, ?>) obj;
-		if (id != other.id)
+		if (id == null)
+			return false;
+		if (!id.equals(other.id))
 			return false;
 		return true;
 	}

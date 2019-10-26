@@ -27,7 +27,7 @@ import labvision.ReportStatus;
 public class Experiment implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
-	private int id;
+	private Integer id;
 	
 	private String name;
 	
@@ -232,10 +232,7 @@ public class Experiment implements LabVisionEntity {
 
 	@Override
 	public int hashCode() {
-		final int prime = 127;
-		int result = 1;
-		result = prime * result + id;
-		return result;
+		return 127;
 	}
 
 	@Override
@@ -247,7 +244,9 @@ public class Experiment implements LabVisionEntity {
 		if (getClass() != obj.getClass())
 			return false;
 		Experiment other = (Experiment) obj;
-		if (id != other.id)
+		if (id == null)
+			return false;
+		if (!id.equals(other.id))
 			return false;
 		return true;
 	}

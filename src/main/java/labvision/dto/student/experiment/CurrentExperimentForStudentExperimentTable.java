@@ -11,10 +11,11 @@ public class CurrentExperimentForStudentExperimentTable extends ExperimentForStu
 	public CurrentExperimentForStudentExperimentTable(
 			int id,
 			String name,
+			LocalDateTime lastUpdated,
 			LocalDateTime reportDueDate,
 			LocalDateTime lastReportUpdated,
 			Number totalReportScore) {
-		super(id, name);
+		super(id, name, lastUpdated);
 		this.reportDueDate = reportDueDate;
 		this.lastReportUpdated = lastReportUpdated;
 		this.totalReportScore = new BigDecimal(totalReportScore.toString());

@@ -25,7 +25,7 @@ public abstract class User implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	@Column( name = "id", updatable = false, nullable = false )
-	private int id;
+	private Integer id;
 	
 	/**
 	 * The username
@@ -234,10 +234,7 @@ public abstract class User implements LabVisionEntity {
 	
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + id;
-		return result;
+		return 17;
 	}
 
 	@Override
@@ -249,7 +246,9 @@ public abstract class User implements LabVisionEntity {
 		if (getClass() != obj.getClass())
 			return false;
 		User other = (User) obj;
-		if (id != other.id)
+		if (id == null)
+			return false;
+		if (!id.equals(other.id))
 			return false;
 		return true;
 	}

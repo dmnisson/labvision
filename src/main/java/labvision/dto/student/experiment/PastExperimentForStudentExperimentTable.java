@@ -8,9 +8,14 @@ public class PastExperimentForStudentExperimentTable extends ExperimentForStuden
 	private final LocalDateTime lastReportUpdated;
 	private final BigDecimal totalReportScore;
 	
-	public PastExperimentForStudentExperimentTable(int id, String name, long reportCount,
-			LocalDateTime lastReportUpdated, BigDecimal totalReportScore) {
-		super(id, name);
+	public PastExperimentForStudentExperimentTable(
+			int id,
+			String name, 
+			LocalDateTime lastUpdated,
+			long reportCount,
+			LocalDateTime lastReportUpdated,
+			BigDecimal totalReportScore) {
+		super(id, name, lastUpdated);
 		this.reportCount = reportCount;
 		this.lastReportUpdated = lastReportUpdated;
 		this.totalReportScore = totalReportScore;
