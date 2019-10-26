@@ -46,6 +46,7 @@ public class StudentExperimentService extends ExperimentService {
 					"GROUP BY e " +
 					"ORDER BY e.reportDueDate ASC";
 			
+			// TODO consider refactoring
 			TypedQuery<CurrentExperimentForStudentExperimentTable> query1 = manager.createQuery(
 					queryString1,
 					CurrentExperimentForStudentExperimentTable.class
