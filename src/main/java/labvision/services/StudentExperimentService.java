@@ -51,13 +51,9 @@ public class StudentExperimentService extends ExperimentService {
 					CurrentExperimentForStudentExperimentTable.class
 					);
 			query1.setParameter("studentid", studentId);
-			String queryString2 = baseQueryString + " " +
-					"AND (rr.id IS NOT NULL OR mv.id IS NOT NULL) " +
-					"GROUP BY e " +
-					"ORDER BY lu DESC";
 			
-			TypedQuery<CurrentExperimentForStudentExperimentTable> query2 = manager.createQuery(
-					queryString2,
+			TypedQuery<CurrentExperimentForStudentExperimentTable> query2 = manager.createNamedQuery(
+					"CurrentExperimentForStudentExperimentTable_DataSubmitted",
 					CurrentExperimentForStudentExperimentTable.class
 					);
 			query2.setParameter("studentid", studentId);

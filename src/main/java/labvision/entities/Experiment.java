@@ -1,5 +1,6 @@
 package labvision.entities;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,6 +12,8 @@ import java.util.Set;
 import javax.measure.Quantity;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.ColumnResult;
+import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -19,9 +22,63 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.SqlResultSetMapping;
 
 import labvision.ReportStatus;
+import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
+import labvision.services.JpaService;
+
+@NamedNativeQuery(
+		name = "CurrentExperimentForStudentExperimentTable_DataSubmitted", 
+		query = "SELECT " +
+				"	e.id AS id," +
+				"	e.name AS name," +
+				"   CASE WHEN t.lru IS NULL OR u.lmu>t.lru THEN u.lmu ELSE t.lru END AS lastUpdated," +
+				"	e.reportDueDate AS reportDueDate," +
+				"	t.lru AS lastReportUpdated," +
+				"	CASE WHEN t.tscore IS NULL THEN 0 ELSE t.tscore END AS totalReportScore " +
+				"FROM Student s " +
+				"JOIN Student_Experiment se ON se.Student_id=s.id " +
+				"JOIN Experiment e ON e.id=se.activeExperiments_id " +
+				"LEFT JOIN (" +
+				"	SELECT rr2.Experiment_id AS Experiment_id," +
+				"	SUM(rr2.score)" +
+				"	AS tscore," +
+				"	MAX(rr2.added) AS lru" +
+				"	FROM ReportedResult rr2 " +
+				"	WHERE rr2.Student_id=:studentid" +
+				"	GROUP BY Experiment_id" +
+				" ) t ON t.Experiment_id=e.id " +
+				"LEFT JOIN (" +
+				"	SELECT m.Experiment_id AS Experiment_id," +
+				"	MAX(mv.taken) AS lmu" +
+				"	FROM MeasurementValue mv " +
+				"	JOIN Measurement m ON mv.Measurement_id=m.id " +
+				"	WHERE mv.Student_id=:studentid" +
+				"	GROUP BY Experiment_id " +
+				" ) u ON u.Experiment_id=e.id " +
+				"WHERE s.id=:studentid " +
+				"AND (t.lru IS NOT NULL OR u.lmu IS NOT NULL) " +
+				"GROUP BY e.id, e.name, e.reportDueDate, t.tscore, t.lru, u.lmu " +
+				"ORDER BY lastUpdated DESC",
+		resultSetMapping = "CurrentExperimentForStudentExperimentTable"
+		)
+@SqlResultSetMapping(
+		name = "CurrentExperimentForStudentExperimentTable",
+		classes = @ConstructorResult(
+				targetClass = CurrentExperimentForStudentExperimentTable.class,
+				columns = {
+						@ColumnResult( name = "id", type=Integer.class ),
+						@ColumnResult( name = "name" ),
+						@ColumnResult( name = "lastUpdated", type=LocalDateTime.class ),
+						@ColumnResult( name = "reportDueDate", type=LocalDateTime.class ),
+						@ColumnResult( name = "lastReportUpdated", type=LocalDateTime.class ),
+						@ColumnResult( name = "totalReportScore", type=BigDecimal.class )
+				}
+				)
+		)
 
 @Entity
 public class Experiment implements LabVisionEntity {
