@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import labvision.LabVisionConfig;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
+import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.entities.Course;
 import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
@@ -126,6 +127,13 @@ class TestStudentExperimentService {
 				new Amount<>(7.1, 0.3, Units.METRE_PER_SQUARE_SECOND),
 				initDateTime.minusHours(8)));
 		
+		measurementValues.put(e2m1, new ArrayList<>());
+		measurementValues.get(e2m1).add(e2m1.addValue(
+				students.get(2),
+				courseClasses.get(0),
+				new Amount<>(7.2, 0.1, Units.METRE_PER_SQUARE_SECOND),
+				initDateTime.minusHours(7)));
+		
 		measurements.put(experiments.get(2), new ArrayList<>());
 		measurements.get(experiments.get(2)).add(
 				experiments.get(2).addMeasurement("Angle", Angle.class));
@@ -144,6 +152,13 @@ class TestStudentExperimentService {
 					courseClasses.get(0), 
 					new Amount<>(1.5, 0.5, Units.RADIAN),
 					initDateTime.minusDays(1)));
+		
+		reports.put(experiments.get(2), new ArrayList<>());
+		reports.get(experiments.get(2)).add(
+				experiments.get(2).addReportedResult(
+						students.get(2), 
+						initDateTime.minusHours(8)));
+		reports.get(experiments.get(2)).get(0).setScore(new BigDecimal("79"));
 		
 		measurements.put(experiments.get(3), new ArrayList<>());
 		measurements.get(experiments.get(3)).add(
@@ -164,6 +179,21 @@ class TestStudentExperimentService {
 					new Amount<>(2.6, 0.2, Units.METRE_PER_SECOND),
 					initDateTime.minusDays(2)));
 		
+		measurementValues.get(e4m1)
+			.add(e4m1.addValue(
+					students.get(2), 
+					courseClasses.get(0), 
+					new Amount<>(2.7, 0.2, Units.METRE_PER_SECOND), 
+					initDateTime.minusHours(10)));
+		
+		reports.put(experiments.get(3), new ArrayList<>());
+		reports.get(experiments.get(3)).add(
+				experiments.get(3).addReportedResult(
+						students.get(2),
+						initDateTime.minusHours(9)));
+		reports.get(experiments.get(3)).get(0).setScore(new BigDecimal("67"));
+		
+		
 		measurements.put(experiments.get(4), new ArrayList<>());
 		measurements.get(experiments.get(4)).add(
 				experiments.get(4).addMeasurement("Voltage", ElectricPotential.class));
@@ -182,6 +212,12 @@ class TestStudentExperimentService {
 					courseClasses.get(0), 
 					new Amount<>(0.9, 0.2, Units.VOLT),
 					initDateTime.minusDays(3)));
+		measurementValues.get(e5m1)
+			.add(e5m1.addValue(
+					students.get(2), 
+					courseClasses.get(0), 
+					new Amount<>(0.7, 0.2, Units.VOLT), 
+					initDateTime.minusHours(11)));
 		
 		reports.put(experiments.get(4), new ArrayList<>());
 		reports.get(experiments.get(4)).add(experiments.get(4)
@@ -190,6 +226,13 @@ class TestStudentExperimentService {
 		reports.get(experiments.get(4)).add(experiments.get(4)
 				.addReportedResult(students.get(0), initDateTime.minusHours(17)));
 		reports.get(experiments.get(4)).get(1).setScore(new BigDecimal("51"));
+		
+		reports.get(experiments.get(4)).add(experiments.get(4)
+				.addReportedResult(students.get(2), initDateTime.minusHours(12)));
+		reports.get(experiments.get(4)).get(2).setScore(new BigDecimal("14"));
+		reports.get(experiments.get(4)).add(experiments.get(4)
+				.addReportedResult(students.get(2), initDateTime.minusHours(13)));
+		reports.get(experiments.get(4)).get(3).setScore(new BigDecimal("47"));
 		
 		reports.put(experiments.get(5), new ArrayList<>());
 		reports.get(experiments.get(5)).add(experiments.get(5)
@@ -317,6 +360,72 @@ class TestStudentExperimentService {
 				IntStream.range(0, expectedTotalReportScores2.length)
 					.map(i -> expectedTotalReportScores2[i]
 							.compareTo(results2.get(i).getTotalReportScore()))
+					.toArray());
+	}
+	
+	@Test
+	void testGetPastExperiments() {
+		List<PastExperimentForStudentExperimentTable> results1 = 
+				service.getPastExperiments(students.get(0).getId());
+		List<PastExperimentForStudentExperimentTable> results2 = 
+				service.getPastExperiments(students.get(1).getId());
+		List<PastExperimentForStudentExperimentTable> results3 =
+				service.getPastExperiments(students.get(2).getId());
+
+		assertTrue(results1.isEmpty());
+		assertTrue(results2.isEmpty());
+		assertEquals(4, results3.size());
+		
+		String[] expectedExperimentNames = {
+				"Test Experiment 2",
+				"Test Experiment 3",
+				"Test Experiment 4",
+				"Test Experiment 5"
+		};
+		
+		assertArrayEquals(expectedExperimentNames, results3.stream()
+				.map(PastExperimentForStudentExperimentTable::getName)
+				.toArray(String[]::new));
+		
+		LocalDateTime[] expectedLastUpdatedDates = {
+				initDateTime.minusHours(7),
+				initDateTime.minusHours(8),
+				initDateTime.minusHours(9),
+				initDateTime.minusHours(11)
+		};
+		
+		assertArrayEquals(expectedLastUpdatedDates, results3.stream()
+				.map(PastExperimentForStudentExperimentTable::getLastUpdated)
+				.toArray(LocalDateTime[]::new));
+		
+		long[] expectedReportCounts = { 0, 1, 1, 2 };
+		
+		assertArrayEquals(expectedReportCounts, results3.stream()
+				.mapToLong(PastExperimentForStudentExperimentTable::getReportCount)
+				.toArray());
+		
+		LocalDateTime[] expectedLastReportUpdatedDates = {
+				null,
+				initDateTime.minusHours(8),
+				initDateTime.minusHours(9),
+				initDateTime.minusHours(12)
+		};
+		
+		assertArrayEquals(expectedLastReportUpdatedDates, results3.stream()
+				.map(PastExperimentForStudentExperimentTable::getLastReportUpdated)
+				.toArray(LocalDateTime[]::new));
+		
+		BigDecimal[] expectedTotalReportScores = {
+				BigDecimal.ZERO,
+				new BigDecimal("79"),
+				new BigDecimal("67"),
+				new BigDecimal("61")
+		};
+		
+		assertArrayEquals(new int[expectedTotalReportScores.length],
+				IntStream.range(0, expectedTotalReportScores.length)
+					.map(i -> expectedTotalReportScores[i]
+							.compareTo(results3.get(i).getTotalReportScore()))
 					.toArray());
 	}
 }

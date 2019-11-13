@@ -65,26 +65,8 @@ public class StudentExperimentService extends ExperimentService {
 	
 	public List<PastExperimentForStudentExperimentTable> getPastExperiments(int studentId) {
 		return withEntityManager(manager -> {
-			String queryString =
-					"SELECT new labvision.dto.student.experiment.PastExperimentForStudentExperimentTable(" +
-				    "	e.id," +
-					"	e.name," +
-				    "	COUNT(rr)," +
-					"	MAX(rr.added)," +
-				    "	SUM(rr.score)" +
-					") " +
-				    "FROM Experiment e " +
-					"JOIN e.measurements m " +
-				    "JOIN m.values mv " +
-					"JOIN mv.student s " +
-				    "LEFT JOIN e.reportedResults rr " +
-					"LEFT JOIN s.activeExperiments ae " +
-					"WHERE s.id=:studentid AND " +
-					"(rr.student.id IS NULL OR rr.student.id=:studentid) " +
-					"GROUP BY e " +
-					"HAVING SUM(CASE WHEN ae.id=e.id THEN 1 END) = 0";
-			TypedQuery<PastExperimentForStudentExperimentTable> query = manager.createQuery(
-					queryString,
+			TypedQuery<PastExperimentForStudentExperimentTable> query = manager.createNamedQuery(
+					"PastExperimentForStudentExperimentTable",
 					PastExperimentForStudentExperimentTable.class);
 			query.setParameter("studentid", studentId);
 			return query.getResultList();

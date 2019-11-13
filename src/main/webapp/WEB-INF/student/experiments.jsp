@@ -59,10 +59,10 @@
 	                  </c:if>
 	                </td>
 	                <td class="col-3">
-	                  <c:if test="${experiment.totalReportScore}">
+	                  <c:if test="${experiment.totalReportScore gt 0}">
                       ${experiment.totalReportScore}
                     </c:if>
-                    <c:if test="${not experiment.totalReportScore}">
+                    <c:if test="${experiment.totalReportScore.doubleValue() eq 0}">
                       —
                     </c:if>
 	                </td>
@@ -111,10 +111,10 @@
                     </c:choose>
                   </td>
                   <td class="col-3">
-                   <c:if test="${not empty experiment.totalReportScore}">
+                   <c:if test="${experiment.reportCount gt 0}">
                       ${experiment.totalReportScore}
                     </c:if>
-                    <c:if test="${empty experiment.totalReportScore}">
+                    <c:if test="${experiment.reportCount eq 0}">
                       —
                     </c:if>
                   </td>

@@ -28,6 +28,7 @@ import javax.persistence.SqlResultSetMapping;
 
 import labvision.ReportStatus;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
+import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.services.JpaService;
 
 @NamedNativeQuery(
@@ -44,8 +45,7 @@ import labvision.services.JpaService;
 				"JOIN Experiment e ON e.id=se.activeExperiments_id " +
 				"LEFT JOIN (" +
 				"	SELECT rr2.Experiment_id AS Experiment_id," +
-				"	SUM(rr2.score)" +
-				"	AS tscore," +
+				"	SUM(rr2.score) AS tscore," +
 				"	MAX(rr2.added) AS lru" +
 				"	FROM ReportedResult rr2 " +
 				"	WHERE rr2.Student_id=:studentid" +
@@ -65,6 +65,41 @@ import labvision.services.JpaService;
 				"ORDER BY lastUpdated DESC",
 		resultSetMapping = "CurrentExperimentForStudentExperimentTable"
 		)
+@NamedNativeQuery(
+		name = "PastExperimentForStudentExperimentTable",
+		query = "SELECT " +
+				"	e.id AS id," +
+				"	e.name AS name," +
+				"	CASE WHEN t.lru IS NULL OR u.lmu>t.lru THEN u.lmu ELSE t.lru END AS lastUpdated," +
+				"	CASE WHEN t.rc IS NULL THEN 0 ELSE t.rc END AS reportCount," +
+				"	t.lru AS lastReportUpdated," +
+				"	CASE WHEN t.tscore IS NULL THEN 0 ELSE t.tscore END AS totalReportScore " +
+				"FROM Experiment e " +
+				"LEFT JOIN (" +
+				"	SELECT rr.Experiment_id AS Experiment_id," +
+				"		MAX(rr.added) AS lru," +
+				"		COUNT(rr.id) AS rc," +
+				"		SUM(rr.score) AS tscore" +
+				"	FROM ReportedResult rr " +
+				"	WHERE rr.Student_id=:studentid " +
+				"	GROUP BY Experiment_id " +
+				") t ON t.Experiment_id=e.id " +
+				"LEFT JOIN (" +
+				"	SELECT m.Experiment_id AS Experiment_id," +
+				"		MAX(mv.taken) AS lmu" +
+				"	FROM MeasurementValue mv" +
+				"	JOIN Measurement m ON mv.Measurement_id=m.id" +
+				"	WHERE mv.Student_id=:studentid" +
+				"	GROUP BY Experiment_id" +
+				") u ON u.Experiment_id=e.id " +
+				"LEFT JOIN Student_Experiment se ON se.Student_id=:studentid AND se.activeExperiments_id=e.id " +
+				"WHERE se.activeExperiments_id IS NULL " +
+				"AND (t.lru IS NOT NULL OR u.lmu IS NOT NULL) " +
+				"GROUP BY e.id, e.name, e.reportDueDate, t.lru, u.lmu, t.rc, t.tscore " +
+				"ORDER BY lastUpdated DESC",
+			resultSetMapping = "PastExperimentForStudentExperimentTable"
+		)
+
 @SqlResultSetMapping(
 		name = "CurrentExperimentForStudentExperimentTable",
 		classes = @ConstructorResult(
@@ -74,6 +109,20 @@ import labvision.services.JpaService;
 						@ColumnResult( name = "name" ),
 						@ColumnResult( name = "lastUpdated", type=LocalDateTime.class ),
 						@ColumnResult( name = "reportDueDate", type=LocalDateTime.class ),
+						@ColumnResult( name = "lastReportUpdated", type=LocalDateTime.class ),
+						@ColumnResult( name = "totalReportScore", type=BigDecimal.class )
+				}
+				)
+		)
+@SqlResultSetMapping(
+		name = "PastExperimentForStudentExperimentTable",
+		classes = @ConstructorResult(
+				targetClass = PastExperimentForStudentExperimentTable.class,
+				columns = {
+						@ColumnResult( name = "id", type=Integer.class ),
+						@ColumnResult( name = "name" ),
+						@ColumnResult( name = "lastUpdated", type=LocalDateTime.class ),
+						@ColumnResult( name = "reportCount", type=Long.class ),
 						@ColumnResult( name = "lastReportUpdated", type=LocalDateTime.class ),
 						@ColumnResult( name = "totalReportScore", type=BigDecimal.class )
 				}
