@@ -172,8 +172,7 @@ public class StudentServlet extends HttpServlet {
 		Map<Integer, List<MeasurementValueForStudentMeasurementValueTable>> measurementValues = studentExperimentService.getMeasurementValues(experimentId, studentId);
 		
 		request.setAttribute("experiment", experiment);
-		request.setAttribute("measurementUnits", studentExperimentService.getMeasurementUnits(experimentId));
-		request.setAttribute("parameterUnits", studentExperimentService.getParameterUnits(experimentId));
+		request.setAttribute("measurements", studentExperimentService.getMeasurements(experimentId));
 		request.setAttribute("measurementValues", measurementValues);
 		request.setAttribute("reportedResults", studentExperimentService.getReportedResults(experimentId, studentId));
 		request.setAttribute("reportPaths", studentReportService.getReportPaths(experimentId, getServletContext()));

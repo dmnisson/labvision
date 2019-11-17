@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +17,7 @@ import java.util.stream.Stream;
 import javax.measure.quantity.Acceleration;
 import javax.measure.quantity.Angle;
 import javax.measure.quantity.ElectricPotential;
+import javax.measure.quantity.MagneticFluxDensity;
 import javax.measure.quantity.Speed;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import labvision.LabVisionConfig;
+import labvision.dto.experiment.MeasurementForExperimentTable;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
@@ -236,6 +237,12 @@ class TestStudentExperimentService {
 		reports.get(experiments.get(4)).add(experiments.get(4)
 				.addReportedResult(students.get(2), initDateTime.minusHours(13)));
 		reports.get(experiments.get(4)).get(3).setScore(new BigDecimal("47"));
+		
+		measurements.put(experiments.get(5), new ArrayList<>());
+		measurements.get(experiments.get(5)).add(
+				experiments.get(5).addMeasurement("Voltage", ElectricPotential.class));
+		measurements.get(experiments.get(5)).add(
+				experiments.get(5).addMeasurement("magnetic Field", MagneticFluxDensity.class));
 		
 		reports.put(experiments.get(5), new ArrayList<>());
 		reports.get(experiments.get(5)).add(experiments.get(5)
@@ -554,5 +561,49 @@ class TestStudentExperimentService {
 				Stream.concat(mv14.stream(), mv34.stream())
 					.mapToDouble(MeasurementValueForStudentMeasurementValueTable::getUncertainty)
 					.toArray());
+	}
+	
+	@Test
+	void testGetMeasurements() {
+		// experiment IDs
+		int[] experimentIds = experiments.stream()
+				.mapToInt(Experiment::getId)
+				.toArray();
+		
+		// measurement names
+		String[][] expectedMeasurementNames = {
+				{ },
+				{ "Acceleration" },
+				{ "Angle" },
+				{ "Speed" },
+				{ "Voltage" },
+				{ "magnetic Field", "Voltage" }
+		};
+		
+		IntStream.range(0, expectedMeasurementNames.length)
+			.forEach(i -> {
+				assertArrayEquals(expectedMeasurementNames[i], 
+						service.getMeasurements(experimentIds[i]).stream()
+							.map(MeasurementForExperimentTable::getName)
+							.toArray(String[]::new));
+			});
+		
+		// unit symbols
+		String[][] expectedUnitStrings = {
+				{ },
+				{ Units.METRE_PER_SQUARE_SECOND.toString() },
+				{ Units.RADIAN.toString() },
+				{ Units.METRE_PER_SECOND.toString() },
+				{ Units.VOLT.toString() },
+				{ Units.TESLA.toString(), Units.VOLT.toString() }
+		};
+		
+		IntStream.range(0, expectedUnitStrings.length)
+		.forEach(i -> {
+			assertArrayEquals(expectedUnitStrings[i], 
+					service.getMeasurements(experimentIds[i]).stream()
+						.map(MeasurementForExperimentTable::getUnitString)
+						.toArray(String[]::new));
+		});
 	}
 }
