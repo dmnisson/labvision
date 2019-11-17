@@ -25,6 +25,8 @@ import javax.servlet.http.HttpSession;
 import org.jboss.logging.Logger;
 
 import labvision.entities.PersistableAmount;
+import labvision.dto.experiment.MeasurementForExperimentView;
+import labvision.dto.experiment.MeasurementValueForExperimentView;
 import labvision.dto.student.dashboard.CurrentExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.ExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
@@ -168,16 +170,35 @@ public class StudentServlet extends HttpServlet {
 		int experimentId = Integer.parseInt(experimentIdString);
 		Experiment experiment = studentExperimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
 		
+		List<MeasurementForExperimentView> measurements = studentExperimentService.getMeasurements(experimentId);
+		Map<Integer, List<MeasurementValueForExperimentView>> measurementValues = studentExperimentService.getMeasurementValues(experimentId, studentId);
+		
 		request.setAttribute("experiment", experiment);
-		request.setAttribute("measurementUnits", studentExperimentService.getMeasurementUnits(experimentId));
-		request.setAttribute("parameterUnits", studentExperimentService.getParameterUnits(experimentId));
-		request.setAttribute("measurementValues", studentExperimentService.getMeasurementValues(experimentId, studentId));
+		request.setAttribute("measurements", measurements);
+		request.setAttribute("measurementValues", measurementValues);
+		// measurement ID -> parameters
+		request.setAttribute("parameters", measurements.stream()
+				.collect(Collectors.toMap(
+						MeasurementForExperimentView::getId,
+						m -> studentExperimentService.getParameters(m.getId()))));
+		// measurement ID -> measurement value ID -> parameter ID -> parameter value
+		request.setAttribute("parameterValues", measurements.stream()
+				.map(MeasurementForExperimentView::getId)
+				.collect(Collectors.toMap(
+						Function.identity(),
+						id -> measurementValues.get(id).stream()
+							.map(MeasurementValueForExperimentView::getId)
+							.collect(Collectors.toMap(
+									Function.identity(),
+									vid -> studentExperimentService.getParameterValues(vid))))));
 		request.setAttribute("reportedResults", studentExperimentService.getReportedResults(experimentId, studentId));
 		request.setAttribute("reportPaths", studentReportService.getReportPaths(experimentId, getServletContext()));
 		request.setAttribute("newReportPath", studentReportService.getNewReportPath(getServletContext()));
 		request.setAttribute("newMeasurementValuePaths", studentExperimentService.getNewMeasurementValuePaths(
-				experiment.getMeasurements().stream()
-					.collect(Collectors.mapping(Measurement::getId, Collectors.toList())),
+				measurements.stream()
+					.collect(Collectors.mapping(
+							MeasurementForExperimentView::getId,
+							Collectors.toList())),
 				getServletContext()));
 		
 		request.getRequestDispatcher("/WEB-INF/student/experiment.jsp").forward(request, response);

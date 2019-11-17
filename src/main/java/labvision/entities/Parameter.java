@@ -9,7 +9,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-@Entity
+@Entity( name="Parameter" )
 /**
  * A parameter that may affect a measurement outcome.
  * @author davidnisson

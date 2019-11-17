@@ -11,10 +11,12 @@ import javax.measure.Quantity;
 import javax.measure.Unit;
 import javax.measure.spi.SystemOfUnits;
 
+import labvision.entities.QuantityClass;
 import labvision.entities.QuantityTypeId;
 import labvision.entities.Variable;
 import tec.units.ri.AbstractSystemOfUnits;
 import tec.units.ri.AbstractUnit;
+import tec.units.ri.quantity.QuantityDimension;
 import tec.units.ri.unit.Units;
 
 /**
@@ -24,6 +26,29 @@ import tec.units.ri.unit.Units;
  */
 public class SI extends AbstractSystemOfUnits {
 	private Set<Unit<?>> derivedUnits = new HashSet<>();
+	
+	/**
+	 * SI base units
+	 */
+	class BaseUnits {
+		private Set<Unit<?>> baseUnits = Stream.of(new Unit<?>[] {
+			Units.METRE,
+			Units.SECOND,
+			Units.MOLE,
+			Units.AMPERE,
+			Units.KELVIN,
+			Units.CANDELA,
+			Units.KILOGRAM
+		})
+		.collect(Collectors.toSet());
+		
+		public Unit<?> unitFor(Dimension dimension) {
+			return baseUnits.stream().filter(unit -> unit.getDimension().equals(dimension))
+					.findAny().orElse(null);
+		}
+	}
+	
+	private BaseUnits baseUnits = new BaseUnits();
 	
 	private static final SI INSTANCE = new SI();
 	
@@ -83,9 +108,7 @@ public class SI extends AbstractSystemOfUnits {
 	public Unit<?> makeOrGetUnit(Dimension dimension) {
 		Map<? extends Dimension, Integer> baseDimensions = dimension.getBaseDimensions();
 		if (baseDimensions == null) {
-			return Units.getInstance().getUnits(dimension).stream()
-					.filter(u -> u.getBaseUnits() == null)
-					.findAny().orElse(null);
+			return baseUnits.unitFor(dimension);
 		}
 		
 	    try {
@@ -123,6 +146,24 @@ public class SI extends AbstractSystemOfUnits {
 			// the parameters and the stored variable's quantity type
 			quantityTypeId.getQuantityClass().getQuantityType().asSubclass(quantityType);
 			return getUnit(quantityType);
+		}
+	}
+	
+	/**
+	 * Gets the SI units for a given quantity type whose QuantityTypeId only is known
+	 * @param quantityTypeId the quantity type identifier
+	 * @return the unit
+	 */
+	public Unit<?> getUnitFor(QuantityTypeId quantityTypeId) {
+		QuantityClass<?> quantityClass = quantityTypeId.getQuantityClass();
+		if (quantityTypeId.equals(QuantityTypeId.UNKNOWN)) {
+			return makeOrGetUnit(QuantityDimension.of(quantityClass.getQuantityType()))
+					.asType(quantityClass.getQuantityType());
+		} else {
+			// make sure we throw ClassCastException if there is a mismatch between
+			// the parameters and the stored variable's quantity type
+			quantityTypeId.getQuantityClass().getQuantityType().asSubclass(quantityClass.getQuantityType());
+			return getUnit(quantityClass.getQuantityType());
 		}
 	}
 }

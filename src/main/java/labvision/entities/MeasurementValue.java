@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.measure.Quantity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -14,6 +15,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+
+import labvision.measure.Amount;
 
 @Entity( name="MeasurementValue" )
 public class MeasurementValue extends VariableValue<Measurement, MeasurementValue> implements LabVisionEntity {
@@ -82,6 +85,19 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 	public void addParameterValue(ParameterValue parameterValue) {
 		this.parameterValues.add(parameterValue);
 		parameterValue.setMeasurementValue(this);
+	}
+	
+	public <Q extends Quantity<Q>> ParameterValue addParameterValue(Parameter parameter, Amount<Q> value) {
+		if (!this.variable.getParameters().contains(parameter)) {
+			throw new IllegalStateException("Parameter not added to measurement");
+		}
+		
+		ParameterValue parameterValue = new ParameterValue();
+		parameterValue.setVariable(parameter);
+		parameterValue.setAmountValue(value);
+		parameter.addValue(parameterValue);
+		addParameterValue(parameterValue);
+		return parameterValue;
 	}
 	
 	public LocalDateTime getTaken() {

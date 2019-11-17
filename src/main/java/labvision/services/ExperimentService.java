@@ -1,5 +1,8 @@
 package labvision.services;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -17,6 +20,9 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import labvision.ExperimentPrefetch;
+import labvision.dto.experiment.MeasurementForExperimentView;
+import labvision.dto.experiment.ParameterForExperimentView;
+import labvision.dto.experiment.ParameterValueForExperimentView;
 import labvision.entities.Experiment;
 import labvision.entities.Experiment_;
 import labvision.entities.Measurement;
@@ -26,6 +32,7 @@ import labvision.entities.Parameter;
 import labvision.entities.ParameterValue;
 import labvision.entities.Student;
 import labvision.measure.Amount;
+import labvision.measure.SI;
 
 public class ExperimentService extends JpaService {
 
@@ -33,6 +40,87 @@ public class ExperimentService extends JpaService {
 		super(entityManagerFactory);
 	}
 
+	/**
+	 * Get a list of measurement IDs, names, and unit symbols for an experiment
+	 * @param experimentId
+	 * @return the measurement names and unit strings
+	 */
+	public List<MeasurementForExperimentView> getMeasurements(int experimentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.experiment.MeasurementForExperimentView(" +
+					"	m.id," +
+					"	m.name," +
+					"	m.quantityTypeId) " +
+					"FROM Measurement m " +
+					"WHERE m.experiment.id=:experimentid " +
+					"ORDER BY LOWER(m.name) ASC";
+			
+			TypedQuery<MeasurementForExperimentView> query = manager.createQuery(
+					queryString, MeasurementForExperimentView.class);
+			query.setParameter("experimentid", experimentId);
+			return query.getResultStream()
+					.map(m -> new MeasurementForExperimentView(
+							m.getId(), m.getName(), m.getQuantityTypeId(),
+							SI.getInstance().getUnitFor(m.getQuantityTypeId())
+								.toString()))
+					.collect(Collectors.toList());
+		});
+	}
+	
+	/**
+	 * Get a list of parameter names and units for a given measurement
+	 * @param measurementId the ID of the measurement
+	 * @return the names and unit strings of the parameters
+	 */
+	public List<ParameterForExperimentView> getParameters(int measurementId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.experiment.ParameterForExperimentView(" +
+					"	p.id," +
+					"	p.name," +
+					"	p.quantityTypeId) " +
+					"FROM Parameter p " +
+					"WHERE p.measurement.id=:measurementid " +
+					"ORDER BY LOWER(p.name) ASC";
+			
+			TypedQuery<ParameterForExperimentView> query = manager.createQuery(
+					queryString, ParameterForExperimentView.class);
+			query.setParameter("measurementid", measurementId);
+			return query.getResultStream()
+					.map(r -> new ParameterForExperimentView(
+							r.getId(), r.getName(), r.getQuantityTypeId(),
+							SI.getInstance().getUnitFor(r.getQuantityTypeId()).toString()))
+					.collect(Collectors.toList());
+		});
+	}
+	
+	/**
+	 * Get a mapping of parameter IDs to Amount objects representing values of parameters
+	 * @param measurementValueId the measurement value ID
+	 * @return the parameter amounts mapped to the parameter IDs
+	 */
+	public Map<Integer, ParameterValueForExperimentView> getParameterValues(int measurementValueId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.experiment.ParameterValueForExperimentView(" +
+					"	pv.id," +
+					"	pv.variable.id," +
+					"	pv.value.value," +
+					"	pv.value.uncertainty) " +
+					"FROM ParameterValue pv " +
+					"WHERE pv.measurementValue.id=:measurementvalueid";
+			
+			TypedQuery<ParameterValueForExperimentView> query = manager.createQuery(
+					queryString, ParameterValueForExperimentView.class);
+			query.setParameter("measurementvalueid", measurementValueId);
+			return query.getResultStream()
+					.collect(Collectors.toMap(
+							ParameterValueForExperimentView::getParameterId,
+							Function.identity()));
+		});
+	}
+	
 	public Experiment getExperiment(int id, ExperimentPrefetch prefetchValues) {
 		return withEntityManager(manager -> {
 			CriteriaBuilder cb = manager.getCriteriaBuilder();
@@ -90,6 +178,10 @@ public class ExperimentService extends JpaService {
 			EntityTransaction tx = manager.getTransaction();
 			tx.begin();
 			manager.persist(experiment);
+			experiment.getMeasurements().forEach(m -> {
+				manager.persist(m);
+				m.getParameters().forEach(p -> manager.persist(p));
+			});
 			tx.commit();
 		});
 	}

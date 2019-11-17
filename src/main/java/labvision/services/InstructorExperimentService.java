@@ -9,6 +9,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.servlet.ServletContext;
 
+import labvision.dto.experiment.MeasurementValueForExperimentView;
+import labvision.dto.experiment.MeasurementValueForFacultyExperimentView;
 import labvision.dto.faculty.experiment.ExperimentForFacultyExperimentTable;
 import labvision.entities.CourseClass;
 import labvision.entities.Measurement;
@@ -45,28 +47,39 @@ public class InstructorExperimentService extends ExperimentService {
 		});
 	}
 	
-	public Map<Measurement, Map<CourseClass, Map<Student, List<MeasurementValue>>>> getMeasurementValues(int experimentId, int instructorId) {
+	// measurement Id -> course class ID -> student ID -> measurement values
+	public Map<Integer, Map<Integer, Map<Integer, List<MeasurementValueForFacultyExperimentView>>>> getMeasurementValues(int experimentId, int instructorId) {
 		return withEntityManager(manager -> {
 			String queryString =
-					"SELECT mv " +
+					"SELECT new labvision.dto.experiment.MeasurementValueForFacultyExperimentView(" +
+					"	mv.id," +
+					"	m.id," +
+					"	m.name," +
+					"	mv.value.value," +
+					"	mv.value.uncertainty," +
+					"	mv.taken," +
+					"	m.dimension," +
+					"	m.quantityTypeId," +
+					"	cc.id," +
+					"	s.id) " +
 					"FROM MeasurementValue mv " +
-					"JOIN FETCH mv.courseClass cc " +
-					"JOIN FETCH mv.variable m " +
-					"JOIN FETCH mv.student s " +
-					"LEFT JOIN FETCH mv.parameterValues pv " +
+					"JOIN mv.courseClass cc " +
+					"JOIN mv.variable m " +
+					"JOIN mv.student s " +
 					"JOIN m.experiment e " +
 					"JOIN cc.instructors i " +
 					"WHERE e.id=:experimentid AND i.id=:instructorid";
-			TypedQuery<MeasurementValue> query = manager.createQuery(queryString, MeasurementValue.class);
+			TypedQuery<MeasurementValueForFacultyExperimentView> query = manager.createQuery(
+					queryString, MeasurementValueForFacultyExperimentView.class);
 			query.setParameter("experimentid", experimentId);
 			query.setParameter("instructorid", instructorId);
 			return query.getResultStream()
 					.collect(Collectors.groupingBy(
-							MeasurementValue::getVariable,
+							MeasurementValueForFacultyExperimentView::getMeasurementId,
 							Collectors.groupingBy(
-									MeasurementValue::getCourseClass,
+									MeasurementValueForFacultyExperimentView::getCourseClassId,
 									Collectors.groupingBy(
-											MeasurementValue::getStudent,
+											MeasurementValueForFacultyExperimentView::getStudentId,
 											Collectors.toList()
 											))));
 		});

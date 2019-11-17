@@ -3,6 +3,7 @@ package labvision;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -15,10 +16,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import labvision.dto.experiment.MeasurementForExperimentView;
+import labvision.dto.experiment.MeasurementValueForExperimentView;
+import labvision.dto.experiment.MeasurementValueForFacultyExperimentView;
 import labvision.dto.faculty.experiment.ExperimentForFacultyExperimentTable;
+import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
 import labvision.entities.Instructor;
 import labvision.entities.MeasurementValue;
+import labvision.entities.Student;
 import labvision.models.NavbarModel;
 import labvision.services.ExperimentService;
 import labvision.services.InstructorExperimentService;
@@ -155,10 +161,28 @@ public class FacultyServlet extends HttpServlet {
 		Experiment experiment = instructorExperimentService.getExperiment(
 				experimentId, ExperimentPrefetch.PREFETCH_VALUES);
 		
+		List<MeasurementForExperimentView> measurements = instructorExperimentService.getMeasurements(experimentId);
+		Map<Integer, Map<Integer, Map<Integer, List<MeasurementValueForFacultyExperimentView>>>> measurementValues = instructorExperimentService.getMeasurementValues(experimentId, instructorId);
+		
 		req.setAttribute("experiment", experiment);
-		req.setAttribute("measurementUnits", instructorExperimentService.getMeasurementUnits(experimentId));
-		req.setAttribute("measurementValues", instructorExperimentService.getMeasurementValues(experimentId, instructorId));
-		req.setAttribute("parameterUnits", instructorExperimentService.getParameterUnits(experimentId));
+		req.setAttribute("measurements", measurements);
+		req.setAttribute("parameters", measurements.stream()
+				.map(MeasurementForExperimentView::getId)
+				.collect(Collectors.toMap(
+						Function.identity(),
+						id -> instructorExperimentService.getParameters(id))));
+		req.setAttribute("measurementValues", measurementValues);
+		req.setAttribute("parameterValues", measurements.stream()
+				.map(MeasurementForExperimentView::getId)
+				.collect(Collectors.toMap(
+						Function.identity(),
+						id -> measurementValues.get(id).entrySet().stream()
+							.flatMap(e -> e.getValue().entrySet().stream())
+							.flatMap(e -> e.getValue().stream())
+							.map(MeasurementValueForExperimentView::getId)
+							.collect(Collectors.toMap(
+									Function.identity(),
+									vid -> instructorExperimentService.getParameterValues(vid))))));
 		req.setAttribute("editMeasurementPaths", instructorExperimentService.getEditMeasurementPaths(instructorId, getServletContext()));
 		req.getRequestDispatcher("/WEB-INF/faculty/experiment.jsp").forward(req, resp);
 	}
