@@ -1,5 +1,6 @@
 package labvision.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,7 +19,8 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import labvision.ExperimentPrefetch;
-import labvision.dto.experiment.MeasurementForExperimentTable;
+import labvision.dto.experiment.MeasurementForExperimentView;
+import labvision.dto.experiment.ParameterForExperimentView;
 import labvision.entities.Experiment;
 import labvision.entities.Experiment_;
 import labvision.entities.Measurement;
@@ -39,11 +41,12 @@ public class ExperimentService extends JpaService {
 	/**
 	 * Get a list of measurement IDs, names, and unit symbols for an experiment
 	 * @param experimentId
+	 * @return the measurement names and unit strings
 	 */
-	public List<MeasurementForExperimentTable> getMeasurements(int experimentId) {
+	public List<MeasurementForExperimentView> getMeasurements(int experimentId) {
 		return withEntityManager(manager -> {
 			String queryString =
-					"SELECT new labvision.dto.experiment.MeasurementForExperimentTable(" +
+					"SELECT new labvision.dto.experiment.MeasurementForExperimentView(" +
 					"	m.id," +
 					"	m.name," +
 					"	m.quantityTypeId) " +
@@ -51,14 +54,41 @@ public class ExperimentService extends JpaService {
 					"WHERE m.experiment.id=:experimentid " +
 					"ORDER BY LOWER(m.name) ASC";
 			
-			TypedQuery<MeasurementForExperimentTable> query = manager.createQuery(
-					queryString, MeasurementForExperimentTable.class);
+			TypedQuery<MeasurementForExperimentView> query = manager.createQuery(
+					queryString, MeasurementForExperimentView.class);
 			query.setParameter("experimentid", experimentId);
 			return query.getResultStream()
-					.map(m -> new MeasurementForExperimentTable(
+					.map(m -> new MeasurementForExperimentView(
 							m.getId(), m.getName(), m.getQuantityTypeId(),
 							SI.getInstance().getUnitFor(m.getQuantityTypeId())
 								.toString()))
+					.collect(Collectors.toList());
+		});
+	}
+	
+	/**
+	 * Get a list of parameter names and units for a given measurement
+	 * @param measurementId the ID of the measurement
+	 * @return the names and unit strings of the parameters
+	 */
+	public List<ParameterForExperimentView> getParameters(int measurementId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.experiment.ParameterForExperimentView(" +
+					"	p.id," +
+					"	p.name," +
+					"	p.quantityTypeId) " +
+					"FROM Parameter p " +
+					"WHERE p.measurement.id=:measurementid " +
+					"ORDER BY LOWER(p.name) ASC";
+			
+			TypedQuery<ParameterForExperimentView> query = manager.createQuery(
+					queryString, ParameterForExperimentView.class);
+			query.setParameter("measurementid", measurementId);
+			return query.getResultStream()
+					.map(r -> new ParameterForExperimentView(
+							r.getId(), r.getName(), r.getQuantityTypeId(),
+							SI.getInstance().getUnitFor(r.getQuantityTypeId()).toString()))
 					.collect(Collectors.toList());
 		});
 	}
@@ -120,6 +150,10 @@ public class ExperimentService extends JpaService {
 			EntityTransaction tx = manager.getTransaction();
 			tx.begin();
 			manager.persist(experiment);
+			experiment.getMeasurements().forEach(m -> {
+				manager.persist(m);
+				m.getParameters().forEach(p -> manager.persist(p));
+			});
 			tx.commit();
 		});
 	}

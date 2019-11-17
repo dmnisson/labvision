@@ -25,6 +25,7 @@ import javax.servlet.http.HttpSession;
 import org.jboss.logging.Logger;
 
 import labvision.entities.PersistableAmount;
+import labvision.dto.experiment.MeasurementForExperimentView;
 import labvision.dto.student.dashboard.CurrentExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.ExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
@@ -169,17 +170,23 @@ public class StudentServlet extends HttpServlet {
 		int experimentId = Integer.parseInt(experimentIdString);
 		Experiment experiment = studentExperimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
 		
-		Map<Integer, List<MeasurementValueForStudentMeasurementValueTable>> measurementValues = studentExperimentService.getMeasurementValues(experimentId, studentId);
+		List<MeasurementForExperimentView> measurements = studentExperimentService.getMeasurements(experimentId);
 		
 		request.setAttribute("experiment", experiment);
-		request.setAttribute("measurements", studentExperimentService.getMeasurements(experimentId));
-		request.setAttribute("measurementValues", measurementValues);
+		request.setAttribute("measurements", measurements);
+		request.setAttribute("measurementValues", studentExperimentService.getMeasurementValues(experimentId, studentId));
+		request.setAttribute("parameters", measurements.stream()
+				.collect(Collectors.toMap(
+						MeasurementForExperimentView::getId,
+						m -> studentExperimentService.getParameters(m.getId()))));
 		request.setAttribute("reportedResults", studentExperimentService.getReportedResults(experimentId, studentId));
 		request.setAttribute("reportPaths", studentReportService.getReportPaths(experimentId, getServletContext()));
 		request.setAttribute("newReportPath", studentReportService.getNewReportPath(getServletContext()));
 		request.setAttribute("newMeasurementValuePaths", studentExperimentService.getNewMeasurementValuePaths(
-				experiment.getMeasurements().stream()
-					.collect(Collectors.mapping(Measurement::getId, Collectors.toList())),
+				measurements.stream()
+					.collect(Collectors.mapping(
+							MeasurementForExperimentView::getId,
+							Collectors.toList())),
 				getServletContext()));
 		
 		request.getRequestDispatcher("/WEB-INF/student/experiment.jsp").forward(request, response);

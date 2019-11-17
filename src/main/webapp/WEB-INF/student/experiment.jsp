@@ -40,6 +40,7 @@
 	          <t:measurementvaluestable
 	            measurement="${measurement}"
 	            measurementvalues="${measurementValues[measurement.id]}"
+	            parameters="${parameters[measurement.id]}"
 	            id="measurement-values-table"
 	            addnewform="true"
 	          />

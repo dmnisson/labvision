@@ -18,6 +18,8 @@ import javax.measure.quantity.Acceleration;
 import javax.measure.quantity.Angle;
 import javax.measure.quantity.ElectricPotential;
 import javax.measure.quantity.MagneticFluxDensity;
+import javax.measure.quantity.Mass;
+import javax.measure.quantity.Power;
 import javax.measure.quantity.Speed;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -29,7 +31,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import labvision.LabVisionConfig;
-import labvision.dto.experiment.MeasurementForExperimentTable;
+import labvision.dto.experiment.MeasurementForExperimentView;
+import labvision.dto.experiment.ParameterForExperimentView;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
@@ -125,6 +128,14 @@ class TestStudentExperimentService {
 				experiments.get(1).addMeasurement("Acceleration", Acceleration.class));
 		
 		Measurement e2m1 = measurements.get(experiments.get(1)).get(0);
+		
+		// parameters for Acceleration measurement in experiment 2
+		parameters.put(e2m1, new ArrayList<>());
+		parameters.get(e2m1).add(e2m1.addParameter("Mass", Mass.class));
+		parameters.get(e2m1).add(e2m1.addParameter("angle", Angle.class));
+		parameters.get(e2m1).add(e2m1.addParameter("Power", Power.class));
+		
+		// values for Acceleration measurement in experiment 2
 		measurementValues.put(e2m1, new ArrayList<>());
 		measurementValues.get(e2m1).add(e2m1.addValue(
 				students.get(1), 
@@ -259,6 +270,7 @@ class TestStudentExperimentService {
 		reports.forEach((e, l) -> l.forEach(rr -> manager.persist(rr)));
 		measurements.forEach((e, l) -> l.forEach(m -> manager.persist(m)));
 		measurementValues.forEach((m, l) -> l.forEach(mv -> manager.persist(mv)));
+		parameters.forEach((m, l) -> l.forEach(p -> manager.persist(p)));
 		
 		tx.commit();
 		
@@ -270,6 +282,7 @@ class TestStudentExperimentService {
 		EntityManager manager = entityManagerFactory.createEntityManager();
 		
 		JpaService.clearTable(ReportedResult.class, manager);
+		JpaService.clearTable(Parameter.class, manager);
 		JpaService.clearTable(MeasurementValue.class, manager);
 		JpaService.clearTable(Measurement.class, manager);
 		JpaService.clearTable(Student.class, manager);
@@ -584,7 +597,7 @@ class TestStudentExperimentService {
 			.forEach(i -> {
 				assertArrayEquals(expectedMeasurementNames[i], 
 						service.getMeasurements(experimentIds[i]).stream()
-							.map(MeasurementForExperimentTable::getName)
+							.map(MeasurementForExperimentView::getName)
 							.toArray(String[]::new));
 			});
 		
@@ -602,8 +615,39 @@ class TestStudentExperimentService {
 		.forEach(i -> {
 			assertArrayEquals(expectedUnitStrings[i], 
 					service.getMeasurements(experimentIds[i]).stream()
-						.map(MeasurementForExperimentTable::getUnitString)
+						.map(MeasurementForExperimentView::getUnitString)
 						.toArray(String[]::new));
 		});
+	}
+	
+	@Test
+	void testGetParameters() {
+		// parameters of the Acceleration measurement in Experiment 2
+		List<ParameterForExperimentView> e2m1p = service.getParameters(
+				measurements.get(experiments.get(1)).get(0).getId());
+		
+		assertEquals(3, e2m1p.size());
+		
+		String[] expectedNames = { "angle", "Mass", "Power" };
+		assertArrayEquals(expectedNames, e2m1p.stream()
+				.map(ParameterForExperimentView::getName)
+				.toArray(String[]::new));
+		
+		String[] expectedUnitStrings = {
+				Units.RADIAN.toString(),
+				Units.KILOGRAM.toString(),
+				Units.WATT.toString()
+		};
+		assertArrayEquals(expectedUnitStrings, e2m1p.stream()
+				.map(ParameterForExperimentView::getUnitString)
+				.toArray(String[]::new));
+		
+		// no other measurements have parameters
+		experiments.stream()
+			.filter(e -> e != experiments.get(1) && measurements.get(e) != null)
+			.flatMapToInt(e -> measurements.get(e).stream().mapToInt(Measurement::getId))
+			.forEach(measurementId -> {
+				assertTrue(service.getParameters(measurementId).isEmpty());
+			});
 	}
 }

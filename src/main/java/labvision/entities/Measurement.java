@@ -60,6 +60,14 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 		this.parameters.add(parameter);
 		parameter.setMeasurement(this);
 	}
+	
+	public <Q extends Quantity<Q>> Parameter addParameter(String name, Class<Q> quantityType) {
+		Parameter parameter = new Parameter();
+		parameter.setName(name);
+		parameter.updateQuantityType(quantityType);
+		addParameter(parameter);
+		return parameter;
+	}
 
 	public PersistableAmount getMean() {
 		return mean;

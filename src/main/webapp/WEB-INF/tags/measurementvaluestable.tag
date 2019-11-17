@@ -1,12 +1,11 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ tag language="java" pageEncoding="UTF-8"%>
-<%@ attribute name="measurement" type="labvision.dto.experiment.MeasurementForExperimentTable" %>
+<%@ attribute name="measurement" type="labvision.dto.experiment.MeasurementForExperimentView" %>
 <%@ attribute name="measurementvalues" type="java.util.List" %>
+<%@ attribute name="parameters" type="java.util.List" %>
 <%-- TODO add service function to get parameters/values --%>
-<%--
-<%@ attribute name="parameterunitsymbols" %>
-<%@ attribute name="parametervalues" type="java.util.Map" %> --%>
+<%-- <%@ attribute name="parametervalues" type="java.util.Map" --%>
 <%@ attribute name="id" %>
 <%@ attribute name="addnewform" required="false" type="java.lang.Boolean" %>
 <c:if test="${addnewform == null}"><c:set var="addnewform" value="${false}" /></c:if>
@@ -17,13 +16,11 @@
         <th scope="col">
           ${measurement.name} (${measurement.unitString})
         </th>
-        <%--
-        <c:forEach var="parameter" items="${measurement.parameters}">
+        <c:forEach var="parameter" items="${parameters}">
         <th scope="col">
-          ${parameter.name} (${parameterunitsymbols[parameter]})
+          ${parameter.name} (${parameter.unitString})
         </th>
         </c:forEach>
-        --%>
         <th scope="col">Taken</th>
       </tr>
     </thead>
@@ -45,36 +42,38 @@
     <c:if test="${addnewform}">
     <tfoot>
       <tr>
-       <%-- <td colspan="${fn:length(measurement.parameters) + 2}"> --%>
-       <td colspan="2">
+       <td>
          <div class="form-row">
-           <div class="col-4">
+           <div class="col-3">
              <input class="form-control" id="measurementValueInput" name="measurementValue" type="number" step="any" />
            </div>
            <div class="col-1 text-center">
              <label for="measurementUncertaintyInput">±</label>
            </div>
-           <div class="col-4">
+           <div class="col-3">
              <input class="form-control" id="measurementUncertaintyInput" name="measurementUncertainty" type="number" step="any" />
            </div>
-           <%-- 
-           <c:forEach var="parameter" items="${measurement.parameters}">
-           <div class="col-4">
-             <label for="parameterValueInput${parameter.id}">${parameter.name}</label>
+         </div>
+       </td>
+       <c:forEach var="parameter" items="${parameters}">
+       <td>
+         <div class="form-row">
+           <div class="col-3">
              <input class="form-control" id="parameterValueInput${parameter.id}" name="parameterValue${parameter.id}" type="number" step="any" />
            </div>
            <div class="col-1 text-center">
              <label for="parameterUncertaintyInput${parameter.id}">±</label>
            </div>
-           <div class="col-4">
+           <div class="col-3">
              <input class="form-control" id="parameterUncertaintyInput${parameter.id}" name="parameterUncertainty${parameter.id}" type="number" step="any" />
            </div>
-           </c:forEach>
-           --%>
+         </div>
+       </td>
+       </c:forEach>
+         <td>
            <div class="col-2">
              <button type="submit" class="btn btn-primary">Add</button>
            </div>
-         </div>
         </td>
       </tr>
     </tfoot>

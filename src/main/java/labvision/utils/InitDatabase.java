@@ -5,6 +5,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Scanner;
 
+import javax.measure.quantity.Temperature;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -16,6 +17,7 @@ import labvision.entities.Experiment;
 import labvision.entities.Instructor;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
+import labvision.entities.Parameter;
 import labvision.entities.QuantityTypeId;
 import labvision.entities.Student;
 import labvision.entities.User;
@@ -57,6 +59,7 @@ public class InitDatabase {
 		
 		// clear users
 		EntityManager manager = emf.createEntityManager();
+		JpaService.clearTable(Parameter.class, manager);
 		JpaService.clearTable(MeasurementValue.class, manager);
 		JpaService.clearTable(CourseClass.class, manager);
 		JpaService.clearTable(Measurement.class, manager);
@@ -95,6 +98,9 @@ public class InitDatabase {
 		rodLengthMeasurement.setName("Length");
 		rodLengthMeasurement.setQuantityTypeId(QuantityTypeId.LENGTH);
 		rodLengthMeasurement.updateDimensionObject(QuantityDimension.LENGTH);
+		
+		// parameter
+		Parameter temperatureParameter = rodLengthMeasurement.addParameter("Temperature", Temperature.class);
 		rodLengthExperiment.addMeasurement(rodLengthMeasurement);
 		
 		student1.addActiveExperiment(rodLengthExperiment);
