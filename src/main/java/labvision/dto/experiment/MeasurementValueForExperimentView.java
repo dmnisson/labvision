@@ -1,5 +1,7 @@
 package labvision.dto.experiment;
 
+import java.time.LocalDateTime;
+
 import labvision.entities.QuantityTypeId;
 
 public class MeasurementValueForExperimentView {
@@ -8,6 +10,7 @@ public class MeasurementValueForExperimentView {
 	private final String measurementName;
 	private final Double value;
 	private final Double uncertainty;
+	private final LocalDateTime taken;
 	private final String dimension;
 	private final QuantityTypeId quantityTypeId;
 	private final String unitString;
@@ -18,14 +21,15 @@ public class MeasurementValueForExperimentView {
 			String measurementName,
 			Double value,
 			Double uncertainty,
+			LocalDateTime taken,
 			String dimension,
 			QuantityTypeId quantityTypeId
 			) {
-		this(id, measurementId, measurementName, value, uncertainty, dimension, quantityTypeId, null);
+		this(id, measurementId, measurementName, value, uncertainty, taken, dimension, quantityTypeId, null);
 	}
 	
 	public MeasurementValueForExperimentView(MeasurementValueForExperimentView mv, String unitString) {
-		this(mv.id, mv.measurementId, mv.measurementName, mv.value, mv.uncertainty, mv.dimension, mv.getQuantityTypeId(), unitString);
+		this(mv.id, mv.measurementId, mv.measurementName, mv.value, mv.uncertainty, mv.getTaken(), mv.dimension, mv.getQuantityTypeId(), unitString);
 	}
 	
 	public MeasurementValueForExperimentView(
@@ -34,6 +38,7 @@ public class MeasurementValueForExperimentView {
 			String measurementName,
 			Double value,
 			Double uncertainty,
+			LocalDateTime taken,
 			String dimension,
 			QuantityTypeId quantityTypeId,
 			String unitString
@@ -43,6 +48,7 @@ public class MeasurementValueForExperimentView {
 		this.measurementName = measurementName;
 		this.value = value;
 		this.uncertainty = uncertainty;
+		this.taken = taken;
 		this.dimension = dimension;
 		this.quantityTypeId = quantityTypeId;
 		this.unitString = unitString;
@@ -73,5 +79,9 @@ public class MeasurementValueForExperimentView {
 
 	public QuantityTypeId getQuantityTypeId() {
 		return quantityTypeId;
+	}
+
+	public LocalDateTime getTaken() {
+		return taken;
 	}
 }

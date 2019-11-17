@@ -83,12 +83,13 @@ public class StudentExperimentService extends ExperimentService {
 	public Map<Integer, List<MeasurementValueForExperimentView>> getMeasurementValues(int experimentId, int studentId) {
 		return withEntityManager(manager -> {
 			String queryString =
-					"SELECT new labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable(" +
+					"SELECT new labvision.dto.experiment.MeasurementValueForExperimentView(" +
 					"	mv.id," +
 					"	m.id," +
 					"	m.name," +
 					"	mv.value.value," +
 					"	mv.value.uncertainty," +
+					"	mv.taken," +
 					"	m.dimension," + 
 					"	m.quantityTypeId) " +
 					"FROM Measurement m " +

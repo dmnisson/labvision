@@ -33,7 +33,7 @@
           ${parameterValue.value} ± ${parameterValue.uncertainty}
         </td>
         </c:forEach>
-        <td><!--  measurementValue.taken --></td>
+        <td>${measurementValue.taken}</td>
       </tr>
       </c:forEach>
     </tbody>

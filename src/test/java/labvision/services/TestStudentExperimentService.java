@@ -530,6 +530,9 @@ class TestStudentExperimentService {
 		assertEquals(0.3, mv22.getUncertainty());
 		assertEquals(0.1, mv32.getUncertainty());
 		
+		assertEquals(initDateTime.minusHours(8), mv22.getTaken());
+		assertEquals(initDateTime.minusHours(7), mv32.getTaken());
+		
 		// measurement values of experiment 3
 		int e3m1Id = measurements.get(experiments.get(2)).get(0).getId();
 		assertEquals(2, results.get(students.get(0)).get(experiments.get(2)).get(e3m1Id).size());
@@ -566,6 +569,16 @@ class TestStudentExperimentService {
 				mv3.stream()
 					.mapToDouble(MeasurementValueForExperimentView::getUncertainty)
 					.toArray());
+		
+		// check timestamps
+		assertArrayEquals(
+				new LocalDateTime[] {
+						initDateTime.minusDays(1).minusHours(10),
+						initDateTime.minusDays(1)
+				},
+				mv3.stream()
+					.map(MeasurementValueForExperimentView::getTaken)
+					.toArray(LocalDateTime[]::new));
 		
 		// measurement values of experiment 4
 		int e4m1Id = measurements.get(experiments.get(3)).get(0).getId();
@@ -607,6 +620,17 @@ class TestStudentExperimentService {
 				Stream.concat(mv14.stream(), mv34.stream())
 					.mapToDouble(MeasurementValueForExperimentView::getUncertainty)
 					.toArray());
+		
+		// check timestamps
+		assertArrayEquals(
+				new LocalDateTime[] {
+						initDateTime.minusDays(2).minusHours(10),
+						initDateTime.minusDays(2),
+						initDateTime.minusHours(10)
+				},
+				Stream.concat(mv14.stream(), mv34.stream())
+					.map(MeasurementValueForExperimentView::getTaken)
+					.toArray(LocalDateTime[]::new));
 	}
 	
 	@Test

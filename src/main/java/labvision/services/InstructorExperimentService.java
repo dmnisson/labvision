@@ -57,6 +57,7 @@ public class InstructorExperimentService extends ExperimentService {
 					"	m.name," +
 					"	mv.value.value," +
 					"	mv.value.uncertainty," +
+					"	mv.taken," +
 					"	m.dimension," +
 					"	m.quantityTypeId," +
 					"	cc.id," +
