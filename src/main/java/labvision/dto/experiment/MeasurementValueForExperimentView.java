@@ -1,8 +1,8 @@
-package labvision.dto.student.experiment;
+package labvision.dto.experiment;
 
 import labvision.entities.QuantityTypeId;
 
-public class MeasurementValueForStudentMeasurementValueTable {
+public class MeasurementValueForExperimentView {
 	private final Integer id;
 	private final Integer measurementId;
 	private final String measurementName;
@@ -12,7 +12,7 @@ public class MeasurementValueForStudentMeasurementValueTable {
 	private final QuantityTypeId quantityTypeId;
 	private final String unitString;
 	
-	public MeasurementValueForStudentMeasurementValueTable(
+	public MeasurementValueForExperimentView(
 			Integer id,
 			Integer measurementId,
 			String measurementName,
@@ -24,11 +24,11 @@ public class MeasurementValueForStudentMeasurementValueTable {
 		this(id, measurementId, measurementName, value, uncertainty, dimension, quantityTypeId, null);
 	}
 	
-	public MeasurementValueForStudentMeasurementValueTable(MeasurementValueForStudentMeasurementValueTable mv, String unitString) {
+	public MeasurementValueForExperimentView(MeasurementValueForExperimentView mv, String unitString) {
 		this(mv.id, mv.measurementId, mv.measurementName, mv.value, mv.uncertainty, mv.dimension, mv.getQuantityTypeId(), unitString);
 	}
 	
-	public MeasurementValueForStudentMeasurementValueTable(
+	public MeasurementValueForExperimentView(
 			Integer id,
 			Integer measurementId,
 			String measurementName,

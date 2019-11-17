@@ -36,10 +36,10 @@ import org.junit.jupiter.api.function.Executable;
 
 import labvision.LabVisionConfig;
 import labvision.dto.experiment.MeasurementForExperimentView;
+import labvision.dto.experiment.MeasurementValueForExperimentView;
 import labvision.dto.experiment.ParameterForExperimentView;
 import labvision.dto.experiment.ParameterValueForExperimentView;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
-import labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.entities.Course;
 import labvision.entities.CourseClass;
@@ -488,7 +488,7 @@ class TestStudentExperimentService {
 	@Test
 	void testGetMeasurementValues() {
 		// mapping of student and experiment to expected results
-		Map<Student, Map<Experiment, Map<Integer, List<MeasurementValueForStudentMeasurementValueTable>>>> results
+		Map<Student, Map<Experiment, Map<Integer, List<MeasurementValueForExperimentView>>>> results
 			= students.stream().collect(Collectors.toMap(Function.identity(),
 					(student) -> experiments.stream().collect(Collectors.toMap(Function.identity(),
 							(experiment) -> service.getMeasurementValues(experiment.getId(), student.getId())
@@ -508,9 +508,9 @@ class TestStudentExperimentService {
 		assertTrue(results.get(students.get(0)).get(experiments.get(1)).get(e2m1Id).isEmpty());
 		assertEquals(1, results.get(students.get(1)).get(experiments.get(1)).get(e2m1Id).size());
 		assertEquals(1, results.get(students.get(2)).get(experiments.get(1)).get(e2m1Id).size());
-		MeasurementValueForStudentMeasurementValueTable mv22 = 
+		MeasurementValueForExperimentView mv22 = 
 				results.get(students.get(1)).get(experiments.get(1)).get(e2m1Id).get(0);
-		MeasurementValueForStudentMeasurementValueTable mv32 = 
+		MeasurementValueForExperimentView mv32 = 
 				results.get(students.get(2)).get(experiments.get(1)).get(e2m1Id).get(0);
 		
 		assertEquals("Acceleration", mv22.getMeasurementName());
@@ -536,44 +536,44 @@ class TestStudentExperimentService {
 		assertTrue(results.get(students.get(1)).get(experiments.get(2)).get(e3m1Id).isEmpty());
 		assertTrue(results.get(students.get(2)).get(experiments.get(2)).get(e3m1Id).isEmpty());
 		
-		List<MeasurementValueForStudentMeasurementValueTable> mv3 = 
+		List<MeasurementValueForExperimentView> mv3 = 
 				results.get(students.get(0)).get(experiments.get(2)).get(e3m1Id);
 		
 		// check measurement name
 		mv3.stream()
-			.map(MeasurementValueForStudentMeasurementValueTable::getMeasurementName)
+			.map(MeasurementValueForExperimentView::getMeasurementName)
 			.forEach(name -> assertEquals("Angle", name));
 		
 		// check dimensions
 		mv3.stream()
-			.map(MeasurementValueForStudentMeasurementValueTable::getDimension)
+			.map(MeasurementValueForExperimentView::getDimension)
 			.map(Variable::dimensionObjectFor)
 			.forEach(dimension -> assertEquals(Units.RADIAN.getDimension(), dimension));
 		
 		// check unit symbols
 		mv3.stream()
-			.map(MeasurementValueForStudentMeasurementValueTable::getUnitString)
+			.map(MeasurementValueForExperimentView::getUnitString)
 			.forEach(str -> assertEquals(Units.RADIAN.toString(), str));
 		
 		// check ordering of values and uncertainties
 		assertArrayEquals(
 				new double[] {1.3, 1.5},
 				mv3.stream()
-					.mapToDouble(MeasurementValueForStudentMeasurementValueTable::getValue)
+					.mapToDouble(MeasurementValueForExperimentView::getValue)
 					.toArray());
 		assertArrayEquals(
 				new double[] {0.1, 0.5},
 				mv3.stream()
-					.mapToDouble(MeasurementValueForStudentMeasurementValueTable::getUncertainty)
+					.mapToDouble(MeasurementValueForExperimentView::getUncertainty)
 					.toArray());
 		
 		// measurement values of experiment 4
 		int e4m1Id = measurements.get(experiments.get(3)).get(0).getId();
-		List<MeasurementValueForStudentMeasurementValueTable> mv14 =
+		List<MeasurementValueForExperimentView> mv14 =
 				results.get(students.get(0)).get(experiments.get(3)).get(e4m1Id);
-		List<MeasurementValueForStudentMeasurementValueTable> mv24 =
+		List<MeasurementValueForExperimentView> mv24 =
 				results.get(students.get(1)).get(experiments.get(3)).get(e4m1Id);
-		List<MeasurementValueForStudentMeasurementValueTable> mv34 =
+		List<MeasurementValueForExperimentView> mv34 =
 				results.get(students.get(2)).get(experiments.get(3)).get(e4m1Id);
 		
 		assertEquals(2, mv14.size());
@@ -582,30 +582,30 @@ class TestStudentExperimentService {
 		
 		// check measurement name
 		Stream.concat(mv14.stream(), mv34.stream())
-			.map(MeasurementValueForStudentMeasurementValueTable::getMeasurementName)
+			.map(MeasurementValueForExperimentView::getMeasurementName)
 			.forEach(name -> assertEquals("Speed", name));
 		
 		// check dimensions
 		Stream.concat(mv14.stream(), mv34.stream())
-			.map(MeasurementValueForStudentMeasurementValueTable::getDimension)
+			.map(MeasurementValueForExperimentView::getDimension)
 			.map(Variable::dimensionObjectFor)
 			.forEach(dimension -> assertEquals(Units.METRE_PER_SECOND.getDimension(), dimension));
 		
 		// check unit symbols
 		Stream.concat(mv14.stream(), mv34.stream())
-			.map(MeasurementValueForStudentMeasurementValueTable::getUnitString)
+			.map(MeasurementValueForExperimentView::getUnitString)
 			.forEach(str -> assertEquals(Units.METRE_PER_SECOND.toString(), str));
 		
 		// check ordering of values and uncertainties
 		assertArrayEquals(
 				new double[] {2.3, 2.6, 2.7},
 				Stream.concat(mv14.stream(), mv34.stream())
-					.mapToDouble(MeasurementValueForStudentMeasurementValueTable::getValue)
+					.mapToDouble(MeasurementValueForExperimentView::getValue)
 					.toArray());
 		assertArrayEquals(
 				new double[] {0.1, 0.2, 0.2},
 				Stream.concat(mv14.stream(), mv34.stream())
-					.mapToDouble(MeasurementValueForStudentMeasurementValueTable::getUncertainty)
+					.mapToDouble(MeasurementValueForExperimentView::getUncertainty)
 					.toArray());
 	}
 	

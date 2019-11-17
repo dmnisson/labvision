@@ -26,13 +26,13 @@ import org.jboss.logging.Logger;
 
 import labvision.entities.PersistableAmount;
 import labvision.dto.experiment.MeasurementForExperimentView;
+import labvision.dto.experiment.MeasurementValueForExperimentView;
 import labvision.dto.student.dashboard.CurrentExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.ExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
 import labvision.dto.student.dashboard.RecentExperimentForStudentDashboard;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.ExperimentForStudentExperimentTable;
-import labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.entities.Experiment;
 import labvision.entities.Measurement;
@@ -171,7 +171,7 @@ public class StudentServlet extends HttpServlet {
 		Experiment experiment = studentExperimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
 		
 		List<MeasurementForExperimentView> measurements = studentExperimentService.getMeasurements(experimentId);
-		Map<Integer, List<MeasurementValueForStudentMeasurementValueTable>> measurementValues = studentExperimentService.getMeasurementValues(experimentId, studentId);
+		Map<Integer, List<MeasurementValueForExperimentView>> measurementValues = studentExperimentService.getMeasurementValues(experimentId, studentId);
 		
 		request.setAttribute("experiment", experiment);
 		request.setAttribute("measurements", measurements);
@@ -187,7 +187,7 @@ public class StudentServlet extends HttpServlet {
 				.collect(Collectors.toMap(
 						Function.identity(),
 						id -> measurementValues.get(id).stream()
-							.map(MeasurementValueForStudentMeasurementValueTable::getId)
+							.map(MeasurementValueForExperimentView::getId)
 							.collect(Collectors.toMap(
 									Function.identity(),
 									vid -> studentExperimentService.getParameterValues(vid))))));

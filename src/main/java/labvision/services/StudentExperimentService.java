@@ -11,8 +11,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.servlet.ServletContext;
 
+import labvision.dto.experiment.MeasurementValueForExperimentView;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
-import labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import labvision.measure.SI;
@@ -80,7 +80,7 @@ public class StudentExperimentService extends ExperimentService {
 	 * @param studentId
 	 * @return map of measurement IDs to lists of measurement value DTOs
 	 */
-	public Map<Integer, List<MeasurementValueForStudentMeasurementValueTable>> getMeasurementValues(int experimentId, int studentId) {
+	public Map<Integer, List<MeasurementValueForExperimentView>> getMeasurementValues(int experimentId, int studentId) {
 		return withEntityManager(manager -> {
 			String queryString =
 					"SELECT new labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable(" +
@@ -96,19 +96,19 @@ public class StudentExperimentService extends ExperimentService {
 					"WHERE m.experiment.id=:experimentid " +
 					"ORDER BY mv.taken ASC";
 			
-			TypedQuery<MeasurementValueForStudentMeasurementValueTable> query = manager.createQuery(
+			TypedQuery<MeasurementValueForExperimentView> query = manager.createQuery(
 					queryString, 
-					MeasurementValueForStudentMeasurementValueTable.class);
+					MeasurementValueForExperimentView.class);
 			query.setParameter("studentid", studentId);
 			query.setParameter("experimentid", experimentId);
 			
 			return query.getResultStream()
 					.collect(Collectors.groupingBy(
-							MeasurementValueForStudentMeasurementValueTable::getMeasurementId,
+							MeasurementValueForExperimentView::getMeasurementId,
 							Collectors.collectingAndThen(Collectors.toList(),
 									l -> l.stream()
 										.filter(row -> row.getId() != null)
-										.map(row -> new MeasurementValueForStudentMeasurementValueTable(row, 
+										.map(row -> new MeasurementValueForExperimentView(row, 
 												SI.getInstance().getUnitFor(row.getQuantityTypeId()).toString())
 												)
 										.collect(Collectors.toList()))
