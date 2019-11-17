@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import labvision.LabVisionConfig;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
+import labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.entities.Course;
 import labvision.entities.CourseClass;
@@ -38,6 +41,7 @@ import labvision.entities.Parameter;
 import labvision.entities.ParameterValue;
 import labvision.entities.ReportedResult;
 import labvision.entities.Student;
+import labvision.entities.Variable;
 import labvision.measure.Amount;
 import tec.units.ri.unit.Units;
 
@@ -127,7 +131,6 @@ class TestStudentExperimentService {
 				new Amount<>(7.1, 0.3, Units.METRE_PER_SQUARE_SECOND),
 				initDateTime.minusHours(8)));
 		
-		measurementValues.put(e2m1, new ArrayList<>());
 		measurementValues.get(e2m1).add(e2m1.addValue(
 				students.get(2),
 				courseClasses.get(0),
@@ -170,14 +173,14 @@ class TestStudentExperimentService {
 			.add(e4m1.addValue(
 					students.get(0), 
 					courseClasses.get(0), 
-					new Amount<>(2.3, 0.1, Units.METRE_PER_SECOND),
-					initDateTime.minusDays(2).minusHours(10)));
-		measurementValues.get(e4m1)
-			.add(e4m1.addValue(
-					students.get(0), 
-					courseClasses.get(0), 
 					new Amount<>(2.6, 0.2, Units.METRE_PER_SECOND),
 					initDateTime.minusDays(2)));
+		measurementValues.get(e4m1)
+		.add(e4m1.addValue(
+				students.get(0), 
+				courseClasses.get(0), 
+				new Amount<>(2.3, 0.1, Units.METRE_PER_SECOND),
+				initDateTime.minusDays(2).minusHours(10)));
 		
 		measurementValues.get(e4m1)
 			.add(e4m1.addValue(
@@ -426,6 +429,130 @@ class TestStudentExperimentService {
 				IntStream.range(0, expectedTotalReportScores.length)
 					.map(i -> expectedTotalReportScores[i]
 							.compareTo(results3.get(i).getTotalReportScore()))
+					.toArray());
+	}
+	
+	@Test
+	void testGetMeasurementValues() {
+		// mapping of student and experiment to expected results
+		Map<Student, Map<Experiment, Map<Integer, List<MeasurementValueForStudentMeasurementValueTable>>>> results
+			= students.stream().collect(Collectors.toMap(Function.identity(),
+					(student) -> experiments.stream().collect(Collectors.toMap(Function.identity(),
+							(experiment) -> service.getMeasurementValues(experiment.getId(), student.getId())
+							))
+					));
+		
+		// experiment 1 should have no measurements
+		students.forEach(student -> 
+			assertTrue(results.get(student).get(experiments.get(0)).isEmpty()));
+		
+		// experiment 2 has 1 measurement
+		students.forEach(student -> 
+			assertEquals(1, results.get(student).get(experiments.get(1)).size()));
+		
+		// measurement values of experiment 2
+		int e2m1Id = measurements.get(experiments.get(1)).get(0).getId();
+		assertTrue(results.get(students.get(0)).get(experiments.get(1)).get(e2m1Id).isEmpty());
+		assertEquals(1, results.get(students.get(1)).get(experiments.get(1)).get(e2m1Id).size());
+		assertEquals(1, results.get(students.get(2)).get(experiments.get(1)).get(e2m1Id).size());
+		MeasurementValueForStudentMeasurementValueTable mv22 = 
+				results.get(students.get(1)).get(experiments.get(1)).get(e2m1Id).get(0);
+		MeasurementValueForStudentMeasurementValueTable mv32 = 
+				results.get(students.get(2)).get(experiments.get(1)).get(e2m1Id).get(0);
+		
+		assertEquals("Acceleration", mv22.getMeasurementName());
+		assertEquals("Acceleration", mv32.getMeasurementName());
+		
+		assertEquals(Units.METRE_PER_SQUARE_SECOND.getDimension(),
+				Variable.dimensionObjectFor(mv22.getDimension()));
+		assertEquals(Units.METRE_PER_SQUARE_SECOND.getDimension(),
+				Variable.dimensionObjectFor(mv32.getDimension()));
+		
+		assertEquals(Units.METRE_PER_SQUARE_SECOND.toString(), mv22.getUnitString());
+		assertEquals(Units.METRE_PER_SQUARE_SECOND.toString(), mv32.getUnitString());
+		
+		assertEquals(7.1, mv22.getValue());
+		assertEquals(7.2, mv32.getValue());
+		
+		assertEquals(0.3, mv22.getUncertainty());
+		assertEquals(0.1, mv32.getUncertainty());
+		
+		// measurement values of experiment 3
+		int e3m1Id = measurements.get(experiments.get(2)).get(0).getId();
+		assertEquals(2, results.get(students.get(0)).get(experiments.get(2)).get(e3m1Id).size());
+		assertTrue(results.get(students.get(1)).get(experiments.get(2)).get(e3m1Id).isEmpty());
+		assertTrue(results.get(students.get(2)).get(experiments.get(2)).get(e3m1Id).isEmpty());
+		
+		List<MeasurementValueForStudentMeasurementValueTable> mv3 = 
+				results.get(students.get(0)).get(experiments.get(2)).get(e3m1Id);
+		
+		// check measurement name
+		mv3.stream()
+			.map(MeasurementValueForStudentMeasurementValueTable::getMeasurementName)
+			.forEach(name -> assertEquals("Angle", name));
+		
+		// check dimensions
+		mv3.stream()
+			.map(MeasurementValueForStudentMeasurementValueTable::getDimension)
+			.map(Variable::dimensionObjectFor)
+			.forEach(dimension -> assertEquals(Units.RADIAN.getDimension(), dimension));
+		
+		// check unit symbols
+		mv3.stream()
+			.map(MeasurementValueForStudentMeasurementValueTable::getUnitString)
+			.forEach(str -> assertEquals(Units.RADIAN.toString(), str));
+		
+		// check ordering of values and uncertainties
+		assertArrayEquals(
+				new double[] {1.3, 1.5},
+				mv3.stream()
+					.mapToDouble(MeasurementValueForStudentMeasurementValueTable::getValue)
+					.toArray());
+		assertArrayEquals(
+				new double[] {0.1, 0.5},
+				mv3.stream()
+					.mapToDouble(MeasurementValueForStudentMeasurementValueTable::getUncertainty)
+					.toArray());
+		
+		// measurement values of experiment 4
+		int e4m1Id = measurements.get(experiments.get(3)).get(0).getId();
+		List<MeasurementValueForStudentMeasurementValueTable> mv14 =
+				results.get(students.get(0)).get(experiments.get(3)).get(e4m1Id);
+		List<MeasurementValueForStudentMeasurementValueTable> mv24 =
+				results.get(students.get(1)).get(experiments.get(3)).get(e4m1Id);
+		List<MeasurementValueForStudentMeasurementValueTable> mv34 =
+				results.get(students.get(2)).get(experiments.get(3)).get(e4m1Id);
+		
+		assertEquals(2, mv14.size());
+		assertTrue(mv24.isEmpty());
+		assertEquals(1, mv34.size());
+		
+		// check measurement name
+		Stream.concat(mv14.stream(), mv34.stream())
+			.map(MeasurementValueForStudentMeasurementValueTable::getMeasurementName)
+			.forEach(name -> assertEquals("Speed", name));
+		
+		// check dimensions
+		Stream.concat(mv14.stream(), mv34.stream())
+			.map(MeasurementValueForStudentMeasurementValueTable::getDimension)
+			.map(Variable::dimensionObjectFor)
+			.forEach(dimension -> assertEquals(Units.METRE_PER_SECOND.getDimension(), dimension));
+		
+		// check unit symbols
+		Stream.concat(mv14.stream(), mv34.stream())
+			.map(MeasurementValueForStudentMeasurementValueTable::getUnitString)
+			.forEach(str -> assertEquals(Units.METRE_PER_SECOND.toString(), str));
+		
+		// check ordering of values and uncertainties
+		assertArrayEquals(
+				new double[] {2.3, 2.6, 2.7},
+				Stream.concat(mv14.stream(), mv34.stream())
+					.mapToDouble(MeasurementValueForStudentMeasurementValueTable::getValue)
+					.toArray());
+		assertArrayEquals(
+				new double[] {0.1, 0.2, 0.2},
+				Stream.concat(mv14.stream(), mv34.stream())
+					.mapToDouble(MeasurementValueForStudentMeasurementValueTable::getUncertainty)
 					.toArray());
 	}
 }

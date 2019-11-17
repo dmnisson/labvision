@@ -31,6 +31,7 @@ import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
 import labvision.dto.student.dashboard.RecentExperimentForStudentDashboard;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.ExperimentForStudentExperimentTable;
+import labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.entities.Experiment;
 import labvision.entities.Measurement;
@@ -168,10 +169,12 @@ public class StudentServlet extends HttpServlet {
 		int experimentId = Integer.parseInt(experimentIdString);
 		Experiment experiment = studentExperimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
 		
+		Map<Integer, List<MeasurementValueForStudentMeasurementValueTable>> measurementValues = studentExperimentService.getMeasurementValues(experimentId, studentId);
+		
 		request.setAttribute("experiment", experiment);
 		request.setAttribute("measurementUnits", studentExperimentService.getMeasurementUnits(experimentId));
 		request.setAttribute("parameterUnits", studentExperimentService.getParameterUnits(experimentId));
-		request.setAttribute("measurementValues", studentExperimentService.getMeasurementValues(experimentId, studentId));
+		request.setAttribute("measurementValues", measurementValues);
 		request.setAttribute("reportedResults", studentExperimentService.getReportedResults(experimentId, studentId));
 		request.setAttribute("reportPaths", studentReportService.getReportPaths(experimentId, getServletContext()));
 		request.setAttribute("newReportPath", studentReportService.getNewReportPath(getServletContext()));

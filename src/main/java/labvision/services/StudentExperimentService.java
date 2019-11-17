@@ -12,10 +12,10 @@ import javax.persistence.TypedQuery;
 import javax.servlet.ServletContext;
 
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
+import labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
-import labvision.entities.Measurement;
-import labvision.entities.MeasurementValue;
+import labvision.measure.SI;
 import labvision.utils.ThrowingWrappers;
 
 public class StudentExperimentService extends ExperimentService {
@@ -73,22 +73,46 @@ public class StudentExperimentService extends ExperimentService {
 		});
 	}
 	
-	public Map<Measurement, List<MeasurementValue>> getMeasurementValues(int experimentId, int studentId) {
+	/**
+	 * Get a mapping of measurement IDs to lists of measurement values the student has taken
+	 * for a given experiment
+	 * @param experimentId
+	 * @param studentId
+	 * @return map of measurement IDs to lists of measurement value DTOs
+	 */
+	public Map<Integer, List<MeasurementValueForStudentMeasurementValueTable>> getMeasurementValues(int experimentId, int studentId) {
 		return withEntityManager(manager -> {
 			String queryString =
-					"SELECT mv FROM MeasurementValue mv " +
-					"JOIN mv.courseClass cc " +
-					"JOIN cc.course c " +
-					"JOIN c.experiments e " +
-					"LEFT JOIN FETCH mv.variable v " +
-					"LEFT JOIN FETCH mv.parameterValues pv " +
-					"WHERE e.id=:experimentid AND mv.student.id=:studentid";
-			TypedQuery<MeasurementValue> query = manager.createQuery(queryString, MeasurementValue.class);
-			query.setParameter("experimentid", experimentId);
+					"SELECT new labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable(" +
+					"	mv.id," +
+					"	m.id," +
+					"	m.name," +
+					"	mv.value.value," +
+					"	mv.value.uncertainty," +
+					"	m.dimension," + 
+					"	m.quantityTypeId) " +
+					"FROM Measurement m " +
+					"LEFT JOIN m.values mv ON mv.student.id=:studentid " +
+					"WHERE m.experiment.id=:experimentid " +
+					"ORDER BY mv.taken ASC";
+			
+			TypedQuery<MeasurementValueForStudentMeasurementValueTable> query = manager.createQuery(
+					queryString, 
+					MeasurementValueForStudentMeasurementValueTable.class);
 			query.setParameter("studentid", studentId);
+			query.setParameter("experimentid", experimentId);
+			
 			return query.getResultStream()
 					.collect(Collectors.groupingBy(
-							MeasurementValue::getVariable));
+							MeasurementValueForStudentMeasurementValueTable::getMeasurementId,
+							Collectors.collectingAndThen(Collectors.toList(),
+									l -> l.stream()
+										.filter(row -> row.getId() != null)
+										.map(row -> new MeasurementValueForStudentMeasurementValueTable(row, 
+												SI.getInstance().getUnitFor(row.getQuantityTypeId()).toString())
+												)
+										.collect(Collectors.toList()))
+							));
 		});
 	}
 	

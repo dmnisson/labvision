@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import javax.measure.Dimension;
 import javax.measure.Quantity;
@@ -147,12 +148,14 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 	 * @param dimension the dimension object
 	 * @return the string representation
 	 */
-	private static Dimension dimensionObjectFor(String dimension) {
+	public static Dimension dimensionObjectFor(String dimension) {
 		if (dimension == null || dimension == "") {
 			return QuantityDimension.NONE;
 		}
 		
-		String[] dimensionBaseStrings = dimension.split(" ");
+		String[] dimensionBaseStrings = Stream.of(dimension.split(" "))
+				.filter(bs -> !bs.isEmpty())
+				.toArray(String[]::new);
 		return Arrays.stream(dimensionBaseStrings)
 		.map(bs -> {
 			Dimension base = QuantityDimension.parse(bs.charAt(0));
@@ -168,7 +171,7 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 	 * @param dimension the dimension object
 	 * @return the string representation as it would appear in the database
 	 */
-	private static String dimensionStringFor(Dimension dimension) {
+	public static String dimensionStringFor(Dimension dimension) {
 		Map<? extends Dimension, Integer> baseDimensions = dimension.getBaseDimensions();
 		if (baseDimensions == null) {
 			if (dimension.equals(QuantityDimension.NONE)) {

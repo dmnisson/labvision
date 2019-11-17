@@ -2,9 +2,11 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ tag language="java" pageEncoding="UTF-8"%>
 <%@ attribute name="measurement" type="labvision.entities.Measurement" %>
-<%@ attribute name="measurementunitsymbol" %>
+<!-- TODO add service function to get measurements of an experiment, and parameters/values 
+<!-- <%@ attribute name="measurementunitsymbol" %>
 <%@ attribute name="parameterunitsymbols" %>
 <%@ attribute name="measurementvalues" type="java.util.List" %>
+<%@ attribute name="parametervalues" type="java.util.Map" %> -->
 <%@ attribute name="id" %>
 <%@ attribute name="addnewform" required="false" type="java.lang.Boolean" %>
 <c:if test="${addnewform == null}"><c:set var="addnewform" value="${false}" /></c:if>
@@ -13,7 +15,7 @@
     <thead>
       <tr>
         <th scope="col">
-          ${measurement.name} (${measurementunitsymbol})
+          ${measurement.name}<!-- (${measurementunitsymbol}) -->
         </th>
         <c:forEach var="parameter" items="${measurement.parameters}">
         <th scope="col">
@@ -26,13 +28,13 @@
     <tbody>
       <c:forEach var="measurementValue" items="${measurementvalues}">
       <tr>
-        <td>${measurementValue.value.value} ± ${measurementValue.value.uncertainty}</td>
-        <c:forEach var="parameterValue" items="${measurementValue.parameterValues}">
+        <td>${measurementValue.value} ± ${measurementValue.uncertainty}</td>
+        <c:forEach var="parameterValue" items="${parametervalues}">
         <td>
-          ${parameterValue.value.value} ± ${parameterValue.value.uncertainty}
+          ${parameterValue.value} ± ${parameterValue.uncertainty}
         </td>
         </c:forEach>
-        <td>${measurementValue.taken}</td>
+        <td><!--  measurementValue.taken --></td>
       </tr>
       </c:forEach>
     </tbody>

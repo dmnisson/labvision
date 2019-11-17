@@ -39,9 +39,7 @@
           <form method="POST" action="${newMeasurementValuePaths[measurement.id]}">
 	          <t:measurementvaluestable
 	            measurement="${measurement}"
-	            measurementvalues="${measurementValues[measurement]}"
-	            measurementunitsymbol="${measurementUnits[measurement]}"
-	            parameterunitsymbols="${parameterUnits}"
+	            measurementvalues="${measurementValues[measurement.id]}"
 	            id="measurement-values-table"
 	            addnewform="true"
 	          />
