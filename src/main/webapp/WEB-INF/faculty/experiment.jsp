@@ -79,7 +79,7 @@
           <h3>Measurement Values</h3>
         </div>
       </div>
-      <c:forEach var="measurement" items="${experiment.measurements}">
+      <c:forEach var="measurement" items="${measurements}">
       <div class="row">
         <div class="col">
           <h4>${measurement.name}</h4>
@@ -98,9 +98,9 @@
             <h5>${student.displayName} for ${courseClass.name}</h5>
 	          <t:measurementvaluestable 
 	            measurement="${measurement}"
-	            measurementunitsymbol="${measurementUnits[measurement]}"
-	            measurementvalues="${measurementValues[measurement][courseClass][student]}"
-	            parameterunitsymbols="${parameterUnits}"
+	            measurementvalues="${measurementValues[measurement.id][courseClass.id][student.id]}"
+	            parameters="${parameters[measurement.id]}"
+              parametervalues="${parameterValues[measurement.id]}"
 	            id="measurementValuesTable${measurement.id}-${courseClass.id}-${student.id}"
 	            addnewform="false"
 	          />
