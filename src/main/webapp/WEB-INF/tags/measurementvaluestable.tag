@@ -4,8 +4,7 @@
 <%@ attribute name="measurement" type="labvision.dto.experiment.MeasurementForExperimentView" %>
 <%@ attribute name="measurementvalues" type="java.util.List" %>
 <%@ attribute name="parameters" type="java.util.List" %>
-<%-- TODO add service function to get parameters/values --%>
-<%-- <%@ attribute name="parametervalues" type="java.util.Map" --%>
+<%@ attribute name="parametervalues" type="java.util.Map" %>
 <%@ attribute name="id" %>
 <%@ attribute name="addnewform" required="false" type="java.lang.Boolean" %>
 <c:if test="${addnewform == null}"><c:set var="addnewform" value="${false}" /></c:if>
@@ -28,13 +27,12 @@
       <c:forEach var="measurementValue" items="${measurementvalues}">
       <tr>
         <td>${measurementValue.value} ± ${measurementValue.uncertainty}</td>
-        <%--
-        <c:forEach var="parameterValue" items="${parametervalues}">
+        <c:forEach var="parameter" items="${parameters}">
+        <c:set var="parameterValue" value="${parametervalues[measurementValue.id][parameter.id]}" />
         <td>
           ${parameterValue.value} ± ${parameterValue.uncertainty}
         </td>
         </c:forEach>
-        --%>
         <td><!--  measurementValue.taken --></td>
       </tr>
       </c:forEach>

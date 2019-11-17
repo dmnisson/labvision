@@ -1,6 +1,9 @@
 package labvision.services;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -29,10 +32,12 @@ import javax.persistence.Persistence;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import labvision.LabVisionConfig;
 import labvision.dto.experiment.MeasurementForExperimentView;
 import labvision.dto.experiment.ParameterForExperimentView;
+import labvision.dto.experiment.ParameterValueForExperimentView;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.MeasurementValueForStudentMeasurementValueTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
@@ -47,6 +52,7 @@ import labvision.entities.ReportedResult;
 import labvision.entities.Student;
 import labvision.entities.Variable;
 import labvision.measure.Amount;
+import labvision.utils.Pair;
 import tec.units.ri.unit.Units;
 
 class TestStudentExperimentService {
@@ -137,17 +143,42 @@ class TestStudentExperimentService {
 		
 		// values for Acceleration measurement in experiment 2
 		measurementValues.put(e2m1, new ArrayList<>());
-		measurementValues.get(e2m1).add(e2m1.addValue(
+		MeasurementValue e2m1v1 = e2m1.addValue(
 				students.get(1), 
 				courseClasses.get(0),
 				new Amount<>(7.1, 0.3, Units.METRE_PER_SQUARE_SECOND),
-				initDateTime.minusHours(8)));
+				initDateTime.minusHours(8));
+		measurementValues.get(e2m1).add(e2m1v1);
 		
-		measurementValues.get(e2m1).add(e2m1.addValue(
+		MeasurementValue e2m1v2 = e2m1.addValue(
 				students.get(2),
 				courseClasses.get(0),
 				new Amount<>(7.2, 0.1, Units.METRE_PER_SQUARE_SECOND),
-				initDateTime.minusHours(7)));
+				initDateTime.minusHours(7));
+		measurementValues.get(e2m1).add(e2m1v2);
+		
+		// parameter values
+		parameterValues.put(e2m1v1, new ArrayList<>());
+		parameterValues.get(e2m1v1).add(e2m1v1.addParameterValue(
+				parameters.get(e2m1).get(0),
+				new Amount<>(140.1, 1.3, Units.GRAM)));
+		parameterValues.get(e2m1v1).add(e2m1v1.addParameterValue(
+				parameters.get(e2m1).get(1),
+				new Amount<>(97.403, 1.1, Units.RADIAN)));
+		parameterValues.get(e2m1v1).add(e2m1v1.addParameterValue(
+				parameters.get(e2m1).get(2),
+				new Amount<>(25.1, 0.4, Units.WATT)));
+		
+		parameterValues.put(e2m1v2, new ArrayList<>());
+		parameterValues.get(e2m1v2).add(e2m1v2.addParameterValue(
+				parameters.get(e2m1).get(0),
+				new Amount<>(171.1, 1.3, Units.GRAM)));
+		parameterValues.get(e2m1v2).add(e2m1v2.addParameterValue(
+				parameters.get(e2m1).get(1),
+				new Amount<>(99.181, 1.1, Units.RADIAN)));
+		parameterValues.get(e2m1v2).add(e2m1v2.addParameterValue(
+				parameters.get(e2m1).get(2),
+				new Amount<>(27.1, 0.4, Units.WATT)));
 		
 		measurements.put(experiments.get(2), new ArrayList<>());
 		measurements.get(experiments.get(2)).add(
@@ -271,6 +302,7 @@ class TestStudentExperimentService {
 		measurements.forEach((e, l) -> l.forEach(m -> manager.persist(m)));
 		measurementValues.forEach((m, l) -> l.forEach(mv -> manager.persist(mv)));
 		parameters.forEach((m, l) -> l.forEach(p -> manager.persist(p)));
+		parameterValues.forEach((m, l) -> l.forEach(pv -> manager.persist(pv)));
 		
 		tx.commit();
 		
@@ -282,6 +314,7 @@ class TestStudentExperimentService {
 		EntityManager manager = entityManagerFactory.createEntityManager();
 		
 		JpaService.clearTable(ReportedResult.class, manager);
+		JpaService.clearTable(ParameterValue.class, manager);
 		JpaService.clearTable(Parameter.class, manager);
 		JpaService.clearTable(MeasurementValue.class, manager);
 		JpaService.clearTable(Measurement.class, manager);
@@ -649,5 +682,86 @@ class TestStudentExperimentService {
 			.forEach(measurementId -> {
 				assertTrue(service.getParameters(measurementId).isEmpty());
 			});
+	}
+	
+	@Test
+	void testGetParameterValues() {
+		// parameter values for the Acceleration measurement in experiment 2
+		int e2m1v1Id = measurementValues.get(measurements.get(experiments.get(1)).get(0)).get(0).getId();
+		int e2m1v2Id = measurementValues.get(measurements.get(experiments.get(1)).get(0)).get(1).getId();
+		
+		Map<Integer, ParameterValueForExperimentView> e2m1v1pv = 
+				service.getParameterValues(e2m1v1Id);
+		Map<Integer, ParameterValueForExperimentView> e2m1v2pv =
+				service.getParameterValues(e2m1v2Id);
+		
+		assertEquals(3, e2m1v1pv.size());
+		assertEquals(3, e2m1v2pv.size());
+		
+		// maps should contain ids of all parameters
+		Map<String, Integer> expectedParameterIds = 
+				parameters.get(measurements.get(experiments.get(1)).get(0)).stream()
+				.collect(Collectors.toMap(Parameter::getName, Parameter::getId));
+		assertTrue(e2m1v1pv.keySet().containsAll(expectedParameterIds.values()));
+		assertTrue(e2m1v2pv.keySet().containsAll(expectedParameterIds.values()));
+
+		// expected parameter values
+		Map<String, Double> expectedValues1 = Stream.of(
+			new Pair<>("Mass", 0.1401),
+			new Pair<>("angle", 97.403),
+			new Pair<>("Power", 25.1)
+		)
+			.collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+		Map<String, Double> expectedValues2 = Stream.of(
+			new Pair<>("Mass", 0.1711),
+			new Pair<>("angle", 99.181),
+			new Pair<>("Power", 27.1)
+		)
+			.collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+		
+		expectedValues1.entrySet().stream()
+			.forEach(e -> assertEquals(
+					e.getValue(),
+					e2m1v1pv.get(expectedParameterIds.get(e.getKey())).getValue(),
+					0.0001));
+		expectedValues2.entrySet().stream()
+			.forEach(e -> assertEquals(
+					e.getValue(),
+					e2m1v2pv.get(expectedParameterIds.get(e.getKey())).getValue(),
+					0.0001));
+		
+		// expected parameter uncertainties
+		Map<String, Double> expectedUncertainties1 = Stream.of(
+			new Pair<>("Mass", 0.0013),
+			new Pair<>("angle", 1.1),
+			new Pair<>("Power", 0.4)
+		)
+			.collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+		Map<String, Double> expectedUncertainties2 = Stream.of(
+			new Pair<>("Mass", 0.0013),
+			new Pair<>("angle", 1.1),
+			new Pair<>("Power", 0.4)
+		)
+			.collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+		
+		expectedUncertainties1.entrySet().stream()
+			.forEach(e -> assertEquals(
+					e.getValue(),
+					e2m1v1pv.get(expectedParameterIds.get(e.getKey())).getUncertainty(),
+					0.0001));
+		expectedUncertainties2.entrySet().stream()
+			.forEach(e -> assertEquals(
+					e.getValue(),
+					e2m1v2pv.get(expectedParameterIds.get(e.getKey())).getUncertainty(),
+					0.0001));
+		
+		// no parameters for the other measurement values
+		measurementValues.entrySet().stream()
+			.flatMapToInt(e -> e.getValue().stream().mapToInt(MeasurementValue::getId))
+			.filter(id -> id != e2m1v1Id && id != e2m1v2Id)
+			.forEach(id -> {
+				assertTrue(service.getParameterValues(id).isEmpty());
+			});
+		
 	}
 }

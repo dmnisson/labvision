@@ -171,14 +171,26 @@ public class StudentServlet extends HttpServlet {
 		Experiment experiment = studentExperimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
 		
 		List<MeasurementForExperimentView> measurements = studentExperimentService.getMeasurements(experimentId);
+		Map<Integer, List<MeasurementValueForStudentMeasurementValueTable>> measurementValues = studentExperimentService.getMeasurementValues(experimentId, studentId);
 		
 		request.setAttribute("experiment", experiment);
 		request.setAttribute("measurements", measurements);
-		request.setAttribute("measurementValues", studentExperimentService.getMeasurementValues(experimentId, studentId));
+		request.setAttribute("measurementValues", measurementValues);
+		// measurement ID -> parameters
 		request.setAttribute("parameters", measurements.stream()
 				.collect(Collectors.toMap(
 						MeasurementForExperimentView::getId,
 						m -> studentExperimentService.getParameters(m.getId()))));
+		// measurement ID -> measurement value ID -> parameter ID -> parameter value
+		request.setAttribute("parameterValues", measurements.stream()
+				.map(MeasurementForExperimentView::getId)
+				.collect(Collectors.toMap(
+						Function.identity(),
+						id -> measurementValues.get(id).stream()
+							.map(MeasurementValueForStudentMeasurementValueTable::getId)
+							.collect(Collectors.toMap(
+									Function.identity(),
+									vid -> studentExperimentService.getParameterValues(vid))))));
 		request.setAttribute("reportedResults", studentExperimentService.getReportedResults(experimentId, studentId));
 		request.setAttribute("reportPaths", studentReportService.getReportPaths(experimentId, getServletContext()));
 		request.setAttribute("newReportPath", studentReportService.getNewReportPath(getServletContext()));

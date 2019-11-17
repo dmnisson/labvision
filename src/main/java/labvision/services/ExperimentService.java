@@ -1,6 +1,7 @@
 package labvision.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -21,6 +22,7 @@ import javax.persistence.criteria.Root;
 import labvision.ExperimentPrefetch;
 import labvision.dto.experiment.MeasurementForExperimentView;
 import labvision.dto.experiment.ParameterForExperimentView;
+import labvision.dto.experiment.ParameterValueForExperimentView;
 import labvision.entities.Experiment;
 import labvision.entities.Experiment_;
 import labvision.entities.Measurement;
@@ -90,6 +92,32 @@ public class ExperimentService extends JpaService {
 							r.getId(), r.getName(), r.getQuantityTypeId(),
 							SI.getInstance().getUnitFor(r.getQuantityTypeId()).toString()))
 					.collect(Collectors.toList());
+		});
+	}
+	
+	/**
+	 * Get a mapping of parameter IDs to Amount objects representing values of parameters
+	 * @param measurementValueId the measurement value ID
+	 * @return the parameter amounts mapped to the parameter IDs
+	 */
+	public Map<Integer, ParameterValueForExperimentView> getParameterValues(int measurementValueId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.experiment.ParameterValueForExperimentView(" +
+					"	pv.id," +
+					"	pv.variable.id," +
+					"	pv.value.value," +
+					"	pv.value.uncertainty) " +
+					"FROM ParameterValue pv " +
+					"WHERE pv.measurementValue.id=:measurementvalueid";
+			
+			TypedQuery<ParameterValueForExperimentView> query = manager.createQuery(
+					queryString, ParameterValueForExperimentView.class);
+			query.setParameter("measurementvalueid", measurementValueId);
+			return query.getResultStream()
+					.collect(Collectors.toMap(
+							ParameterValueForExperimentView::getParameterId,
+							Function.identity()));
 		});
 	}
 	

@@ -41,6 +41,7 @@
 	            measurement="${measurement}"
 	            measurementvalues="${measurementValues[measurement.id]}"
 	            parameters="${parameters[measurement.id]}"
+	            parametervalues="${parameterValues[measurement.id]}"
 	            id="measurement-values-table"
 	            addnewform="true"
 	          />
