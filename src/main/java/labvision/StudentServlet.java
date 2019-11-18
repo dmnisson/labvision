@@ -1,6 +1,7 @@
 package labvision;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -9,6 +10,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -29,8 +32,10 @@ import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTab
 import labvision.dto.student.experiment.ExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
+import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
 import labvision.entities.Measurement;
+import labvision.entities.MeasurementValue;
 import labvision.entities.Parameter;
 import labvision.entities.Student;
 import labvision.measure.Amount;
@@ -381,6 +386,8 @@ public class StudentServlet extends HttpServlet {
 				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
 		StudentService studentService = (StudentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_SERVICE_ATTR);
+		EntityManagerFactory emf = (EntityManagerFactory) getServletContext()
+				.getAttribute(LabVisionServletContextListener.ENTITY_MANAGER_FACTORY_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
 		
@@ -403,11 +410,25 @@ public class StudentServlet extends HttpServlet {
 											.getQuantityType())))
 									);
 			
-			experimentService.addMeasurementValue(measurement, student, 
-					measurementAmount, parameterAmounts,
-					studentService);
+			CourseClass courseClass = studentService.getCourseClass(
+					measurement.getExperiment().getCourse(),
+					student,
+					false);
 			
-			response.sendRedirect(request.getContextPath() + "/student/experiment/" + measurement.getExperiment().getId());
+			experimentService.addMeasurementValue(
+					student,
+					measurement,
+					measurementAmount,
+					parameterAmounts,
+					courseClass);
+			
+			try {
+				response.sendRedirect(
+						getPathConstructor(request.getServletContext())
+							.getPathFor(STUDENT_SERVLET_NAME, "/experiment/" + measurement.getExperiment().getId()));
+			} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
+				Logger.getLogger(StudentServlet.class).error("Could not redirect after measurement data saved", e);
+			}
 		}
 	}
 

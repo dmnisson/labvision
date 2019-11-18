@@ -16,25 +16,6 @@ public class StudentService extends JpaService {
 		super(entityManagerFactory);
 	}
 	
-	
-	public void addActiveExperiment(Student student, Experiment experiment) {
-		withEntityManager(manager -> {
-			EntityTransaction tx = manager.getTransaction();
-			tx.begin();
-			student.addActiveExperiment(manager.merge(experiment));
-			tx.commit();
-		});
-	}
-	
-	public void removeActiveExperiment(Student student, Experiment experiment) {
-		withEntityManager(manager -> {
-			EntityTransaction tx = manager.getTransaction();
-			tx.begin();
-			student.removeActiveExperiment(manager.merge(experiment));
-			tx.commit();
-		});
-	}
-	
 	public CourseClass getCourseClass(Course course, Student student, boolean prefetchMeasurementValues) {
 		return withEntityManager(manager -> {
 			String queryString = "SELECT cc FROM CourseClass cc " +

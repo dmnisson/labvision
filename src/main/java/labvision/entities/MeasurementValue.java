@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.measure.Quantity;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -38,7 +39,10 @@ public class MeasurementValue extends VariableValue<Measurement, MeasurementValu
 	
 	private LocalDateTime taken = LocalDateTime.now();
 	
-	@OneToMany( mappedBy="measurementValue", targetEntity=ParameterValue.class )
+	@OneToMany( 
+			cascade=CascadeType.ALL,
+			mappedBy="measurementValue",
+			targetEntity=ParameterValue.class )
 	private List<ParameterValue> parameterValues = new ArrayList<>();
 
 	@Override

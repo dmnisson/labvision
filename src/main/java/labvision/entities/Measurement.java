@@ -11,6 +11,7 @@ import javax.measure.UnitConverter;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -29,7 +30,10 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 	@JoinColumn( name="Experiment_id" )
 	private Experiment experiment;
 	
-	@OneToMany( mappedBy="measurement", targetEntity=Parameter.class )
+	@OneToMany(
+			mappedBy="measurement",
+			targetEntity=Parameter.class,
+			cascade=CascadeType.ALL)
 	private List<Parameter> parameters = new ArrayList<>();
 	
 	@OneToMany( mappedBy="variable", targetEntity=MeasurementValue.class )

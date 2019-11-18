@@ -1,5 +1,6 @@
 package labvision.services;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.measure.Quantity;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
@@ -23,6 +25,7 @@ import labvision.ExperimentPrefetch;
 import labvision.dto.experiment.MeasurementForExperimentView;
 import labvision.dto.experiment.ParameterForExperimentView;
 import labvision.dto.experiment.ParameterValueForExperimentView;
+import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
 import labvision.entities.Experiment_;
 import labvision.entities.Measurement;
@@ -172,17 +175,32 @@ public class ExperimentService extends JpaService {
 			return experiment;
 		});
 	}
-
-	public void addExperiment(Experiment experiment) {
-		withEntityManager(manager -> {
-			EntityTransaction tx = manager.getTransaction();
-			tx.begin();
-			manager.persist(experiment);
-			experiment.getMeasurements().forEach(m -> {
-				manager.persist(m);
-				m.getParameters().forEach(p -> manager.persist(p));
+	
+	public MeasurementValue addMeasurementValue(Student student, Measurement measurement,
+			Amount<?> measurementAmount, Map<Parameter, Amount<?>> parameterAmounts, CourseClass courseClass) {
+		return withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			// necessary for collections and statistical analysis results to update properly
+			Measurement managedMeasurement = manager.merge(measurement);
+			Student managedStudent = manager.merge(student);
+			CourseClass managedCourseClass = manager.merge(courseClass);
+			
+			MeasurementValue value = managedMeasurement.addValue(
+					managedStudent,
+					managedCourseClass,
+					measurementAmount,
+					LocalDateTime.now());
+			
+			parameterAmounts.forEach((parameter, amount) -> {
+				Parameter managedParameter = manager.merge(parameter);
+				value.addParameterValue(managedParameter, amount);
 			});
-			tx.commit();
+			
+			manager.persist(value);
+			manager.getTransaction().commit();
+			
+			return value;
 		});
 	}
 	
@@ -202,48 +220,6 @@ public class ExperimentService extends JpaService {
 		});
 	}
 	
-	/** Returns the managed Measurement instance from this transaction. The value
-	 * is NOT added to the detached measurement object passed in as the parameter. 
-	 * The measurement value will also be added to the student entity in the database,
-	 * but NOT the student object passed as the parameter to this function. */
-	public <Q extends Quantity<Q>> Measurement addMeasurementValue(Measurement measurement, 
-			Student student, Amount<Q> measurementAmount, 
-			Map<? extends Parameter, ? extends Amount<?>> parameterAmounts,
-			StudentService studentService) {
-		return withEntityManager(manager -> {
-			EntityTransaction tx = manager.getTransaction();
-			tx.begin();
-			Measurement mergedMeasurement = manager.merge(measurement);
-			Student mergedStudent = manager.merge(student);
-			
-			MeasurementValue measurementValue = new MeasurementValue();
-			measurementValue.setVariable(mergedMeasurement); // necessary for setAmountValue to know correct dimensions
-			measurementValue.setAmountValue(measurementAmount);
-			studentService.getCourseClass(
-					mergedMeasurement.getExperiment().getCourse(), 
-					student,
-					true)
-				.addMeasurementValue(measurementValue);
-			
-			mergedStudent.addMeasurementValue(measurementValue);
-			
-			// add parameter values
-			parameterAmounts.forEach((p, a) -> {
-				ParameterValue parameterValue = new ParameterValue();
-				parameterValue.setVariable(p);
-				parameterValue.setAmountValue(a);
-				measurementValue.addParameterValue(parameterValue);
-				manager.persist(parameterValue);
-			});
-			
-			manager.persist(measurementValue);
-			
-			tx.commit();
-			
-			return mergedMeasurement;
-		});
-	}
-
 	public Map<Measurement, String> getMeasurementUnits(int experimentId) {
 		return withEntityManager(manager -> {
 			String queryString =
