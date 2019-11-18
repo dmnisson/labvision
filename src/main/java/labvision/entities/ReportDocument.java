@@ -26,7 +26,7 @@ public abstract class ReportDocument implements LabVisionEntity {
 	@Enumerated(EnumType.STRING)
 	private FileType fileType;
 	
-	@OneToOne
+	@OneToOne( mappedBy = "reportDocument" )
 	private ReportedResult reportedResult;
 	
 	public abstract URL getReportDocumentURL(URL context);

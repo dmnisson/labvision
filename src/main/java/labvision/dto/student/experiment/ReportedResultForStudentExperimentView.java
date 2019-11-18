@@ -1,5 +1,6 @@
 package labvision.dto.student.experiment;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -7,14 +8,16 @@ public class ReportedResultForStudentExperimentView {
 	private final int id;
 	private final String reportDocumentFilename;
 	private final LocalDateTime added;
+	private final BigDecimal score;
 	
-	public ReportedResultForStudentExperimentView(int reportedResultId, String reportDocumentFilename, LocalDateTime added) {
+	public ReportedResultForStudentExperimentView(int reportedResultId, String reportDocumentFilename, LocalDateTime added, BigDecimal score) {
 		this.id = reportedResultId;
 		this.reportDocumentFilename = reportDocumentFilename;
 		this.added = added;
+		this.score = score;
 	}
 
-	public int getReportedResultId() {
+	public int getId() {
 		return id;
 	}
 
@@ -36,5 +39,9 @@ public class ReportedResultForStudentExperimentView {
 		} else {
 			return reportDocumentFilename;
 		}
+	}
+
+	public BigDecimal getScore() {
+		return score;
 	}
 }

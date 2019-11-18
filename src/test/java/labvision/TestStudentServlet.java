@@ -67,7 +67,10 @@ class TestStudentServlet {
 		
 		ServletConfig servletConfig = mock(ServletConfig.class);
 		ServletContext servletContext = mock(ServletContext.class);
+		
 		LabVisionConfig labVisionConfig = mock(LabVisionConfig.class);
+		PathConstructor pathConstructor = mock(PathConstructor.class);
+		
 		StudentDashboardService studentDashboardService = mock(StudentDashboardService.class);
 		StudentExperimentService studentExperimentService = mock(StudentExperimentService.class);
 		StudentCourseService studentCourseService = mock(StudentCourseService.class);
@@ -78,20 +81,10 @@ class TestStudentServlet {
 			.thenReturn(Arrays.asList(recentExperiment1));
 		when(studentDashboardService.getRecentCourses(student.getId()))
 			.thenReturn(Arrays.asList(recentCourse1));
-		
-		HashMap<Integer, String> experimentPaths = new HashMap<>();
-		experimentPaths.put(1, "/student/experiment/1");
-		experimentPaths.put(2, "/student/experiment/2");
-		
-		HashMap<Integer, String> coursePaths = new HashMap<>();
-		coursePaths.put(1, "/student/course/1");
-		coursePaths.put(2, "/student/course/2");
-		
-		when(studentExperimentService.getExperimentPaths(any(), eq(servletContext)))
-			.thenReturn(experimentPaths);
-		
-		when(studentCourseService.getCoursePaths(any(), eq(servletContext)))
-			.thenReturn(coursePaths);
+
+		ArgumentCaptor<String> pathInfoCaptor = ArgumentCaptor.forClass(String.class);
+		when(pathConstructor.getPathFor(eq(StudentServlet.STUDENT_SERVLET_NAME), anyString()))
+			.thenReturn("/student/" + pathInfoCaptor.capture());
 		
 		when(servletContext.getAttribute(LabVisionServletContextListener.CONFIG_ATTR))
 			.thenReturn(labVisionConfig);
@@ -101,6 +94,8 @@ class TestStudentServlet {
 			.thenReturn(studentExperimentService);
 		when(servletContext.getAttribute(LabVisionServletContextListener.STUDENT_COURSE_SERVICE_ATTR))
 			.thenReturn(studentCourseService);
+		when(servletContext.getAttribute(LabVisionServletContextListener.PATH_CONSTRUCTOR_ATTR))
+			.thenReturn(pathConstructor);
 		
 		when(servletConfig.getServletContext()).thenReturn(servletContext);
 		
@@ -114,6 +109,7 @@ class TestStudentServlet {
 		doNothing().when(req).setAttribute(eq("student"), studentCaptor.capture());
 		
 		StudentServlet servlet = new StudentServlet();
+		
 		servlet.init(servletConfig);
 		servlet.doGet(req, resp);
 		

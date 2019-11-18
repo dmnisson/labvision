@@ -39,13 +39,16 @@ import labvision.dto.experiment.ParameterForExperimentView;
 import labvision.dto.experiment.ParameterValueForExperimentView;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
+import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import labvision.entities.Course;
 import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
+import labvision.entities.FileType;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
 import labvision.entities.Parameter;
 import labvision.entities.ParameterValue;
+import labvision.entities.ReportDocument;
 import labvision.entities.ReportedResult;
 import labvision.entities.Student;
 import labvision.entities.Variable;
@@ -122,9 +125,13 @@ class TestStudentExperimentService {
 		reports.put(experiments.get(0), new ArrayList<>());
 		reports.get(experiments.get(0)).add(experiments.get(0)
 				.addReportedResult(students.get(0), initDateTime.minusDays(1)));
+		reports.get(experiments.get(0)).get(0)
+				.makeReportDocument("Test_Report_1_exp_1.pdf", FileType.PDF, "Test_Report_1_exp_1.pdf");
 		reports.get(experiments.get(0)).get(0).setScore(new BigDecimal("45"));
 		reports.get(experiments.get(0)).add(experiments.get(0)
 				.addReportedResult(students.get(0), initDateTime.minusHours(14)));
+		reports.get(experiments.get(0)).get(1)
+				.makeReportDocument("Test_Report_2_exp_1.pdf", FileType.PDF, "Test_Report_2_exp_1.pdf");
 		reports.get(experiments.get(0)).get(1).setScore(new BigDecimal("50"));
 		
 		measurements.put(experiments.get(1), new ArrayList<>());
@@ -235,6 +242,8 @@ class TestStudentExperimentService {
 				experiments.get(3).addReportedResult(
 						students.get(2),
 						initDateTime.minusHours(9)));
+		reports.get(experiments.get(3)).get(0)
+				.makeReportDocument("Test_Report_1_exp_4.pdf", FileType.PDF, "Test_Report_1_exp_4.pdf");
 		reports.get(experiments.get(3)).get(0).setScore(new BigDecimal("67"));
 		
 		
@@ -266,16 +275,24 @@ class TestStudentExperimentService {
 		reports.put(experiments.get(4), new ArrayList<>());
 		reports.get(experiments.get(4)).add(experiments.get(4)
 				.addReportedResult(students.get(0), initDateTime.minusDays(1).minusHours(4)));
+		reports.get(experiments.get(4)).get(0)
+				.makeReportDocument("Test_Report_1_exp_5.pdf", FileType.PDF, "Test_Report_1_exp_5.pdf");
 		reports.get(experiments.get(4)).get(0).setScore(new BigDecimal("39"));
 		reports.get(experiments.get(4)).add(experiments.get(4)
 				.addReportedResult(students.get(0), initDateTime.minusHours(17)));
+		reports.get(experiments.get(4)).get(1)
+				.makeReportDocument("Test_Report_2_exp_5.pdf", FileType.PDF, "Test_Report_2_exp_5.pdf");
 		reports.get(experiments.get(4)).get(1).setScore(new BigDecimal("51"));
 		
 		reports.get(experiments.get(4)).add(experiments.get(4)
 				.addReportedResult(students.get(2), initDateTime.minusHours(12)));
+		reports.get(experiments.get(4)).get(2)
+				.makeReportDocument("Test_Report_3_exp_5.pdf", FileType.PDF, "Test_Report_3_exp_5.pdf");
 		reports.get(experiments.get(4)).get(2).setScore(new BigDecimal("14"));
 		reports.get(experiments.get(4)).add(experiments.get(4)
 				.addReportedResult(students.get(2), initDateTime.minusHours(13)));
+		reports.get(experiments.get(4)).get(3)
+				.makeReportDocument("Test_Report_4_exp_5.pdf", FileType.PDF, "Test_Report_4_exp_5.pdf");
 		reports.get(experiments.get(4)).get(3).setScore(new BigDecimal("47"));
 		
 		measurements.put(experiments.get(5), new ArrayList<>());
@@ -311,11 +328,12 @@ class TestStudentExperimentService {
 	static void tearDownAfterClass() throws Exception {
 		EntityManager manager = entityManagerFactory.createEntityManager();
 		
-		JpaService.clearTable(ReportedResult.class, manager);
 		JpaService.clearTable(ParameterValue.class, manager);
 		JpaService.clearTable(Parameter.class, manager);
 		JpaService.clearTable(MeasurementValue.class, manager);
 		JpaService.clearTable(Measurement.class, manager);
+		JpaService.clearTable(ReportedResult.class, manager);
+		JpaService.clearTable(ReportDocument.class, manager);
 		JpaService.clearTable(Student.class, manager);
 		JpaService.clearTable(Experiment.class, manager);
 		JpaService.clearTable(CourseClass.class, manager);
@@ -785,5 +803,139 @@ class TestStudentExperimentService {
 				assertTrue(service.getParameterValues(id).isEmpty());
 			});
 		
+	}
+	
+	@Test
+	void testGetReportedResults() {
+		String[][][] expectedFilenames = {
+			// student 1
+			{
+				// experiment 1
+				{ "Test_Report_2_exp_1.pdf", "Test_Report_1_exp_1.pdf" },
+				// experiment 2
+				{ },
+				// experiment 3
+				{ },
+				// experiment 4
+				{ },
+				// experiment 5
+				{ "Test_Report_2_exp_5.pdf", "Test_Report_1_exp_5.pdf" },
+				// experiment 6
+				{ }
+			},
+			// student 2
+			{
+				// experiment 1
+				{ },
+				// experiment 2
+				{ },
+				// experiment 3
+				{ },
+				// experiment 4
+				{ },
+				// experiment 5
+				{ },
+				// experiment 6 has a report but no documents
+				{ null }
+			},
+			// student 3
+			{
+				// experiment 1
+				{ },
+				// experiment 2
+				{ },
+				// experiment 3
+				{ null },
+				// experiment 4
+				{ "Test_Report_1_exp_4.pdf" },
+				// experiment 5
+				{ "Test_Report_3_exp_5.pdf", "Test_Report_4_exp_5.pdf" },
+				// experiment 6
+				{ }
+			}
+		};
+		
+		LocalDateTime[][][] expectedSubmissionDates = {
+			{
+				{ initDateTime.minusHours(14), initDateTime.minusDays(1) },
+				{ },
+				{ },
+				{ },
+				{ initDateTime.minusHours(17), initDateTime.minusDays(1).minusHours(4) },
+				{ }
+			},
+			{
+				{ },
+				{ },
+				{ },
+				{ },
+				{ },
+				{ initDateTime.minusHours(15) }
+			},
+			{
+				{ },
+				{ },
+				{ initDateTime.minusHours(8) },
+				{ initDateTime.minusHours(9) },
+				{ initDateTime.minusHours(12), initDateTime.minusHours(13) },
+				{ }
+			}
+		};
+		
+		BigDecimal[][][] expectedScores = {
+			{
+				{ new BigDecimal("50"), new BigDecimal("45") },
+				{ },
+				{ },
+				{ },
+				{ new BigDecimal("51"), new BigDecimal("39") },
+				{ }
+			},
+			{
+				{ },
+				{ },
+				{ },
+				{ },
+				{ },
+				{ new BigDecimal("85") }
+			},
+			{
+				{ },
+				{ },
+				{ new BigDecimal("79") },
+				{ new BigDecimal("67") },
+				{ new BigDecimal("14"), new BigDecimal("47") },
+				{ }
+			}
+		};
+		
+		IntStream.range(0, students.size())
+			.mapToObj(Integer::valueOf)
+			.flatMap(is -> IntStream.range(0, experiments.size())
+					.mapToObj(ie -> new Pair<>(is, ie)))
+			.forEach(pair -> {
+				int is = pair.getKey();
+				int ie = pair.getValue();
+				
+				List<ReportedResultForStudentExperimentView> results = service
+						.getReportedResults(experiments.get(ie).getId(), students.get(is).getId());
+				
+				String failMessage = String.format("failure for student %d, experiment %d", is+1, ie+1);
+				
+				assertArrayEquals(expectedFilenames[is][ie], results.stream()
+						.map(ReportedResultForStudentExperimentView::getReportDocumentFilename)
+						.toArray(String[]::new),
+						failMessage);
+				assertArrayEquals(expectedSubmissionDates[is][ie], results.stream()
+						.map(ReportedResultForStudentExperimentView::getAdded)
+						.toArray(LocalDateTime[]::new),
+						failMessage);
+				
+				assertArrayEquals(new int[expectedScores[is][ie].length],
+						IntStream.range(0, results.size())
+							.map(ir -> expectedScores[is][ie][ir].compareTo(results.get(ir).getScore()))
+							.toArray(),
+							failMessage);
+			});
 	}
 }

@@ -9,6 +9,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.servlet.ServletContext;
 
+import labvision.PathConstructor;
 import labvision.dto.experiment.MeasurementValueForExperimentView;
 import labvision.dto.experiment.MeasurementValueForFacultyExperimentView;
 import labvision.dto.faculty.experiment.ExperimentForFacultyExperimentTable;
@@ -82,41 +83,6 @@ public class InstructorExperimentService extends ExperimentService {
 											MeasurementValueForFacultyExperimentView::getStudentId,
 											Collectors.toList()
 											))));
-		});
-	}
-	
-	public Map<Integer, String> getExperimentPaths(int instructorId, ServletContext context) {
-		return withEntityManager(manager -> {
-			String queryString =
-					"SELECT e.id FROM Experiment e " +
-					"JOIN e.instructors i " +
-					"WHERE i.id=:instructorid";
-			TypedQuery<Integer> query = manager.createQuery(queryString, Integer.class);
-			query.setParameter("instructorid", instructorId);
-			return query.getResultStream()
-					.collect(Collectors.toMap(
-							Function.identity(),
-							ThrowingWrappers.throwingFunctionWrapper(
-									id -> getPathFor(FACULTY_SERVLET_NAME, "/experiment/" + id, context))
-							));
-		});
-	}
-	
-	public Map<Integer, String> getEditMeasurementPaths(int instructorId, ServletContext context) {
-		return withEntityManager(manager -> {
-			String queryString =
-					"SELECT m.id FROM Experiment e " +
-					"JOIN e.instructors i " +
-					"JOIN e.measurements m " +
-					"WHERE i.id=:instructorid";
-			TypedQuery<Integer> query = manager.createQuery(queryString, Integer.class);
-			query.setParameter("instructorid", instructorId);
-			return query.getResultStream()
-					.collect(Collectors.toMap(
-							Function.identity(),
-							ThrowingWrappers.throwingFunctionWrapper(
-									id -> getPathFor(FACULTY_SERVLET_NAME, "/measurement/" + id + "/edit", context))
-							));
 		});
 	}
 }

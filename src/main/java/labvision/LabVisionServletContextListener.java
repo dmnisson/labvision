@@ -18,6 +18,7 @@ import labvision.services.UserService;
 
 public class LabVisionServletContextListener implements ServletContextListener {
 
+	public static final String PATH_CONSTRUCTOR_ATTR = "pathConstructor";
 	public static final String STUDENT_REPORT_SERVICE_ATTR = "studentReportService";
 	public static final String STUDENT_COURSE_SERVICE_ATTR = "studentCourseService";
 	public static final String INSTRUCTOR_EXPERIMENT_SERVICE_ATTR = "instructorExperimentService";
@@ -41,6 +42,9 @@ public class LabVisionServletContextListener implements ServletContextListener {
 				config.getPersistenceUnitName());
 		
 		event.getServletContext().setAttribute(ENTITY_MANAGER_FACTORY_ATTR, emf);
+		
+		IPathConstructor pathConstructor = new PathConstructor(event.getServletContext());
+		event.getServletContext().setAttribute(PATH_CONSTRUCTOR_ATTR, pathConstructor);
 		
 		UserService userService = new UserService(emf);
 		event.getServletContext().setAttribute(USER_SERVICE_ATTR, userService);

@@ -1,11 +1,13 @@
 package labvision.entities;
 
 import java.math.BigDecimal;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -44,7 +46,7 @@ public class ReportedResult implements LabVisionEntity {
 	@Column( name="added" )
 	private LocalDateTime added;
 	
-	@OneToOne
+	@OneToOne( cascade = CascadeType.ALL )
 	private ReportDocument reportDocument;
 	
 	@Column
@@ -129,5 +131,15 @@ public class ReportedResult implements LabVisionEntity {
 		if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	public ReportDocument makeReportDocument(String filename, FileType fileType, String filesystemPath) {
+		FilesystemReportDocument reportDocument = new FilesystemReportDocument();
+		reportDocument.setFilename(filename);
+		reportDocument.setFileType(fileType);
+		reportDocument.setFilesystemPath(filesystemPath);
+		this.reportDocument = reportDocument;
+		reportDocument.setReportedResult(this);
+		return reportDocument;
 	}
 }

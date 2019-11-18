@@ -1,6 +1,5 @@
 package labvision.services;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -9,8 +8,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletRegistration;
 
 /**
  * Base class for services that use the JPA
@@ -30,7 +27,6 @@ public class JpaService {
 
 	private final EntityManagerFactory entityManagerFactory;
 	
-	protected final String STUDENT_SERVLET_NAME = "labvision-student";
 	protected final String FACULTY_SERVLET_NAME = "labvision-faculty";
 
 	protected JpaService(EntityManagerFactory entityManagerFactory) {
@@ -59,28 +55,6 @@ public class JpaService {
 		return result;
 	}
 	
-	/**
-	 * Returns a path relative to the server root that will point to the resource
-	 * @param servletName the name of the servlet
-	 * @param pathInfo the information to pass to the servlet
-	 * @param context the servlet context
-	 * @return the relative path
-	 * @throws ServletNotFoundException if a servlet with the given name is not found
-	 * @throws ServletMappingNotFoundException if a mapping is not found for the specified servlet
-	 */
-	protected String getPathFor(String servletName, String pathInfo, ServletContext context) throws ServletNotFoundException, ServletMappingNotFoundException {
-		ServletRegistration registration = context.getServletRegistration(servletName);
-		if (Objects.isNull(registration)) {
-			throw new ServletNotFoundException(servletName);
-		}
-		
-		return context.getContextPath() +
-				registration.getMappings().stream()
-					.findFirst()
-					.orElseThrow(() -> new ServletMappingNotFoundException(servletName))
-					.replace("*", pathInfo.substring(1));
-	}
-
 	public static <T> void clearTable(Class<T> entityClass, EntityManager manager) {
 		CriteriaBuilder cb = manager.getCriteriaBuilder();
 		CriteriaDelete<T> cd = cb.createCriteriaDelete(entityClass);

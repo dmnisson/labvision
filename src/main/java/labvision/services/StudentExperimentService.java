@@ -1,22 +1,18 @@
 package labvision.services;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
-import javax.servlet.ServletContext;
 
 import labvision.dto.experiment.MeasurementValueForExperimentView;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import labvision.measure.SI;
-import labvision.utils.ThrowingWrappers;
 
 public class StudentExperimentService extends ExperimentService {
 	public StudentExperimentService(EntityManagerFactory entityManagerFactory) {
@@ -123,11 +119,13 @@ public class StudentExperimentService extends ExperimentService {
 					"SELECT new labvision.dto.student.experiment.ReportedResultForStudentExperimentView(" +
 				    "	rr.id," +
 				    "	rd.filename," +
-				    "	rr.added" +
+				    "	rr.added," +
+				    "	rr.score" +
 				    ") " +
 				    "FROM ReportedResult rr " +
 				    "LEFT JOIN rr.reportDocument rd " +
-				    "WHERE rr.experiment.id=:experimentid AND rr.student.id=:studentid";
+				    "WHERE rr.experiment.id=:experimentid AND rr.student.id=:studentid " +
+				    "ORDER BY rr.added DESC";
 			TypedQuery<ReportedResultForStudentExperimentView> query = manager.createQuery(
 					queryString,
 					ReportedResultForStudentExperimentView.class);
@@ -135,23 +133,5 @@ public class StudentExperimentService extends ExperimentService {
 			query.setParameter("studentid", studentId);
 			return query.getResultList();
 		});
-	}
-	
-	public Map<Integer, String> getExperimentPaths(Collection<? extends Integer> experimentIds, ServletContext context) {
-		return experimentIds.stream().distinct()
-				.collect(Collectors.toMap(
-						Function.identity(), 
-						ThrowingWrappers.throwingFunctionWrapper(
-								id -> getPathFor(STUDENT_SERVLET_NAME, "/experiment/" + id, context))
-						));
-	}
-	
-	public Map<Integer, String> getNewMeasurementValuePaths(Collection<? extends Integer> measurementIds, ServletContext context) {
-		return measurementIds.stream().distinct()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						ThrowingWrappers.throwingFunctionWrapper(
-								id -> getPathFor(STUDENT_SERVLET_NAME, "/measurement/newvalue/" + id, context))
-						));
 	}
 }
