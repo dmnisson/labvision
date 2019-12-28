@@ -47,7 +47,7 @@
           </td>
           <td class="col-2">
             <c:if test="${empty report.score}">—</c:if>
-            ${report.score}
+            <c:if test="${not empty report.score}">${report.score}</c:if>
           </td>
           <td class="col-2">
             <javatime:format value="${report.added}" style="SS" />
