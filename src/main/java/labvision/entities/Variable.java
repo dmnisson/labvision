@@ -133,13 +133,26 @@ public abstract class Variable<V extends Variable<V, A>, A extends VariableValue
 	/**
 	 * Updates the quantityTypeId and dimension fields for the given quantity type
 	 * @param quantityType the quantity type
+	 * @param dimension the dimension
 	 */
-	public <Q extends Quantity<Q>> void updateQuantityType(Class<Q> quantityType) {
-		this.setQuantityTypeId(QuantityTypeId.of(quantityType));
-		if (quantityTypeId.equals(QuantityTypeId.UNKNOWN)) {
-			Logger.getLogger(this.getClass()).log(
-					Level.INFO, 
-					"Unknown quantity type set. Dimension object will need to be set separately.");
+	public <Q extends Quantity<Q>> void updateQuantityType(Class<Q> quantityType, Dimension dimension) {
+		QuantityTypeId quantityTypeId = QuantityTypeId.of(quantityType);
+		
+		if (quantityTypeId.equals(QuantityTypeId.UNKNOWN) && dimension == null) {
+			throw new IllegalArgumentException(
+					"No dimension specified for unknown quantity type of class "
+			+ quantityType);
+		}
+		
+		if (!QuantityDimension.of(quantityType).equals(dimension)) {
+			throw new IllegalArgumentException(
+					"Dimension " + dimension + " is incompatible with quantity class " + quantityType
+			);
+		}
+		
+		setQuantityTypeId(QuantityTypeId.of(quantityType));
+		if (dimension != null) {
+			updateDimensionObject(dimension);
 		}
 	}
 	

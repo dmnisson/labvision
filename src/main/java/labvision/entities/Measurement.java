@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.measure.Dimension;
 import javax.measure.IncommensurableException;
 import javax.measure.Quantity;
 import javax.measure.Unit;
@@ -22,6 +23,7 @@ import javax.persistence.OneToMany;
 
 import labvision.measure.Amount;
 import tec.units.ri.quantity.Quantities;
+import tec.units.ri.quantity.QuantityDimension;
 
 @Entity( name="Measurement" )
 public class Measurement extends Variable<Measurement, MeasurementValue> implements LabVisionEntity {
@@ -66,9 +68,13 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 	}
 	
 	public <Q extends Quantity<Q>> Parameter addParameter(String name, Class<Q> quantityType) {
+		return addParameter(name, quantityType, QuantityDimension.of(quantityType));
+	}
+	
+	public <Q extends Quantity<Q>> Parameter addParameter(String name, Class<Q> quantityType, Dimension dimension) {
 		Parameter parameter = new Parameter();
 		parameter.setName(name);
-		parameter.updateQuantityType(quantityType);
+		parameter.updateQuantityType(quantityType, dimension);
 		addParameter(parameter);
 		return parameter;
 	}
@@ -155,7 +161,7 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 		values.stream()
 		.filter(value -> value.getVariable() != this)
 		.forEach(value -> {
-			value.setVariable(this);;
+			value.setVariable(this);
 		});
 		computeStatistics();
 	}

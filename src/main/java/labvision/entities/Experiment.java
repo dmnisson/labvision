@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.measure.Dimension;
 import javax.measure.Quantity;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -29,7 +30,7 @@ import javax.persistence.SqlResultSetMapping;
 import labvision.ReportStatus;
 import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
-import labvision.services.JpaService;
+import tec.units.ri.quantity.QuantityDimension;
 
 @NamedNativeQuery(
 		name = "CurrentExperimentForStudentExperimentTable_DataSubmitted", 
@@ -206,12 +207,26 @@ public class Experiment implements LabVisionEntity {
 	 * Creates and adds a new measurement
 	 * @param name the name of the measurement
 	 * @param quantityType the type of quantity to be measured
+	 * @throws IllegalArgumentException if the quantity type is unknown
 	 * @return the measurement entity
 	 */
 	public <Q extends Quantity<Q>> Measurement addMeasurement(String name, Class<Q> quantityType) {
+		return addMeasurement(name, quantityType, QuantityDimension.of(quantityType));
+	}
+	
+	/**
+	 * Creates and adds a new measurement
+	 * @param name the name of the measurement
+	 * @param quantityType the type of quantity to be measured
+	 * @param dimension the dimension of the measured quantity
+	 * @throws IllegalArgumentException if the dimension is unspecified for an unknown 
+	 * quantity type or if the dimension is inconsistent with that of the quantity type
+	 * @return the measurement entity
+	 */
+	public <Q extends Quantity<Q>> Measurement addMeasurement(String name, Class<Q> quantityType, Dimension dimension) {
 		Measurement measurement = new Measurement();
 		measurement.setName(name);
-		measurement.updateQuantityType(quantityType);
+		measurement.updateQuantityType(quantityType, dimension);
 		addMeasurement(measurement);
 		return measurement;
 	}
