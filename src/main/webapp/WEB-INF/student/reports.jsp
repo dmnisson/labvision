@@ -53,7 +53,7 @@
           </td>
           <td>
             <c:if test="${report.editAllowed}">
-            <a class="btn btn-default" href="${editReportPaths[report.id]}">Edit</a>
+            <a class="btn btn-primary" href="${editReportPaths[report.id]}">Edit</a>
             </c:if>
           </td>
         </tr>
