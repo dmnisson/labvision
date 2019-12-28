@@ -46,6 +46,7 @@
             <a href="${coursePaths[report.courseId]}">${report.courseName}</a>
           </td>
           <td class="col-2">
+            <c:if test="${empty report.score}">—</c:if>
             ${report.score}
           </td>
           <td class="col-2">
