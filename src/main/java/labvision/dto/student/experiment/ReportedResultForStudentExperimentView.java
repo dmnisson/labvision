@@ -6,12 +6,15 @@ import java.util.Objects;
 
 public class ReportedResultForStudentExperimentView {
 	private final int id;
+	private final String name;
 	private final String reportDocumentFilename;
 	private final LocalDateTime added;
 	private final BigDecimal score;
 	
-	public ReportedResultForStudentExperimentView(int reportedResultId, String reportDocumentFilename, LocalDateTime added, BigDecimal score) {
+	public ReportedResultForStudentExperimentView(int reportedResultId, String name, String reportDocumentFilename, LocalDateTime added, 
+			BigDecimal score) {
 		this.id = reportedResultId;
+		this.name = name;
 		this.reportDocumentFilename = reportDocumentFilename;
 		this.added = added;
 		this.score = score;
@@ -34,10 +37,13 @@ public class ReportedResultForStudentExperimentView {
 	 * @return the string
 	 */
 	public String getReportDisplay() {
-		if (Objects.isNull(reportDocumentFilename)) {
-			return String.format("Report %d", id);
-		} else {
+		if (Objects.nonNull(name) && !name.isEmpty()) {
+			return name;
+		} else if (Objects.nonNull(reportDocumentFilename) &&
+				!reportDocumentFilename.isEmpty()) {
 			return reportDocumentFilename;
+		} else {
+			return String.format("Report %d", id);
 		}
 	}
 

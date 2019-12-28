@@ -67,13 +67,16 @@ public class AuthFilter implements Filter {
 		} else {
 			switch(((User)session.getAttribute("user")).getRole()) {
 			case STUDENT:
-				isForbidden = !httpRequest.getServletPath().equals("/student");
+				isForbidden = !(httpRequest.getServletPath().equals("/reportdocs") ||
+						httpRequest.getServletPath().equals("/student"));
 				break;
 			case FACULTY:
-				isForbidden = !httpRequest.getServletPath().equals("/faculty");
+				isForbidden = !(httpRequest.getServletPath().equals("/reportdocs") ||
+						httpRequest.getServletPath().equals("/faculty"));
 				break;
 			case ADMIN:
-				isForbidden = !httpRequest.getServletPath().equals("/admin");
+				isForbidden = !(httpRequest.getServletPath().equals("/reportdocs") ||
+						httpRequest.getServletPath().equals("/admin"));
 				break;
 			default:
 				isForbidden = true;

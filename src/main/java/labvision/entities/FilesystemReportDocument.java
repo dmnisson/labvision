@@ -11,6 +11,10 @@ public class FilesystemReportDocument extends ServedReportDocument {
 	 */
 	private String filesystemPath;
 
+	{
+		setDocumentType(ReportDocumentType.FILESYSTEM);
+	}
+	
 	public File getReportDocumentFile() {
 		return new File(getFilesystemPath());
 	}

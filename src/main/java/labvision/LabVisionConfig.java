@@ -3,6 +3,7 @@ package labvision;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -44,6 +45,8 @@ public class LabVisionConfig {
 	private static final String PUBLIC_KEY_FILENAME_KEY = "publicKeyFilename";
 	
 	private static final String DEVICE_TOKEN_KEY_ALGORITHM_NAME_KEY = "deviceTokenKeyAlgorithm";
+
+	private static final String REPORT_UPLOAD_FILE_PATH_KEY = "reportUploadFilePath";
 	
 	public LabVisionConfig(String configPath) {
 		try {
@@ -108,5 +111,10 @@ public class LabVisionConfig {
 
 	public int getStudentDashboardMaxRecentCourses() {
 		return Integer.parseInt(props.getProperty(STUDENT_DASHBOARD_MAX_RECENT_COURSES_KEY, "5"));
+	}
+
+	public String getReportUploadFilePath() {
+		return props.getProperty(REPORT_UPLOAD_FILE_PATH_KEY,
+				Paths.get("reports").toAbsolutePath().toString());
 	}
 }

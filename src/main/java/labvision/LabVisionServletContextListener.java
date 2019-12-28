@@ -7,11 +7,11 @@ import javax.servlet.ServletContextListener;
 
 import labvision.services.StudentDashboardService;
 import labvision.services.StudentExperimentService;
-import labvision.services.StudentReportService;
 import labvision.services.ExperimentService;
 import labvision.services.InstructorExperimentService;
 import labvision.services.InstructorService;
 import labvision.services.JpaService;
+import labvision.services.ReportService;
 import labvision.services.StudentCourseService;
 import labvision.services.StudentService;
 import labvision.services.UserService;
@@ -19,7 +19,6 @@ import labvision.services.UserService;
 public class LabVisionServletContextListener implements ServletContextListener {
 
 	public static final String PATH_CONSTRUCTOR_ATTR = "pathConstructor";
-	public static final String STUDENT_REPORT_SERVICE_ATTR = "studentReportService";
 	public static final String STUDENT_COURSE_SERVICE_ATTR = "studentCourseService";
 	public static final String INSTRUCTOR_EXPERIMENT_SERVICE_ATTR = "instructorExperimentService";
 	public static final String STUDENT_EXPERIMENT_SERVICE_ATTR = "studentExperimentService";
@@ -30,6 +29,7 @@ public class LabVisionServletContextListener implements ServletContextListener {
 	public static final String USER_SERVICE_ATTR = "userService";
 	public static final String ENTITY_MANAGER_FACTORY_ATTR = "emf";
 	public static final String CONFIG_ATTR = "config";
+	public static final String REPORT_SERVICE_ATTR = "reportService";
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -46,7 +46,7 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		IPathConstructor pathConstructor = new PathConstructor(event.getServletContext());
 		event.getServletContext().setAttribute(PATH_CONSTRUCTOR_ATTR, pathConstructor);
 		
-		UserService userService = new UserService(emf);
+		JpaService userService = new UserService(emf);
 		event.getServletContext().setAttribute(USER_SERVICE_ATTR, userService);
 		
 		StudentService studentService = new StudentService(emf, config);
@@ -70,8 +70,8 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		InstructorExperimentService instructorExperimentService = new InstructorExperimentService(emf);
 		event.getServletContext().setAttribute(INSTRUCTOR_EXPERIMENT_SERVICE_ATTR, instructorExperimentService);
 		
-		StudentReportService studentReportService = new StudentReportService(emf);
-		event.getServletContext().setAttribute(STUDENT_REPORT_SERVICE_ATTR, studentReportService);
+		ReportService reportService = new ReportService(emf, config);
+		event.getServletContext().setAttribute(REPORT_SERVICE_ATTR, reportService);
 	}
 
 	@Override

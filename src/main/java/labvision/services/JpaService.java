@@ -9,6 +9,9 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 
+import labvision.utils.ThrowingConsumer;
+import labvision.utils.ThrowingFunction;
+
 /**
  * Base class for services that use the JPA
  * @author davidnisson
@@ -37,7 +40,7 @@ public class JpaService {
 	 * Executes the consumer with a fresh EntityManager and closes it afterward
 	 * @param consumer the consumer to execute
 	 */
-	protected void withEntityManager(Consumer<EntityManager> consumer) {
+	protected <E extends Exception> void withEntityManager(ThrowingConsumer<EntityManager, E> consumer) throws E {
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
 		consumer.accept(entityManager);
 		entityManager.close();
@@ -48,7 +51,7 @@ public class JpaService {
 	 * returns the result of the function
 	 * @param function the function to execute
 	 */
-	protected <R> R withEntityManager(Function<EntityManager, R> function) {
+	protected <R, E extends Exception> R withEntityManager(ThrowingFunction<EntityManager, R, E> function) throws E {
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
 		R result = function.apply(entityManager);
 		entityManager.close();

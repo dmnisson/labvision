@@ -17,6 +17,10 @@ public class ExternalReportDocument extends ReportDocument {
 	@URL
 	private String reportDocumentURLString;
 	
+	{
+		setDocumentType(ReportDocumentType.EXTERNAL);
+	}
+	
 	@Override
 	public java.net.URL getReportDocumentURL(java.net.URL context) {
 		try {

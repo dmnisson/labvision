@@ -5,14 +5,16 @@ import java.util.List;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-@Entity
-public class Result implements LabVisionEntity {
+@Entity( name="Result" )
+public class Result extends VariableValue<ResultComputation, Result> implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy=GenerationType.AUTO )
 	private int id;
@@ -23,11 +25,9 @@ public class Result implements LabVisionEntity {
 	@JoinColumn( name="Result_id" )
 	private List<MeasurementValue> measurementValues = new ArrayList<>();
 	
-	@Embedded
-	private ResultComputation computation;
-	
-	@Embedded
-	private PersistableAmount resultValue;
+	@ManyToOne( fetch=FetchType.LAZY )
+	@JoinColumn(name = "ResultComputation_id")
+	private ResultComputation variable;
 
 	public int getId() {
 		return id;
@@ -58,18 +58,20 @@ public class Result implements LabVisionEntity {
 	}
 	
 	public ResultComputation getComputation() {
-		return computation;
+		return variable;
 	}
 	
 	public void setComputation(ResultComputation computation) {
-		this.computation = computation;
+		this.variable = computation;
 	}
-	
-	public PersistableAmount getResultValue() {
-		return resultValue;
+
+	@Override
+	public ResultComputation getVariable() {
+		return variable;
 	}
-	
-	public void setResultValue(PersistableAmount resultValue) {
-		this.resultValue = resultValue;
+
+	@Override
+	public void setVariable(ResultComputation variable) {
+		this.variable = variable;
 	}
 }

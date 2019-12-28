@@ -68,16 +68,20 @@
             <tr>
               <th scope="col" class="col-6">Report</th>
               <th scope="col" class="col-6">Submitted</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             <c:forEach var="report" items="${reportedResults}">
             <tr>
-              <td class="col-6">
+              <td class="col-5">
                 <a href="${reportPaths[report.id]}">${report.reportDisplay}</a>
               </td>
-              <td class="col-6">
+              <td class="col-5">
                 <javatime:format value="${report.added}" style="SS" />
+              </td>
+              <td class="col-2">
+                <a class="btn btn-primary" href="${reportEditPaths[report.id]}">Edit</a>
               </td>
             </tr>
             </c:forEach>

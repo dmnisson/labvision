@@ -1,6 +1,8 @@
 package labvision.entities;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import javax.persistence.Column;
@@ -20,11 +22,11 @@ import org.jboss.logging.Logger;
 public abstract class ServedReportDocument extends ReportDocument {
 	
 	@Column
-	protected String docsPathInfo;
 	/**
 	 * The information that needs to be passed to the document URL
 	 * to obtain this document
 	 */ 
+	protected String docsPathInfo;
 
 	public String getDocsPathInfo() {
 		return docsPathInfo;
@@ -35,10 +37,18 @@ public abstract class ServedReportDocument extends ReportDocument {
 	}
 	
 	@Override
-	public URL getReportDocumentURL(URL context) {
+	public URL getReportDocumentURL(URL servletURL) {
 		try {
-			return new URL(context, docsPathInfo);
-		} catch (MalformedURLException e) {
+			URI documentURI = new URI(
+					servletURL.getProtocol(),
+					null,
+					servletURL.getHost(),
+					servletURL.getPort(),
+					servletURL.getPath() + docsPathInfo,
+					null,
+					null);
+			return documentURI.toURL();
+		} catch (MalformedURLException | URISyntaxException e) {
 			Logger.getLogger(this.getClass()).error("Invalid document URL", e);
 			return null;
 		}

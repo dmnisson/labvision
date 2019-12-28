@@ -18,6 +18,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 /**
  * A report of experimental results by a student
@@ -29,6 +33,8 @@ public class ReportedResult implements LabVisionEntity {
 	@Id
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	private Integer id;
+	
+	private String name;
 	
 	@ManyToOne( fetch=FetchType.LAZY )
 	@JoinColumn( name="Student_id" )
@@ -42,8 +48,7 @@ public class ReportedResult implements LabVisionEntity {
 	@JoinColumn( name="ReportedResult_id" )
 	private List<Result> results = new ArrayList<>();
 
-	@Basic(optional = false)
-	@Column( name="added" )
+	@CreationTimestamp
 	private LocalDateTime added;
 	
 	@OneToOne( cascade = CascadeType.ALL )
@@ -102,6 +107,7 @@ public class ReportedResult implements LabVisionEntity {
 
 	public void setReportDocument(ReportDocument reportDocument) {
 		this.reportDocument = reportDocument;
+		reportDocument.setReportedResult(this);
 	}
 
 	public BigDecimal getScore() {
@@ -141,5 +147,13 @@ public class ReportedResult implements LabVisionEntity {
 		this.reportDocument = reportDocument;
 		reportDocument.setReportedResult(this);
 		return reportDocument;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }

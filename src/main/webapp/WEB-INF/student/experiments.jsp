@@ -55,7 +55,7 @@
 	                    </a>
 	                  </c:if>
 	                  <c:if test="${empty experiment.lastReportUpdated}">
-	                    <a href="${newReportPath}?experiment=${experiment.id}" class="btn btn-primary">Submit</a>
+	                    <a href="${newReportPaths[experiment.id]}" class="btn btn-primary">Submit</a>
 	                  </c:if>
 	                </td>
 	                <td class="col-3">
