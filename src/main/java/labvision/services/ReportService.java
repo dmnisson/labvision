@@ -10,6 +10,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,20 +19,30 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 import javax.servlet.ServletContext;
 
 import labvision.LabVisionConfig;
 import labvision.dto.experiment.report.ReportForReportView;
 import labvision.dto.experiment.report.ResultInfo;
+import labvision.dto.student.reports.ReportForStudentReportsTable;
+import labvision.entities.Course;
+import labvision.entities.Course_;
 import labvision.entities.Experiment;
+import labvision.entities.Experiment_;
 import labvision.entities.ExternalReportDocument;
 import labvision.entities.FileType;
 import labvision.entities.FilesystemReportDocument;
-import labvision.entities.Instructor;
 import labvision.entities.ReportDocument;
 import labvision.entities.ReportDocumentType;
 import labvision.entities.ReportedResult;
+import labvision.entities.ReportedResult_;
 import labvision.entities.Student;
+import labvision.entities.Student_;
 import labvision.utils.URLUtils;
 
 public class ReportService extends JpaService {
@@ -382,6 +394,35 @@ public class ReportService extends JpaService {
 			}
 			
 			manager.getTransaction().commit();
+		});
+	}
+
+	public List<ReportForStudentReportsTable> getStudentReports(int studentId) {
+		return withEntityManager(manager -> {
+			CriteriaBuilder cb = manager.getCriteriaBuilder();
+			CriteriaQuery<ReportForStudentReportsTable> cq = cb.createQuery(ReportForStudentReportsTable.class);
+			Root<ReportedResult> root = cq.from(ReportedResult.class);
+			Join<ReportedResult, Experiment> e = root.join(ReportedResult_.experiment);
+			Join<Experiment, Course> c = e.join(Experiment_.course);
+			
+			cq.select(cb.construct(
+					ReportForStudentReportsTable.class,
+					root.get(ReportedResult_.id),
+					root.get(ReportedResult_.name),
+					e.get(Experiment_.id),
+					e.get(Experiment_.name),
+					c.get(Course_.id),
+					c.get(Course_.name),
+					root.get(ReportedResult_.score),
+					root.get(ReportedResult_.added),
+					cb.lessThanOrEqualTo(
+							cb.currentTimestamp().as(LocalDateTime.class),
+							e.get(Experiment_.reportDueDate)
+							))
+			).where(cb.equal(root.get(ReportedResult_.student).get(Student_.id), studentId));
+			
+			TypedQuery<ReportForStudentReportsTable> query = manager.createQuery(cq);
+			return query.getResultList();
 		});
 	}
 }

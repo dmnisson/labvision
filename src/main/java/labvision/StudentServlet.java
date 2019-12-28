@@ -43,6 +43,7 @@ import labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTab
 import labvision.dto.student.experiment.ExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
+import labvision.dto.student.reports.ReportForStudentReportsTable;
 import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
 import labvision.entities.FileType;
@@ -268,7 +269,13 @@ public class StudentServlet extends HttpServlet {
 				doGetMeasurement(request, response, session, pathParts[2]);
 				break;
 			case "reports":
-				doGetReports(request, response, session);
+				try {
+					doGetReports(request, response, session);
+				} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
+					Logger.getLogger(this.getClass())
+						.error(URL_COMPUTATION_ERROR_MESSAGE, e);
+					response.sendError(500, URL_COMPUTATION_ERROR_MESSAGE);
+				}
 				break;
 			case "report":
 				try {
@@ -412,9 +419,44 @@ public class StudentServlet extends HttpServlet {
 		}
 	}
 
-	private void doGetReports(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
-		// TODO Auto-generated method stub
+	private void doGetReports(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletNotFoundException, ServletMappingNotFoundException, ServletException, IOException {
+		ReportService reportService = (ReportService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.REPORT_SERVICE_ATTR);
 		
+		Student student = (Student) session.getAttribute("user");
+		int studentId = student.getId();
+		
+		List<ReportForStudentReportsTable> reports = reportService.getStudentReports(studentId);
+		List<Integer> reportIds = reports.stream().map(r -> r.getId())
+				.collect(Collectors.toList());
+		List<Integer> experimentIds = reports.stream().map(r -> r.getExperimentId())
+				.distinct().collect(Collectors.toList());
+		List<Integer> courseIds = reports.stream().map(r -> r.getCourseId())
+				.distinct().collect(Collectors.toList());
+		
+		request.setAttribute("reports", reports);
+		request.setAttribute("reportPaths", getReportPaths(reportIds));
+		request.setAttribute("editReportPaths", getEditReportPaths(reportIds));
+		request.setAttribute("coursePaths", getCoursePaths(courseIds));
+		request.setAttribute("experimentPaths", getExperimentPaths(experimentIds));
+		
+		request.getRequestDispatcher("/WEB-INF/student/reports.jsp").forward(request, response);
+	}
+
+	public Map<Integer, Object> getCoursePaths(List<Integer> courseIds) {
+		return courseIds.stream().collect(
+			Collectors.toMap(
+				Function.identity(),
+				ThrowingWrappers.throwingFunctionWrapper(
+					id -> getCoursePath(id)
+				)
+			)
+		);
+	}
+
+	private Object getCoursePath(int courseId) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return getPathConstructor()
+				.getPathFor(STUDENT_SERVLET_NAME, "/course/" + courseId);
 	}
 
 	private void doGetExperiment(HttpServletRequest request, HttpServletResponse response, HttpSession session,
