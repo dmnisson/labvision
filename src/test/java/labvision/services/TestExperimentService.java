@@ -56,9 +56,9 @@ import labvision.measure.Amount;
 import labvision.utils.Pair;
 import tec.units.ri.unit.Units;
 
-class TestStudentExperimentService {
+class TestExperimentService {
 	private static EntityManagerFactory entityManagerFactory;
-	private static StudentExperimentService service;
+	private static ExperimentService service;
 	private static List<Student> students = new ArrayList<>();
 	private static List<Course> courses = new ArrayList<>();
 	private static List<CourseClass> courseClasses = new ArrayList<>();
@@ -321,7 +321,7 @@ class TestStudentExperimentService {
 		
 		tx.commit();
 		
-		service = new StudentExperimentService(entityManagerFactory);
+		service = new ExperimentService(entityManagerFactory);
 	}
 
 	@AfterAll

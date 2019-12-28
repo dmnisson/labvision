@@ -61,9 +61,8 @@ import labvision.services.ExperimentService;
 import labvision.services.ReportService;
 import labvision.services.ServletMappingNotFoundException;
 import labvision.services.ServletNotFoundException;
-import labvision.services.StudentCourseService;
-import labvision.services.StudentDashboardService;
-import labvision.services.StudentExperimentService;
+import labvision.services.CourseService;
+import labvision.services.DashboardService;
 import labvision.services.StudentService;
 import labvision.utils.StringUtils;
 import labvision.utils.ThrowingWrappers;
@@ -461,17 +460,17 @@ public class StudentServlet extends HttpServlet {
 
 	private void doGetExperiment(HttpServletRequest request, HttpServletResponse response, HttpSession session,
 			String experimentIdString) throws ServletException, IOException, ServletNotFoundException, ServletMappingNotFoundException {
-		StudentExperimentService studentExperimentService = (StudentExperimentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR);
+		ExperimentService experimentService = (ExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
 		int studentId = student.getId();
 		int experimentId = Integer.parseInt(experimentIdString);
-		Experiment experiment = studentExperimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
+		Experiment experiment = experimentService.getExperiment(experimentId, ExperimentPrefetch.PREFETCH_NO_VALUES);
 		
-		List<MeasurementForExperimentView> measurements = studentExperimentService.getMeasurements(experimentId);
-		Map<Integer, List<MeasurementValueForExperimentView>> measurementValues = studentExperimentService.getMeasurementValues(experimentId, studentId);
-		List<ReportedResultForStudentExperimentView> reportedResults = studentExperimentService.getReportedResults(experimentId, studentId);
+		List<MeasurementForExperimentView> measurements = experimentService.getMeasurements(experimentId);
+		Map<Integer, List<MeasurementValueForExperimentView>> measurementValues = experimentService.getMeasurementValues(experimentId, studentId);
+		List<ReportedResultForStudentExperimentView> reportedResults = experimentService.getReportedResults(experimentId, studentId);
 		
 		request.setAttribute("experiment", experiment);
 		request.setAttribute("measurements", measurements);
@@ -480,7 +479,7 @@ public class StudentServlet extends HttpServlet {
 		request.setAttribute("parameters", measurements.stream()
 				.collect(Collectors.toMap(
 						MeasurementForExperimentView::getId,
-						m -> studentExperimentService.getParameters(m.getId()))));
+						m -> experimentService.getParameters(m.getId()))));
 		// measurement ID -> measurement value ID -> parameter ID -> parameter value
 		request.setAttribute("parameterValues", measurements.stream()
 				.map(MeasurementForExperimentView::getId)
@@ -490,7 +489,7 @@ public class StudentServlet extends HttpServlet {
 							.map(MeasurementValueForExperimentView::getId)
 							.collect(Collectors.toMap(
 									Function.identity(),
-									vid -> studentExperimentService.getParameterValues(vid))))));
+									vid -> experimentService.getParameterValues(vid))))));
 		request.setAttribute("reportedResults", reportedResults);
 		request.setAttribute("reportPaths", getReportPaths(reportedResults.stream()
 				.map(ReportedResultForStudentExperimentView::getId).collect(Collectors.toList())));
@@ -514,15 +513,15 @@ public class StudentServlet extends HttpServlet {
 	}
 
 	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException, ServletNotFoundException, ServletMappingNotFoundException {
-		StudentExperimentService studentExperimentService = (StudentExperimentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR);
+		ExperimentService experimentService = (ExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
 		
 		int studentId = ((Student) session.getAttribute("user")).getId();
 		
-		List<CurrentExperimentForStudentExperimentTable> currentExperiments = studentExperimentService.getCurrentExperiments(studentId);
+		List<CurrentExperimentForStudentExperimentTable> currentExperiments = experimentService.getCurrentExperiments(studentId);
 		request.setAttribute("currentExperiments", currentExperiments);
 		
-		List<PastExperimentForStudentExperimentTable> pastExperiments = studentExperimentService.getPastExperiments(studentId);
+		List<PastExperimentForStudentExperimentTable> pastExperiments = experimentService.getPastExperiments(studentId);
 		request.setAttribute("pastExperiments", pastExperiments);
 		
 		List<Integer> pathMapKeys = Stream.concat(currentExperiments.stream(), pastExperiments.stream())
@@ -537,10 +536,10 @@ public class StudentServlet extends HttpServlet {
 	}
 
 	private void doGetDashboard(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException, ServletException {
-		StudentDashboardService dashboardService = (StudentDashboardService) getServletContext()
+		DashboardService dashboardService = (DashboardService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_DASHBOARD_SERVICE_ATTR);
-		StudentCourseService studentCourseService = (StudentCourseService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.STUDENT_COURSE_SERVICE_ATTR);
+		CourseService courseService = (CourseService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.COURSE_SERVICE_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
 		int studentId = student.getId();

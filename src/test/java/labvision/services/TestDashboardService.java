@@ -40,10 +40,10 @@ import labvision.measure.Amount;
 import tec.units.ri.unit.Units;
 
 @TestInstance(Lifecycle.PER_CLASS)
-class TestStudentDashboardService {
+class TestDashboardService {
 	private EntityManagerFactory emf;
 	private LabVisionConfig config;
-	private StudentDashboardService service;
+	private DashboardService service;
 	
 	private List<Student> students;
 	private List<Experiment> experiments;
@@ -59,7 +59,7 @@ class TestStudentDashboardService {
 	void setUpBeforeClass() throws Exception {
 		emf = Persistence.createEntityManagerFactory(LabVisionConfig.TESTING_PERSISTENCE_UNIT_NAME);
 		config = new LabVisionConfig("~/.labvision/test.properties");
-		service = new StudentDashboardService(emf, config);
+		service = new DashboardService(emf, config);
 		initDateTime = LocalDateTime.now();
 		
 		// set up test database

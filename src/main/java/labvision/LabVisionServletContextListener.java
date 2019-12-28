@@ -5,23 +5,19 @@ import javax.persistence.Persistence;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import labvision.services.StudentDashboardService;
-import labvision.services.StudentExperimentService;
+import labvision.services.CourseService;
+import labvision.services.DashboardService;
 import labvision.services.ExperimentService;
-import labvision.services.InstructorExperimentService;
 import labvision.services.InstructorService;
 import labvision.services.JpaService;
 import labvision.services.ReportService;
-import labvision.services.StudentCourseService;
 import labvision.services.StudentService;
 import labvision.services.UserService;
 
 public class LabVisionServletContextListener implements ServletContextListener {
 
 	public static final String PATH_CONSTRUCTOR_ATTR = "pathConstructor";
-	public static final String STUDENT_COURSE_SERVICE_ATTR = "studentCourseService";
-	public static final String INSTRUCTOR_EXPERIMENT_SERVICE_ATTR = "instructorExperimentService";
-	public static final String STUDENT_EXPERIMENT_SERVICE_ATTR = "studentExperimentService";
+	public static final String COURSE_SERVICE_ATTR = "courseService";
 	public static final String STUDENT_DASHBOARD_SERVICE_ATTR = "studentDashboardService";
 	public static final String STUDENT_SERVICE_ATTR = "studentService";
 	public static final String EXPERIMENT_SERVICE_ATTR = "experimentService";
@@ -58,17 +54,11 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		ExperimentService experimentService = new ExperimentService(emf);
 		event.getServletContext().setAttribute(EXPERIMENT_SERVICE_ATTR, experimentService);
 		
-		JpaService studentDashboardService = new StudentDashboardService(emf, config);
+		JpaService studentDashboardService = new DashboardService(emf, config);
 		event.getServletContext().setAttribute(STUDENT_DASHBOARD_SERVICE_ATTR, studentDashboardService);
 		
-		StudentExperimentService studentExperimentService = new StudentExperimentService(emf);
-		event.getServletContext().setAttribute(STUDENT_EXPERIMENT_SERVICE_ATTR, studentExperimentService);
-		
-		StudentCourseService studentCourseService = new StudentCourseService(emf);
-		event.getServletContext().setAttribute(STUDENT_COURSE_SERVICE_ATTR, studentCourseService);
-		
-		InstructorExperimentService instructorExperimentService = new InstructorExperimentService(emf);
-		event.getServletContext().setAttribute(INSTRUCTOR_EXPERIMENT_SERVICE_ATTR, instructorExperimentService);
+		CourseService studentCourseService = new CourseService(emf);
+		event.getServletContext().setAttribute(COURSE_SERVICE_ATTR, studentCourseService);
 		
 		ReportService reportService = new ReportService(emf, config);
 		event.getServletContext().setAttribute(REPORT_SERVICE_ATTR, reportService);

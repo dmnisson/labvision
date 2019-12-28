@@ -24,9 +24,9 @@ import labvision.dto.student.dashboard.CurrentExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
 import labvision.dto.student.dashboard.RecentExperimentForStudentDashboard;
 import labvision.entities.Student;
-import labvision.services.StudentCourseService;
-import labvision.services.StudentDashboardService;
-import labvision.services.StudentExperimentService;
+import labvision.services.ExperimentService;
+import labvision.services.CourseService;
+import labvision.services.DashboardService;
 
 class TestStudentServlet {
 
@@ -71,9 +71,9 @@ class TestStudentServlet {
 		LabVisionConfig labVisionConfig = mock(LabVisionConfig.class);
 		PathConstructor pathConstructor = mock(PathConstructor.class);
 		
-		StudentDashboardService studentDashboardService = mock(StudentDashboardService.class);
-		StudentExperimentService studentExperimentService = mock(StudentExperimentService.class);
-		StudentCourseService studentCourseService = mock(StudentCourseService.class);
+		DashboardService studentDashboardService = mock(DashboardService.class);
+		ExperimentService experimentService = mock(ExperimentService.class);
+		CourseService courseService = mock(CourseService.class);
 		
 		when(studentDashboardService.getCurrentExperiments(student.getId()))
 			.thenReturn(Arrays.asList(activeExperiment1));
@@ -90,10 +90,10 @@ class TestStudentServlet {
 			.thenReturn(labVisionConfig);
 		when(servletContext.getAttribute(LabVisionServletContextListener.STUDENT_DASHBOARD_SERVICE_ATTR))
 			.thenReturn(studentDashboardService);
-		when(servletContext.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR))
-			.thenReturn(studentExperimentService);
-		when(servletContext.getAttribute(LabVisionServletContextListener.STUDENT_COURSE_SERVICE_ATTR))
-			.thenReturn(studentCourseService);
+		when(servletContext.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR))
+			.thenReturn(experimentService);
+		when(servletContext.getAttribute(LabVisionServletContextListener.COURSE_SERVICE_ATTR))
+			.thenReturn(courseService);
 		when(servletContext.getAttribute(LabVisionServletContextListener.PATH_CONSTRUCTOR_ATTR))
 			.thenReturn(pathConstructor);
 		

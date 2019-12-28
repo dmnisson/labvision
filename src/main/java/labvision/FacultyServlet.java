@@ -30,7 +30,6 @@ import labvision.entities.MeasurementValue;
 import labvision.entities.Student;
 import labvision.models.NavbarModel;
 import labvision.services.ExperimentService;
-import labvision.services.InstructorExperimentService;
 import labvision.services.InstructorService;
 import labvision.utils.ThrowingWrappers;
 
@@ -183,17 +182,17 @@ public class FacultyServlet extends HttpServlet {
 	}
 
 	private void doGetExperiment(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String experimentIdString) throws ServletException, IOException {
-		InstructorExperimentService instructorExperimentService = (InstructorExperimentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.INSTRUCTOR_EXPERIMENT_SERVICE_ATTR);
+		ExperimentService experimentService = (ExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
 		
 		Instructor instructor = (Instructor) session.getAttribute("user");
 		int instructorId = instructor.getId();
 		int experimentId = Integer.parseInt(experimentIdString);
-		Experiment experiment = instructorExperimentService.getExperiment(
+		Experiment experiment = experimentService.getExperiment(
 				experimentId, ExperimentPrefetch.PREFETCH_VALUES);
 		
-		List<MeasurementForExperimentView> measurements = instructorExperimentService.getMeasurements(experimentId);
-		Map<Integer, Map<Integer, Map<Integer, List<MeasurementValueForFacultyExperimentView>>>> measurementValues = instructorExperimentService.getMeasurementValues(experimentId, instructorId);
+		List<MeasurementForExperimentView> measurements = experimentService.getMeasurements(experimentId);
+		Map<Integer, Map<Integer, Map<Integer, List<MeasurementValueForFacultyExperimentView>>>> measurementValues = experimentService.getMeasurementValuesForInstructor(experimentId, instructorId);
 		
 		req.setAttribute("experiment", experiment);
 		req.setAttribute("measurements", measurements);
@@ -201,7 +200,7 @@ public class FacultyServlet extends HttpServlet {
 				.map(MeasurementForExperimentView::getId)
 				.collect(Collectors.toMap(
 						Function.identity(),
-						id -> instructorExperimentService.getParameters(id))));
+						id -> experimentService.getParameters(id))));
 		req.setAttribute("measurementValues", measurementValues);
 		req.setAttribute("parameterValues", measurements.stream()
 				.map(MeasurementForExperimentView::getId)
@@ -213,7 +212,7 @@ public class FacultyServlet extends HttpServlet {
 							.map(MeasurementValueForExperimentView::getId)
 							.collect(Collectors.toMap(
 									Function.identity(),
-									vid -> instructorExperimentService.getParameterValues(vid))))));
+									vid -> experimentService.getParameterValues(vid))))));
 		req.setAttribute("editMeasurementPaths", getEditMeasurementPaths(
 				measurements.stream()
 					.map(MeasurementForExperimentView::getId)
@@ -223,12 +222,12 @@ public class FacultyServlet extends HttpServlet {
 	}
 
 	private void doGetExperiments(HttpServletRequest req, HttpServletResponse resp, HttpSession session) throws ServletException, IOException {		
-		InstructorExperimentService instructorExperimentService = (InstructorExperimentService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.INSTRUCTOR_EXPERIMENT_SERVICE_ATTR);
+		ExperimentService experimentService = (ExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
 				
 		Instructor instructor = (Instructor) session.getAttribute("user");
 		int instructorId = instructor.getId();
-		List<ExperimentForFacultyExperimentTable> experiments = instructorExperimentService.getExperiments(instructorId);
+		List<ExperimentForFacultyExperimentTable> experiments = experimentService.getExperiments(instructorId);
 		
 		req.setAttribute("experiments", experiments);
 		req.setAttribute("experimentPaths", getExperimentPaths(

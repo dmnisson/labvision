@@ -14,10 +14,10 @@ import labvision.dto.student.dashboard.RecentExperimentForStudentDashboard;
 import labvision.entities.Experiment;
 import labvision.entities.Instructor;
 
-public class StudentDashboardService extends JpaService {
+public class DashboardService extends JpaService {
 	private final LabVisionConfig config;
 	
-	public StudentDashboardService(EntityManagerFactory entityManagerFactory, LabVisionConfig config) {
+	public DashboardService(EntityManagerFactory entityManagerFactory, LabVisionConfig config) {
 		super(entityManagerFactory);
 		this.config = config;
 	}
