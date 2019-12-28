@@ -5,6 +5,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Scanner;
 
+import javax.measure.quantity.Length;
 import javax.measure.quantity.Temperature;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -18,14 +19,17 @@ import labvision.entities.Instructor;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
 import labvision.entities.Parameter;
-import labvision.entities.QuantityTypeId;
+import labvision.entities.ReportDocument;
+import labvision.entities.ReportedResult;
+import labvision.entities.Result;
 import labvision.entities.Student;
 import labvision.entities.User;
 import labvision.services.CourseService;
 import labvision.services.ExperimentService;
+import labvision.services.InstructorService;
 import labvision.services.JpaService;
+import labvision.services.StudentService;
 import labvision.services.UserService;
-import tec.units.ri.quantity.QuantityDimension;
 
 /**
  * Initialize the database with test users
@@ -63,6 +67,9 @@ public class InitDatabase {
 		JpaService.clearTable(MeasurementValue.class, manager);
 		JpaService.clearTable(CourseClass.class, manager);
 		JpaService.clearTable(Measurement.class, manager);
+		JpaService.clearTable(ReportedResult.class, manager);
+		JpaService.clearTable(ReportDocument.class, manager);
+		JpaService.clearTable(Result.class, manager);
 		JpaService.clearTable(Student.class, manager);
 		JpaService.clearTable(Experiment.class, manager);
 		JpaService.clearTable(Course.class, manager);
@@ -75,46 +82,40 @@ public class InitDatabase {
 		Instructor instructor1 = new Instructor();
 		instructor1.setUsername("instructor1");
 		
-		// experiment
-		Experiment rodLengthExperiment = new Experiment();
-		rodLengthExperiment.setName("How Long is the Rod?");
-		rodLengthExperiment.setDescription("Measure the rod length using the ruler the best that you can.");
-		rodLengthExperiment.setReportDueDate(LocalDateTime.of(2100, 1, 1, 0, 0));
+		CourseService courseService = new CourseService(emf);
+		ExperimentService experimentService = new ExperimentService(emf);
 		
 		// course
 		Course course = new Course();
 		course.setName("Physics 101");
-		course.addExperiment(rodLengthExperiment);
+		courseService.addCourse(course);
+		
+		// experiment
+		Experiment rodLengthExperiment = courseService.addExperiment(
+				course,
+				"How long is the rod?",
+				"Measure the rod length using the ruler the best that you can.",
+				LocalDateTime.of(2100, 1, 1, 0, 0));
 		
 		// course class
-		CourseClass courseClass = new CourseClass();
-		courseClass.setName("Test Physics 101 Class");
-		courseClass.addStudent(student1);
-		courseClass.addInstructor(instructor1);
-		course.addCourseClass(courseClass);
+		CourseClass courseClass = courseService.addCourseClass(course, "Test Physics 101 Class");
+		courseClass = courseService.addStudentToCourseClass(courseClass.getId(), student1);
+		courseClass = courseService.addInstructorToCourseClass(courseClass.getId(), instructor1);
 		
 		// measurement
-		Measurement rodLengthMeasurement = new Measurement();
-		rodLengthMeasurement.setName("Length");
-		rodLengthMeasurement.setQuantityTypeId(QuantityTypeId.LENGTH);
-		rodLengthMeasurement.updateDimensionObject(QuantityDimension.LENGTH);
+		Measurement rodLengthMeasurement = experimentService.addMeasurement(
+				rodLengthExperiment, "Length", Length.class);
 		
 		// parameter
-		Parameter temperatureParameter = rodLengthMeasurement.addParameter("Temperature", Temperature.class);
-		rodLengthExperiment.addMeasurement(rodLengthMeasurement);
+		experimentService.addParameter(
+				rodLengthMeasurement, "Temperature", Temperature.class);
 		
-		student1.addActiveExperiment(rodLengthExperiment);
-		instructor1.addExperiment(rodLengthExperiment);
-		
-		CourseService courseService = new CourseService(emf);
-		ExperimentService experimentService = new ExperimentService(emf);
 		UserService userService = new UserService(emf);
-		
-		courseService.addCourse(course);
-		experimentService.addExperiment(rodLengthExperiment);
+		InstructorService instructorService = new InstructorService(emf);
+		StudentService studentService = new StudentService(emf, config);
 		
 		SecureRandom random = new SecureRandom();
-		try {
+		try {			
 			student1.updatePassword(config, random, "Password123");
 			userService.addUser(student1);
 			System.out.println("User student1 added");
@@ -122,6 +123,9 @@ public class InitDatabase {
 			instructor1.updatePassword(config, random, "Password123");
 			userService.addUser(instructor1);
 			System.out.println("User instructor1 added");
+			
+			instructorService.addExperiment(instructor1.getId(), rodLengthExperiment.getId());
+			studentService.addActiveExperiment(student1.getId(), rodLengthExperiment.getId());
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}

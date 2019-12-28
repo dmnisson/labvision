@@ -1,8 +1,6 @@
 package labvision.services;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -10,10 +8,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.measure.Dimension;
 import javax.measure.Quantity;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -22,17 +19,19 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import labvision.ExperimentPrefetch;
+import labvision.dto.experiment.ExperimentInfo;
 import labvision.dto.experiment.MeasurementForExperimentView;
 import labvision.dto.experiment.ParameterForExperimentView;
 import labvision.dto.experiment.ParameterValueForExperimentView;
+import labvision.dto.experiment.report.ResultInfo;
 import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
 import labvision.entities.Experiment_;
+import labvision.entities.Instructor;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
 import labvision.entities.Measurement_;
 import labvision.entities.Parameter;
-import labvision.entities.ParameterValue;
 import labvision.entities.Student;
 import labvision.measure.Amount;
 import labvision.measure.SI;
@@ -176,6 +175,110 @@ public class ExperimentService extends JpaService {
 		});
 	}
 	
+	/**
+	 * Add a measurement to an experiment
+	 * @param experiment the experiment to add
+	 * @param name the name of the measurement
+	 * @param quantityClass the quantity type
+	 * @throws IllegalArgumentException if the quantity type is unknown
+	 * @return the new measurement
+	 */
+	public <Q extends Quantity<Q>> Measurement addMeasurement(
+			Experiment experiment, String name, Class<Q> quantityClass) {
+		return withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Measurement measurement = experiment.addMeasurement(name, quantityClass);
+			manager.persist(measurement);
+			manager.merge(experiment);
+			
+			manager.getTransaction().commit();
+			
+			return measurement;
+		});
+	}
+	
+	/**
+	 * Add a measurement to an experiment
+	 * @param experiment the experiment to add
+	 * @param name the name of the measurement
+	 * @param quantityClass the quantity type
+	 * @param dimension the dimension; may be null if the quantity class is recognized
+	 * @throws IllegalArgumentException if the dimension is unspecified for an unknown quantity type or if the dimension 
+	 * is inconsistent with that of the quantity type
+	 * @return the new measurement
+	 */
+	public <Q extends Quantity<Q>> Measurement addMeasurement(
+			Experiment experiment, String name, Class<Q> quantityClass, Dimension dimension) {
+		return withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Measurement measurement = experiment.addMeasurement(name, quantityClass, dimension);
+			manager.persist(measurement);
+			manager.merge(experiment);
+			
+			manager.getTransaction().commit();
+			
+			return measurement;
+		});
+	}
+	
+	/**
+	 * Add a parameter to a measurement
+	 * @param measurement the measurement
+	 * @param name the parameter name
+	 * @param quantityType the quantity type
+	 * @throws IllegalArgumentException if the quantity type is unknown
+	 * @return the new parameter
+	 */
+	public <Q extends Quantity<Q>> Parameter addParameter(Measurement measurement, String name, Class<Q> quantityType) {
+		return withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Parameter parameter = measurement.addParameter(name, quantityType);
+			manager.persist(parameter);
+			manager.merge(measurement);
+			
+			manager.getTransaction().commit();
+			
+			return parameter;
+		});
+	}
+	
+	/**
+	 * Add a parameter to a measurement
+	 * @param measurement the measurement
+	 * @param name the parameter name
+	 * @param quantityType the quantity type
+	 * @param dimension the dimension; may be null if known from quantity type
+	 * @throws IllegalArgumentException if the dimension is unspecified for an unknown quantity type or if the dimension 
+	 * is inconsistent with that of the quantity type
+	 * @return the new parameter
+	 */
+	public <Q extends Quantity<Q>> Parameter addParameter(Measurement measurement, String name, Class<Q> quantityType, Dimension dimension) {
+		return withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Parameter parameter = measurement.addParameter(name, quantityType, dimension);
+			manager.persist(parameter);
+			manager.merge(measurement);
+			
+			manager.getTransaction().commit();
+			
+			return parameter;
+		});
+	}
+	
+	/**
+	 * Add a measurement value
+	 * @param student
+	 * @param measurement
+	 * @param measurementAmount
+	 * @param parameterAmounts
+	 * @param courseClass
+	 * @return
+	 */
+	
 	public MeasurementValue addMeasurementValue(Student student, Measurement measurement,
 			Amount<?> measurementAmount, Map<Parameter, Amount<?>> parameterAmounts, CourseClass courseClass) {
 		return withEntityManager(manager -> {
@@ -248,6 +351,61 @@ public class ExperimentService extends JpaService {
 							Function.identity(),
 							p -> p.systemUnit(p.getQuantityTypeId().getQuantityClass().getQuantityType())
 							.getSymbol()));
+		});
+	}
+	
+	public ExperimentInfo getExperimentInfo(int experimentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.experiment.ExperimentInfo(" +
+					"	e.id," +
+					"	e.name," +
+					"	e.course.name" +
+					") FROM Experiment e " +
+					"WHERE e.id=:experimentid";
+			TypedQuery<ExperimentInfo> query = manager.createQuery(queryString, ExperimentInfo.class);
+			query.setParameter("experimentid", experimentId);
+			return query.getResultStream().findAny().orElse(null);
+		});
+	}
+
+	public List<ResultInfo> getAcceptedResults(int experimentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.experiment.report.ResultInfo(" +
+					"	ar.id," +
+					"	ar.name," +
+					"	ar.value.value," +
+					"	ar.value.uncertainty," +
+					"	ar.variable.quantityTypeId" +
+					") FROM Experiment e " +
+					"JOIN e.acceptedResults ar " +
+					"WHERE e.id=:experimentid";
+			TypedQuery<ResultInfo> query = manager.createQuery(queryString, ResultInfo.class);
+			query.setParameter("experimentid", experimentId);
+			return query.getResultList();
+		});
+	}
+	
+	public LocalDateTime getReportDueDate(int experimentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT e.reportDueDate FROM Experiment e " +
+					"WHERE e.id=:experimentid";
+			TypedQuery<LocalDateTime> query = manager.createQuery(queryString, LocalDateTime.class);
+			query.setParameter("experimentid", experimentId);
+			return query.getResultStream().findAny().orElse(null);
+		});
+	}
+
+	public List<Integer> getInstructorIdsFor(int experimentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT e.instructors.id FROM Experiment e " +
+					"WHERE e.id=:experimentid";
+			TypedQuery<Integer> query = manager.createQuery(queryString, Integer.class);
+			query.setParameter("experimentid", experimentId);
+			return query.getResultList();
 		});
 	}
 }

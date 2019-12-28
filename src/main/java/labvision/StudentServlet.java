@@ -1,11 +1,16 @@
 package labvision;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,15 +20,21 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 
 import org.jboss.logging.Logger;
 
+import labvision.dto.experiment.ExperimentInfo;
 import labvision.dto.experiment.MeasurementForExperimentView;
 import labvision.dto.experiment.MeasurementValueForExperimentView;
+import labvision.dto.experiment.report.ReportForReportView;
+import labvision.dto.experiment.report.ResultInfo;
 import labvision.dto.student.dashboard.CurrentExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.ExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
@@ -34,23 +45,31 @@ import labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
+import labvision.entities.FileType;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
 import labvision.entities.Parameter;
+import labvision.entities.ReportDocument;
+import labvision.entities.ReportDocumentType;
+import labvision.entities.ReportedResult;
 import labvision.entities.Student;
 import labvision.measure.Amount;
 import labvision.measure.SI;
 import labvision.models.NavbarModel;
 import labvision.services.ExperimentService;
+import labvision.services.ReportService;
 import labvision.services.ServletMappingNotFoundException;
 import labvision.services.ServletNotFoundException;
 import labvision.services.StudentCourseService;
 import labvision.services.StudentDashboardService;
 import labvision.services.StudentExperimentService;
-import labvision.services.StudentReportService;
 import labvision.services.StudentService;
+import labvision.utils.StringUtils;
 import labvision.utils.ThrowingWrappers;
 
+@MultipartConfig(fileSizeThreshold = 1024 * 1024,
+	maxFileSize = 1024 * 1024 * 5, 
+	maxRequestSize = 1024 * 1024 * 5 * 5)
 public class StudentServlet extends HttpServlet {
 	/**
 	 * Version 0.0.1
@@ -63,38 +82,47 @@ public class StudentServlet extends HttpServlet {
 			+ "This is likely a problem with the app configuration. "
 			+ "Please contact your institution for assistance.";
 	
-	private IPathConstructor getPathConstructor(ServletContext context) {
-		return (IPathConstructor) context.getAttribute(LabVisionServletContextListener.PATH_CONSTRUCTOR_ATTR);
+	private IPathConstructor getPathConstructor() {
+		return (IPathConstructor) getServletContext().getAttribute(LabVisionServletContextListener.PATH_CONSTRUCTOR_ATTR);
+	}
+	
+	/**
+	 * Get experiment detail view for an experiment ID
+	 * @param id the experiment ID
+	 * @return the detail view path
+	 * @throws ServletMappingNotFoundException 
+	 * @throws ServletNotFoundException 
+	 */
+	private String getExperimentPath(int id) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return getPathConstructor()
+				.getPathFor(STUDENT_SERVLET_NAME, "/experiment/" + id);
 	}
 	
 	/**
 	 * Retrieve mapping of experiment IDs to paths for experiment detail views
 	 * @param experimentIds the IDs
-	 * @param context the servlet context
 	 * @return the mapping of experiment IDs to paths
 	 */
-	private Map<Integer, String> getExperimentPaths(Collection<? extends Integer> experimentIds, ServletContext context) {
+	private Map<Integer, String> getExperimentPaths(Collection<? extends Integer> experimentIds) {
 		return experimentIds.stream().distinct()
 				.collect(Collectors.toMap(
 						Function.identity(), 
 						ThrowingWrappers.throwingFunctionWrapper(id ->
-								getPathConstructor(context)
-									.getPathFor(STUDENT_SERVLET_NAME, "/experiment/" + id))
-						));
+								getExperimentPath(id)
+						)));
 	}
 	
 	/**
 	 * Retrieve mapping of measurement IDs to paths for creating new measurement values
 	 * @param measurementIds the IDs
-	 * @param context the servlet context
 	 * @return the mapping of measurement IDs to new-value paths
 	 */
-	private Map<Integer, String> getNewMeasurementValuePaths(Collection<? extends Integer> measurementIds, ServletContext context) {
+	private Map<Integer, String> getNewMeasurementValuePaths(Collection<? extends Integer> measurementIds) {
 		return measurementIds.stream().distinct()
 				.collect(Collectors.toMap(
 						Function.identity(),
 						ThrowingWrappers.throwingFunctionWrapper(
-								id -> getPathConstructor(context)
+								id -> getPathConstructor()
 									.getPathFor(STUDENT_SERVLET_NAME, "/measurement/newvalue/" + id))
 						));
 	}
@@ -102,28 +130,85 @@ public class StudentServlet extends HttpServlet {
 	/**
 	 * Retrieve mapping of report IDs to report view paths
 	 * @param reportIds the report IDs
-	 * @param context the servlet context
 	 * @return the mapping of report IDs to report view paths
 	 * @throws ServletNotFoundException
 	 * @throws ServletMappingNotFoundException
 	 */
-	private Map<Integer, String> getReportPaths(Collection<? extends Integer> reportIds, ServletContext context) throws ServletNotFoundException, ServletMappingNotFoundException {
+	private Map<Integer, String> getReportPaths(Collection<? extends Integer> reportIds) throws ServletNotFoundException, ServletMappingNotFoundException {
 		return reportIds.stream()
 				.collect(Collectors.toMap(Function.identity(), 
 						ThrowingWrappers.throwingFunctionWrapper(
-								id -> getPathConstructor(context)
-									.getPathFor(STUDENT_SERVLET_NAME, "/report/" + id))));
+								id -> getReportPath(id)
+								)));
+	}
+	
+	/**
+	 * Retrieve mapping of experiment IDs to paths for creating new reports
+	 * @param experimentIds the experiment IDs
+	 * @return the mapping of experiment IDs to new report form paths
+	 * @throws ServletNotFoundException
+	 * @throws ServletMappingNotFoundException
+	 */
+	private Map<Integer, String> getNewReportPaths(Collection<? extends Integer> experimentIds) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return experimentIds.stream()
+				.collect(Collectors.toMap(Function.identity(), 
+						ThrowingWrappers.throwingFunctionWrapper(
+								eid -> getNewReportPath(eid)
+								)));
+	}
+	
+	/**
+	 * Get the detail path for the given report ID
+	 * @param id the report ID
+	 * @return the detail view path
+	 * @throws ServletNotFoundException
+	 * @throws ServletMappingNotFoundException
+	 */
+	private String getReportPath(int id) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return getPathConstructor().getPathFor(STUDENT_SERVLET_NAME, "/report/" + id);
 	}
 	
 	/**
 	 * Get the path for creating a new report
-	 * @param context the servlet context
 	 * @return the path
 	 * @throws ServletNotFoundException
 	 * @throws ServletMappingNotFoundException
 	 */
-	private String getNewReportPath(ServletContext context) throws ServletNotFoundException, ServletMappingNotFoundException {
-		return getPathConstructor(context).getPathFor(STUDENT_SERVLET_NAME, "/report/new");
+	private String getNewReportPath(int experimentId) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return getPathConstructor().getPathFor(STUDENT_SERVLET_NAME, "/report/new/" + experimentId);
+	}
+	
+	/**
+	 * Get the path for editing a report
+	 * @param id the report ID
+	 * @return the path
+	 * @throws ServletNotFoundException
+	 * @throws ServletMappingNotFoundException
+	 */
+	private String getEditReportPath(int id) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return getPathConstructor().getPathFor(STUDENT_SERVLET_NAME, "/report/edit/" + id);
+	}
+	
+	/**
+	 * Get the path for changing the report document
+	 * @param id the report ID
+	 * @return the path
+	 * @throws ServletNotFoundException
+	 * @throws ServletMappingNotFoundException
+	 */
+	private String getUpdateReportDocumentPath(int id) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return getPathConstructor().getPathFor(STUDENT_SERVLET_NAME, "/report/changedoc/" + id);
+	}
+	
+	/**
+	 * Get the path that allows the user to see a form element to change the report document
+	 * @param id the report ID
+	 * @return the path
+	 * @throws ServletNotFoundException
+	 * @throws ServletMappingNotFoundException
+	 */
+	private String getChangeFilesystemReportDocumentPath(int id) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return getEditReportPath(id) + "?uploadfile=true";
 	}
 	
 	/**
@@ -136,9 +221,20 @@ public class StudentServlet extends HttpServlet {
 		return courseIds.stream().distinct()
 				.collect(Collectors.toMap(Function.identity(),
 					ThrowingWrappers.throwingFunctionWrapper(
-							id -> getPathConstructor(context)
+							id -> getPathConstructor()
 								.getPathFor(STUDENT_SERVLET_NAME, "/course/" + id))));
 	}
+	
+	/**
+	 * Send and log errors in URL computations
+	 * @param exception the exception
+	 */
+	private void handleURLComputationError(HttpServletResponse response, Exception exception) throws IOException {
+		Logger.getLogger(this.getClass())
+			.error(URL_COMPUTATION_ERROR_MESSAGE, exception);
+		response.sendError(500, URL_COMPUTATION_ERROR_MESSAGE);
+	}
+	
 	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -158,18 +254,14 @@ public class StudentServlet extends HttpServlet {
 				try {
 					doGetExperiments(request, response, session);
 				} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
-					Logger.getLogger(this.getClass())
-						.error(URL_COMPUTATION_ERROR_MESSAGE, e);
-					response.sendError(500, URL_COMPUTATION_ERROR_MESSAGE);
+					handleURLComputationError(response, e);
 				}
 				break;
 			case "experiment":
 				try {
 					doGetExperiment(request, response, session, pathParts[2]);
 				} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
-					Logger.getLogger(this.getClass())
-						.error(URL_COMPUTATION_ERROR_MESSAGE, e);
-					response.sendError(500, URL_COMPUTATION_ERROR_MESSAGE);
+					handleURLComputationError(response, e);
 				}
 				break;
 			case "measurement":
@@ -179,7 +271,14 @@ public class StudentServlet extends HttpServlet {
 				doGetReports(request, response, session);
 				break;
 			case "report":
-				doGetReport(request, response, session, pathParts[2]);
+				try {
+					doGetReport(request, response, session, pathParts[2],
+							pathParts.length > 3 ? pathParts[3] : null);
+				} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
+					Logger.getLogger(this.getClass())
+						.error(URL_COMPUTATION_ERROR_MESSAGE, e);
+					response.sendError(500, URL_COMPUTATION_ERROR_MESSAGE);
+				}
 				break;
 			case "courses":
 				doGetCourses(request, response, session);
@@ -198,6 +297,8 @@ public class StudentServlet extends HttpServlet {
 			}
 		}
 	}
+
+
 
 	private void doGetMeasurement(HttpServletRequest request, HttpServletResponse response, HttpSession session,
 			String string) {
@@ -225,11 +326,90 @@ public class StudentServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		
 	}
-
+	
 	private void doGetReport(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-			String string) {
-		// TODO Auto-generated method stub
+			String action, String arg) throws ServletException, IOException, ServletNotFoundException, ServletMappingNotFoundException {		
 		
+		ReportService reportService = (ReportService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.REPORT_SERVICE_ATTR);
+		ExperimentService experimentService = (ExperimentService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
+		
+		Student student = (Student) session.getAttribute("user");
+		int studentId = student.getId();
+		
+		int reportId, experimentId;
+		List<ResultInfo> acceptedResults;
+		String reportDocumentURL;
+		String actionURL;
+		
+		if (action.equals("new")) {
+			experimentId = Integer.parseInt(arg);
+			acceptedResults = experimentService.getAcceptedResults(experimentId);
+			actionURL = getNewReportPath(experimentId);
+			
+		} else {
+			// action is to be performed on the specified report
+			// only id with no action name means show report details
+			reportId = Integer.parseInt(arg == null ? action : arg);
+			
+			// ensure student is authorized to access report
+			if (!reportService.getReportStudentId(reportId).equals(studentId)) {
+				// early exit
+				response.sendError(403, "You are not authorized to access this resource.");
+				return;
+			}
+			
+			ReportForReportView reportData = reportService.getReport(reportId);
+			acceptedResults = reportService.getAcceptedResults(reportId);
+			reportDocumentURL = reportService.getDocumentURL(
+					reportId,
+					getServletContext(),
+					request.getServerName(),
+					request.getServerPort()
+					);
+			experimentId = reportData.getExperimentId();
+			actionURL = action.equals("edit") ? getEditReportPath(reportId) : getReportPath(reportId);
+			
+			request.setAttribute("name", reportData.getName());
+			request.setAttribute("documentFileType", reportData.getDocumentFileType());
+			request.setAttribute("documentType", reportData.getDocumentType());
+			request.setAttribute("filename", reportData.getFilename());
+			request.setAttribute("documentLastUpdated", reportData.getDocumentLastUpdated());
+			request.setAttribute("reportDocumentURL", reportDocumentURL);
+			request.setAttribute("score", reportData.getScore());
+			if (!action.equals("edit")) {
+				request.setAttribute("editPath", getEditReportPath(reportId));
+			}
+		}
+		
+		if (action.matches("new|edit")) {
+			// ensure that the deadline has not passed
+			LocalDateTime reportDueDate = experimentService.getReportDueDate(experimentId);
+			if (reportDueDate.isBefore(LocalDateTime.now())) {
+				// early exit
+				response.sendError(403, "The deadline to submit reports has passed for this experiment.");
+				return;
+			}
+		}
+		
+		ExperimentInfo experimentInfo = experimentService.getExperimentInfo(experimentId);
+		
+		request.setAttribute("experiment", experimentInfo);
+		request.setAttribute("acceptedResults", acceptedResults);
+		
+		if (action.matches("new|edit")) {
+			request.setAttribute("actionUrl", actionURL);			
+			request.setAttribute(
+					"changeReportFilesystemDocumentPath",
+					actionURL + "?uploadfile=true"
+					);
+			request.getRequestDispatcher("/WEB-INF/student/editreport.jsp")
+				.forward(request, response);
+		} else {
+			request.getRequestDispatcher("/WEB-INF/student/report.jsp")
+				.forward(request, response);
+		}
 	}
 
 	private void doGetReports(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
@@ -241,8 +421,6 @@ public class StudentServlet extends HttpServlet {
 			String experimentIdString) throws ServletException, IOException, ServletNotFoundException, ServletMappingNotFoundException {
 		StudentExperimentService studentExperimentService = (StudentExperimentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR);
-		StudentReportService studentReportService = (StudentReportService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.STUDENT_REPORT_SERVICE_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
 		int studentId = student.getId();
@@ -273,23 +451,29 @@ public class StudentServlet extends HttpServlet {
 									vid -> studentExperimentService.getParameterValues(vid))))));
 		request.setAttribute("reportedResults", reportedResults);
 		request.setAttribute("reportPaths", getReportPaths(reportedResults.stream()
-				.map(ReportedResultForStudentExperimentView::getId).collect(Collectors.toList()), getServletContext()));
-		request.setAttribute("newReportPath", getNewReportPath(getServletContext()));
+				.map(ReportedResultForStudentExperimentView::getId).collect(Collectors.toList())));
+		request.setAttribute("reportEditPaths", getEditReportPaths(reportedResults.stream()
+				.map(ReportedResultForStudentExperimentView::getId).collect(Collectors.toList())));
+		request.setAttribute("newReportPath", getNewReportPath(experimentId));
 		request.setAttribute("newMeasurementValuePaths", getNewMeasurementValuePaths(
 				measurements.stream()
 					.collect(Collectors.mapping(
 							MeasurementForExperimentView::getId,
-							Collectors.toList())),
-				getServletContext()));
+							Collectors.toList()))));
 		
 		request.getRequestDispatcher("/WEB-INF/student/experiment.jsp").forward(request, response);
+	}
+
+	private Map<Integer, String> getEditReportPaths(List<Integer> reportIds) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return reportIds.stream().distinct()
+				.collect(Collectors.toMap(Function.identity(), 
+						ThrowingWrappers.throwingFunctionWrapper(
+								id -> getEditReportPath(id))));
 	}
 
 	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException, ServletNotFoundException, ServletMappingNotFoundException {
 		StudentExperimentService studentExperimentService = (StudentExperimentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_EXPERIMENT_SERVICE_ATTR);
-		StudentReportService studentReportService = (StudentReportService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.STUDENT_REPORT_SERVICE_ATTR);
 		
 		int studentId = ((Student) session.getAttribute("user")).getId();
 		
@@ -299,15 +483,13 @@ public class StudentServlet extends HttpServlet {
 		List<PastExperimentForStudentExperimentTable> pastExperiments = studentExperimentService.getPastExperiments(studentId);
 		request.setAttribute("pastExperiments", pastExperiments);
 		
-		request.setAttribute("experimentPaths",
-				getExperimentPaths(
-						Stream.concat(currentExperiments.stream(), pastExperiments.stream())
-							.map(ExperimentForStudentExperimentTable::getId)
-							.collect(Collectors.toList()),
-						getServletContext())
-				);
+		List<Integer> pathMapKeys = Stream.concat(currentExperiments.stream(), pastExperiments.stream())
+			.map(ExperimentForStudentExperimentTable::getId)
+			.collect(Collectors.toList());
 		
-		request.setAttribute("newReportPath", getNewReportPath(getServletContext()));
+		request.setAttribute("experimentPaths", getExperimentPaths(pathMapKeys));
+		
+		request.setAttribute("newReportPaths", getNewReportPaths(pathMapKeys));
 		
 		request.getRequestDispatcher("/WEB-INF/student/experiments.jsp").forward(request, response);
 	}
@@ -336,8 +518,7 @@ public class StudentServlet extends HttpServlet {
 				getExperimentPaths(
 						Stream.concat(currentExperiments.stream(), recentExperiments.stream())
 						.map(ExperimentForStudentDashboard::getId)
-						.collect(Collectors.toList()),
-				getServletContext()
+						.collect(Collectors.toList())
 				));
 		
 		request.setAttribute("coursePaths", 
@@ -366,7 +547,12 @@ public class StudentServlet extends HttpServlet {
 				doPostMeasurement(request, response, session, Arrays.copyOfRange(pathParts, 2, pathParts.length));
 				break;
 			case "report":
-				doPostReport(request, response, session, pathParts[2]);
+				try {
+					doPostReport(request, response, session, pathParts[2],
+							pathParts.length > 3 ? pathParts[3] : null);
+				} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
+					handleURLComputationError(response, e);
+				}
 				break;
 			default:
 				doPost404(request, response);
@@ -375,9 +561,121 @@ public class StudentServlet extends HttpServlet {
 	}
 
 	private void doPostReport(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-			String string) {
-		// TODO Auto-generated method stub
+			String action, String arg) throws IOException, ServletException, ServletNotFoundException, ServletMappingNotFoundException {
+		Student student = (Student) session.getAttribute("user");
 		
+		ReportService reportService = (ReportService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.REPORT_SERVICE_ATTR);
+		
+		String reportName = request.getParameter("reportName");
+		
+		ReportDocumentType documentType = ReportDocumentType
+				.valueOf(request.getParameter("documentType"));
+		String externalDocumentURL = request.getParameter("externalDocumentURL");
+		
+		List<Part> fileParts = request.getParts().stream()
+				.filter(part -> part.getContentType() != null)
+				.collect(Collectors.toList());
+		
+		switch (action) {
+		case "new":
+			int experimentId = Integer.parseInt(arg);
+			int studentId = student.getId();
+			
+			ReportedResult report;
+			
+			if (StringUtils.isNullOrEmpty(request.getParameter("documentType"))) {
+				report = reportService.createBasicReport(experimentId, studentId, reportName);
+			} else {
+				switch (documentType) {
+				case EXTERNAL:
+					if (externalDocumentURL == null) {
+						report = reportService.createBasicReport(experimentId, studentId, reportName);
+					} else {
+						report = reportService.createExternalReport(
+								experimentId,
+								studentId,
+								reportName,
+								externalDocumentURL
+						);
+					}
+					break;
+				case FILESYSTEM:
+					if (fileParts.isEmpty()) {
+						report = reportService.createBasicReport(
+								experimentId,
+								studentId,
+								reportName
+						);
+					} else if (fileParts.size() == 1) {
+						Part part = fileParts.get(0);
+						
+						report = reportService.createFilesystemReport(
+								experimentId,
+								studentId,
+								reportName,
+								part.getContentType(),
+								part.getSubmittedFileName(),
+								part.getInputStream()
+						);
+					} else {
+						// early exit
+						response.sendError(400, "Multiple documents cannot be uploaded to a single report");
+						return;
+					}
+					break;
+				default:
+					throw new UnsupportedOperationException("Unsupported document type: " + documentType);
+				}
+				
+				response.sendRedirect(getReportPath(report.getId()));
+			}
+			break;
+		case "edit":
+			int reportId = Integer.parseInt(arg);
+			
+			if (StringUtils.isNullOrEmpty(request.getParameter("documentType"))) {
+				reportService.renameReport(reportId, reportName);
+			} else {
+				switch (documentType) {
+				case EXTERNAL:
+					if (!StringUtils.isNullOrEmpty(externalDocumentURL)) {
+						reportService.updateExternalReport(reportId, reportName, externalDocumentURL);
+					} else {
+						reportService.renameReport(reportId, reportName);
+					}
+					break;
+				case FILESYSTEM:
+					if (fileParts.isEmpty()) {
+						reportService.renameReport(reportId, reportName);
+						break;
+					}
+					
+					if (fileParts.size() > 1) {
+						response.sendError(400, "Multiple documents cannot be uploaded to a single report.");
+						break;
+					}
+					
+					Part part = fileParts.get(0);
+					
+					reportService.updateFilesystemReport(
+							reportId,
+							reportName,
+							part.getContentType(),
+							part.getSubmittedFileName(),
+							part.getInputStream()
+					);
+					break;
+				default:
+					throw new UnsupportedOperationException("Unsupported document type: " + documentType);
+				}
+			}
+			
+			response.sendRedirect(getReportPath(reportId));
+			break;
+		default:
+			response.sendError(400, "Unrecognized action: " + action);
+		}
 	}
 
 	private void doPostMeasurement(HttpServletRequest request, HttpServletResponse response, HttpSession session,
@@ -423,9 +721,7 @@ public class StudentServlet extends HttpServlet {
 					courseClass);
 			
 			try {
-				response.sendRedirect(
-						getPathConstructor(request.getServletContext())
-							.getPathFor(STUDENT_SERVLET_NAME, "/experiment/" + measurement.getExperiment().getId()));
+				response.sendRedirect(getExperimentPath(measurement.getExperiment().getId()));
 			} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
 				Logger.getLogger(StudentServlet.class).error("Could not redirect after measurement data saved", e);
 			}

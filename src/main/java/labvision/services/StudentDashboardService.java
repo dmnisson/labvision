@@ -11,6 +11,8 @@ import labvision.LabVisionConfig;
 import labvision.dto.student.dashboard.CurrentExperimentForStudentDashboard;
 import labvision.dto.student.dashboard.RecentCourseForStudentDashboard;
 import labvision.dto.student.dashboard.RecentExperimentForStudentDashboard;
+import labvision.entities.Experiment;
+import labvision.entities.Instructor;
 
 public class StudentDashboardService extends JpaService {
 	private final LabVisionConfig config;

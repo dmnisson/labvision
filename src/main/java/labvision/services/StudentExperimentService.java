@@ -118,6 +118,7 @@ public class StudentExperimentService extends ExperimentService {
 			String queryString =
 					"SELECT new labvision.dto.student.experiment.ReportedResultForStudentExperimentView(" +
 				    "	rr.id," +
+					"	rr.name," +
 				    "	rd.filename," +
 				    "	rr.added," +
 				    "	rr.score" +
