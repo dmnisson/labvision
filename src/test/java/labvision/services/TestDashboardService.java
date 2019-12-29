@@ -2,13 +2,12 @@ package labvision.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
-import javax.measure.Quantity;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Mass;
 import javax.measure.quantity.Time;
@@ -16,8 +15,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaDelete;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -126,9 +123,9 @@ class TestDashboardService {
 				initDateTime.plusDays(11)
 				));
 		
-		reportedResults.add(experiments.get(2).addReportedResult(students.get(0), initDateTime.minusHours(7)));
-		reportedResults.add(experiments.get(2).addReportedResult(students.get(0), initDateTime.minusHours(9)));
-		reportedResults.add(experiments.get(2).addReportedResult(students.get(1), initDateTime.minusHours(5)));
+		reportedResults.add(experiments.get(2).addReportedResult(students.get(0)));
+		reportedResults.add(experiments.get(2).addReportedResult(students.get(0)));
+		reportedResults.add(experiments.get(2).addReportedResult(students.get(1)));
 		
 		students.get(0).addActiveExperiment(experiments.get(2));
 		
@@ -154,9 +151,9 @@ class TestDashboardService {
 				new Amount<>(1.7, 0.1, Units.SECOND),
 				initDateTime.minusHours(7)));
 		
-		reportedResults.add(experiments.get(3).addReportedResult(students.get(0), initDateTime.minusHours(10)));
-		reportedResults.add(experiments.get(3).addReportedResult(students.get(0), initDateTime.minusHours(6)));
-		reportedResults.add(experiments.get(3).addReportedResult(students.get(1), initDateTime.minusHours(4)));
+		reportedResults.add(experiments.get(3).addReportedResult(students.get(0)));
+		reportedResults.add(experiments.get(3).addReportedResult(students.get(0)));
+		reportedResults.add(experiments.get(3).addReportedResult(students.get(1)));
 		
 		students.get(0).addActiveExperiment(experiments.get(3));
 		students.get(1).addActiveExperiment(experiments.get(3));
@@ -179,6 +176,12 @@ class TestDashboardService {
 		experiments.forEach(e -> manager.persist(e));
 		measurementValues.forEach(mv -> manager.persist(mv));
 		reportedResults.forEach(rr -> manager.persist(rr));
+		
+		// set creation dates for tests
+		int[] hoursBeforeInit = { 10, 6, 4, 7, 9, 5 };
+		IntStream.range(0, 6)
+			.forEach(i -> reportedResults.get(i).setAdded(
+					initDateTime.minusHours(hoursBeforeInit[i])));
 		
 		tx.commit();
 		manager.close();
@@ -211,14 +214,14 @@ class TestDashboardService {
 		assertEquals(1, experiments2.size());
 		
 		assertEquals("Test Experiment 2", experiments1.get(0).getName());
-		assertEquals("Test Experiment 4", experiments1.get(1).getName());
-		assertEquals("Test Experiment 3", experiments1.get(2).getName());
+		assertEquals("Test Experiment 3", experiments1.get(1).getName());
+		assertEquals("Test Experiment 4", experiments1.get(2).getName());
 		assertEquals("Test Experiment 4", experiments2.get(0).getName());
 		
 		assertEquals(initDateTime.minusHours(8), experiments1.get(0).getLastUpdated());
 		assertEquals(initDateTime.minusHours(6), experiments1.get(1).getLastUpdated());
 		assertEquals(initDateTime.minusHours(7), experiments1.get(2).getLastUpdated());
-		assertEquals(initDateTime.minusHours(4), experiments2.get(0).getLastUpdated());
+		assertEquals(initDateTime.minusHours(5), experiments2.get(0).getLastUpdated());
 	}
 	
 	@Test
@@ -234,15 +237,15 @@ class TestDashboardService {
 		assertEquals(3, experiments2_limit3.size());
 		
 		assertEquals("Test Experiment 2", experiments1.get(0).getName());
-		assertEquals("Test Experiment 4", experiments1.get(1).getName());
-		assertEquals("Test Experiment 3", experiments1.get(2).getName());
+		assertEquals("Test Experiment 3", experiments1.get(1).getName());
+		assertEquals("Test Experiment 4", experiments1.get(2).getName());
 		assertEquals("Test Experiment 5", experiments2.get(0).getName());
 		assertEquals("Test Experiment 2", experiments2.get(1).getName());
-		assertEquals("Test Experiment 4", experiments2.get(2).getName());
-		assertEquals("Test Experiment 3", experiments2.get(3).getName());
+		assertEquals("Test Experiment 3", experiments2.get(2).getName());
+		assertEquals("Test Experiment 4", experiments2.get(3).getName());
 		assertEquals("Test Experiment 5", experiments2_limit3.get(0).getName());
 		assertEquals("Test Experiment 2", experiments2_limit3.get(1).getName());
-		assertEquals("Test Experiment 4", experiments2_limit3.get(2).getName());
+		assertEquals("Test Experiment 3", experiments2_limit3.get(2).getName());
 		
 		assertEquals(initDateTime.minusHours(8), experiments1.get(0).getLastUpdated());
 		assertEquals(initDateTime.minusHours(6), experiments1.get(1).getLastUpdated());
@@ -263,14 +266,14 @@ class TestDashboardService {
 		assertEquals(2, courses1.size());
 		assertEquals(2, courses2.size());
 		
-		assertEquals("Test 101", courses1.get(0).getName());
-		assertEquals("Test 102", courses1.get(1).getName());
+		assertEquals("Test 102", courses1.get(0).getName());
+		assertEquals("Test 101", courses1.get(1).getName());
 		assertEquals("Test 102", courses2.get(0).getName());
 		assertEquals("Test 101", courses2.get(1).getName());
 		
 		assertEquals(initDateTime.minusHours(6), courses1.get(0).getLastUpdated());
 		assertEquals(initDateTime.minusHours(7), courses1.get(1).getLastUpdated());
 		assertEquals(initDateTime.minusHours(2), courses2.get(0).getLastUpdated());
-		assertEquals(initDateTime.minusHours(4), courses2.get(1).getLastUpdated());
+		assertEquals(initDateTime.minusHours(5), courses2.get(1).getLastUpdated());
 	}
 }

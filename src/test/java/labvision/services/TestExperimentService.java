@@ -91,6 +91,7 @@ class TestExperimentService {
 		courseClasses.add(courses.get(0).addCourseClass("Test 101 Afternoon"));
 		
 		initDateTime = LocalDateTime.now();
+		Map<ReportedResult, LocalDateTime> testTimestamps = new HashMap<>();
 		
 		experiments.add(courses.get(0).addExperiment(
 				"Test Experiment 1",
@@ -123,13 +124,18 @@ class TestExperimentService {
 			students.get(1).addActiveExperiment(experiments.get(i)));
 		
 		reports.put(experiments.get(0), new ArrayList<>());
-		reports.get(experiments.get(0)).add(experiments.get(0)
-				.addReportedResult(students.get(0), initDateTime.minusDays(1)));
+		ReportedResult report11 = experiments.get(0)
+				.addReportedResult(students.get(0));
+		reports.get(experiments.get(0)).add(report11);
+		testTimestamps.put(report11, initDateTime.minusDays(1));
+
 		reports.get(experiments.get(0)).get(0)
 				.makeReportDocument("Test_Report_1_exp_1.pdf", FileType.PDF, "Test_Report_1_exp_1.pdf");
 		reports.get(experiments.get(0)).get(0).setScore(new BigDecimal("45"));
-		reports.get(experiments.get(0)).add(experiments.get(0)
-				.addReportedResult(students.get(0), initDateTime.minusHours(14)));
+		ReportedResult report12 = experiments.get(0)
+				.addReportedResult(students.get(0));
+		reports.get(experiments.get(0)).add(report12);
+		testTimestamps.put(report12, initDateTime.minusHours(14));
 		reports.get(experiments.get(0)).get(1)
 				.makeReportDocument("Test_Report_2_exp_1.pdf", FileType.PDF, "Test_Report_2_exp_1.pdf");
 		reports.get(experiments.get(0)).get(1).setScore(new BigDecimal("50"));
@@ -205,10 +211,11 @@ class TestExperimentService {
 					initDateTime.minusDays(1)));
 		
 		reports.put(experiments.get(2), new ArrayList<>());
+		ReportedResult report31 = experiments.get(2).addReportedResult(
+				students.get(2));
 		reports.get(experiments.get(2)).add(
-				experiments.get(2).addReportedResult(
-						students.get(2), 
-						initDateTime.minusHours(8)));
+				report31);
+		testTimestamps.put(report31, initDateTime.minusHours(8));
 		reports.get(experiments.get(2)).get(0).setScore(new BigDecimal("79"));
 		
 		measurements.put(experiments.get(3), new ArrayList<>());
@@ -238,10 +245,11 @@ class TestExperimentService {
 					initDateTime.minusHours(10)));
 		
 		reports.put(experiments.get(3), new ArrayList<>());
+		ReportedResult report41 = experiments.get(3).addReportedResult(
+				students.get(2));
 		reports.get(experiments.get(3)).add(
-				experiments.get(3).addReportedResult(
-						students.get(2),
-						initDateTime.minusHours(9)));
+				report41);
+		testTimestamps.put(report41, initDateTime.minusHours(9));
 		reports.get(experiments.get(3)).get(0)
 				.makeReportDocument("Test_Report_1_exp_4.pdf", FileType.PDF, "Test_Report_1_exp_4.pdf");
 		reports.get(experiments.get(3)).get(0).setScore(new BigDecimal("67"));
@@ -273,24 +281,32 @@ class TestExperimentService {
 					initDateTime.minusHours(11)));
 		
 		reports.put(experiments.get(4), new ArrayList<>());
-		reports.get(experiments.get(4)).add(experiments.get(4)
-				.addReportedResult(students.get(0), initDateTime.minusDays(1).minusHours(4)));
+		ReportedResult report51 = experiments.get(4)
+				.addReportedResult(students.get(0));
+		reports.get(experiments.get(4)).add(report51);
+		testTimestamps.put(report51, initDateTime.minusDays(1).minusHours(4));
 		reports.get(experiments.get(4)).get(0)
 				.makeReportDocument("Test_Report_1_exp_5.pdf", FileType.PDF, "Test_Report_1_exp_5.pdf");
 		reports.get(experiments.get(4)).get(0).setScore(new BigDecimal("39"));
-		reports.get(experiments.get(4)).add(experiments.get(4)
-				.addReportedResult(students.get(0), initDateTime.minusHours(17)));
+		ReportedResult report52 = experiments.get(4)
+				.addReportedResult(students.get(0));
+		reports.get(experiments.get(4)).add(report52);
+		testTimestamps.put(report52, initDateTime.minusHours(17));
 		reports.get(experiments.get(4)).get(1)
 				.makeReportDocument("Test_Report_2_exp_5.pdf", FileType.PDF, "Test_Report_2_exp_5.pdf");
 		reports.get(experiments.get(4)).get(1).setScore(new BigDecimal("51"));
 		
-		reports.get(experiments.get(4)).add(experiments.get(4)
-				.addReportedResult(students.get(2), initDateTime.minusHours(12)));
+		ReportedResult report53 = experiments.get(4)
+				.addReportedResult(students.get(2));
+		reports.get(experiments.get(4)).add(report53);
+		testTimestamps.put(report53, initDateTime.minusHours(12));
 		reports.get(experiments.get(4)).get(2)
 				.makeReportDocument("Test_Report_3_exp_5.pdf", FileType.PDF, "Test_Report_3_exp_5.pdf");
 		reports.get(experiments.get(4)).get(2).setScore(new BigDecimal("14"));
-		reports.get(experiments.get(4)).add(experiments.get(4)
-				.addReportedResult(students.get(2), initDateTime.minusHours(13)));
+		ReportedResult report54 = experiments.get(4)
+				.addReportedResult(students.get(2));
+		reports.get(experiments.get(4)).add(report54);
+		testTimestamps.put(report54, initDateTime.minusHours(13));
 		reports.get(experiments.get(4)).get(3)
 				.makeReportDocument("Test_Report_4_exp_5.pdf", FileType.PDF, "Test_Report_4_exp_5.pdf");
 		reports.get(experiments.get(4)).get(3).setScore(new BigDecimal("47"));
@@ -302,8 +318,10 @@ class TestExperimentService {
 				experiments.get(5).addMeasurement("magnetic Field", MagneticFluxDensity.class));
 		
 		reports.put(experiments.get(5), new ArrayList<>());
-		reports.get(experiments.get(5)).add(experiments.get(5)
-				.addReportedResult(students.get(1), initDateTime.minusHours(15)));
+		ReportedResult report61 = experiments.get(5)
+				.addReportedResult(students.get(1));
+		reports.get(experiments.get(5)).add(report61);
+		testTimestamps.put(report61, initDateTime.minusHours(15));
 		reports.get(experiments.get(5)).get(0).setScore(new BigDecimal("85"));
 		
 		EntityTransaction tx = manager.getTransaction();
@@ -313,7 +331,10 @@ class TestExperimentService {
 		students.forEach(s -> manager.persist(s));
 		courseClasses.forEach(cc -> manager.persist(cc));
 		experiments.forEach(e -> manager.persist(e));
-		reports.forEach((e, l) -> l.forEach(rr -> manager.persist(rr)));
+		reports.forEach((e, l) -> l.forEach(rr -> {
+			manager.persist(rr);
+			rr.setAdded(testTimestamps.get(rr));
+		}));
 		measurements.forEach((e, l) -> l.forEach(m -> manager.persist(m)));
 		measurementValues.forEach((m, l) -> l.forEach(mv -> manager.persist(mv)));
 		parameters.forEach((m, l) -> l.forEach(p -> manager.persist(p)));
