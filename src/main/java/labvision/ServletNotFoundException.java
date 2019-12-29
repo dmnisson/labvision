@@ -1,4 +1,4 @@
-package labvision.services;
+package labvision;
 
 public class ServletNotFoundException extends Exception {
 	private static final long serialVersionUID = 6041945607028369953L;

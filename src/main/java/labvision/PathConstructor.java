@@ -5,9 +5,6 @@ import java.util.Objects;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
 
-import labvision.services.ServletMappingNotFoundException;
-import labvision.services.ServletNotFoundException;
-
 public class PathConstructor implements IPathConstructor {
 	private ServletContext context;
 	

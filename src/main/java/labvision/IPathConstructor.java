@@ -2,9 +2,6 @@ package labvision;
 
 import javax.servlet.ServletContext;
 
-import labvision.services.ServletMappingNotFoundException;
-import labvision.services.ServletNotFoundException;
-
 /**
  * Interface for computing the correct paths for a given endpoint
  * @author davidnisson

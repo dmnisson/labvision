@@ -1,4 +1,4 @@
-package labvision.services;
+package labvision;
 
 public class ServletMappingNotFoundException extends Exception {
 	private static final long serialVersionUID = 4424877607495816062L;

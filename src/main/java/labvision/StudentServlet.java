@@ -59,8 +59,6 @@ import labvision.measure.SI;
 import labvision.models.NavbarModel;
 import labvision.services.ExperimentService;
 import labvision.services.ReportService;
-import labvision.services.ServletMappingNotFoundException;
-import labvision.services.ServletNotFoundException;
 import labvision.services.CourseService;
 import labvision.services.DashboardService;
 import labvision.services.StudentService;
