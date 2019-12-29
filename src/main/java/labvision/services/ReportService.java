@@ -10,7 +10,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -22,7 +21,6 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 import javax.servlet.ServletContext;
 
@@ -419,7 +417,9 @@ public class ReportService extends JpaService {
 							cb.currentTimestamp().as(LocalDateTime.class),
 							e.get(Experiment_.reportDueDate)
 							))
-			).where(cb.equal(root.get(ReportedResult_.student).get(Student_.id), studentId));
+			)
+			.where(cb.equal(root.get(ReportedResult_.student).get(Student_.id), studentId))
+			.orderBy(cb.desc(root.get(ReportedResult_.added)));
 			
 			TypedQuery<ReportForStudentReportsTable> query = manager.createQuery(cq);
 			return query.getResultList();
