@@ -284,9 +284,8 @@ public class Experiment implements LabVisionEntity {
 		reportedResult.setExperiment(this);
 	}
 	
-	public ReportedResult addReportedResult(Student student, LocalDateTime added) {
+	public ReportedResult addReportedResult(Student student) {
 		ReportedResult reportedResult = new ReportedResult();
-		reportedResult.setAdded(added);
 		student.addReportedResult(reportedResult);
 		addReportedResult(reportedResult);
 		return reportedResult;
