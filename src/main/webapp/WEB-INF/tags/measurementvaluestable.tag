@@ -13,11 +13,11 @@
     <thead>
       <tr>
         <th scope="col">
-          ${measurement.name} (${measurement.unitString})
+          ${measurement.name} (${measurement.quantityTypeId.unitString})
         </th>
         <c:forEach var="parameter" items="${parameters}">
         <th scope="col">
-          ${parameter.name} (${parameter.unitString})
+          ${parameter.name} (${parameter.quantityTypeId.unitString})
         </th>
         </c:forEach>
         <th scope="col">Taken</th>

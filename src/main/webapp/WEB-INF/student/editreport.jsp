@@ -32,7 +32,7 @@
           <c:forEach var="acceptedResult" items="${acceptedResults}">
           <tr>
             <th scope="row">${acceptedResult.name}</th>
-            <td>${acceptedResult.value} ± ${acceptedResult.uncertainty} ${acceptedResult.unitString}</td>
+            <td>${acceptedResult.value} ± ${acceptedResult.uncertainty} ${acceptedResult.quantityTypeId.unitString}</td>
           </tr>
           </c:forEach>
         </tbody>

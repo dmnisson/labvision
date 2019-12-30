@@ -33,14 +33,12 @@ import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
 import labvision.entities.Experiment_;
-import labvision.entities.Instructor;
 import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
 import labvision.entities.Measurement_;
 import labvision.entities.Parameter;
 import labvision.entities.Student;
 import labvision.measure.Amount;
-import labvision.measure.SI;
 
 public class ExperimentService extends JpaService {
 
@@ -69,9 +67,7 @@ public class ExperimentService extends JpaService {
 			query.setParameter("experimentid", experimentId);
 			return query.getResultStream()
 					.map(m -> new MeasurementForExperimentView(
-							m.getId(), m.getName(), m.getQuantityTypeId(),
-							SI.getInstance().getUnitFor(m.getQuantityTypeId())
-								.toString()))
+							m.getId(), m.getName(), m.getQuantityTypeId()))
 					.collect(Collectors.toList());
 		});
 	}
@@ -97,8 +93,7 @@ public class ExperimentService extends JpaService {
 			query.setParameter("measurementid", measurementId);
 			return query.getResultStream()
 					.map(r -> new ParameterForExperimentView(
-							r.getId(), r.getName(), r.getQuantityTypeId(),
-							SI.getInstance().getUnitFor(r.getQuantityTypeId()).toString()))
+							r.getId(), r.getName(), r.getQuantityTypeId()))
 					.collect(Collectors.toList());
 		});
 	}
@@ -561,9 +556,6 @@ public class ExperimentService extends JpaService {
 							Collectors.collectingAndThen(Collectors.toList(),
 									l -> l.stream()
 										.filter(row -> row.getId() != null)
-										.map(row -> new MeasurementValueForExperimentView(row, 
-												SI.getInstance().getUnitFor(row.getQuantityTypeId()).toString())
-												)
 										.collect(Collectors.toList()))
 							));
 		});

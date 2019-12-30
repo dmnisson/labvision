@@ -5,6 +5,8 @@ import java.util.stream.Stream;
 import javax.measure.Quantity;
 import javax.measure.quantity.*;
 
+import labvision.measure.SI;
+
 /**
  * Identifies a type of quantity (acceleration, mass, charge, etc.)
  * @author davidnisson
@@ -56,6 +58,10 @@ public enum QuantityTypeId {
 		return quantityClass;
 	}
 	
+	public String getUnitString() {
+		return SI.getInstance().getUnitFor(this).toString();
+	}
+
 	public static <Q extends Quantity<Q>> QuantityTypeId of(QuantityClass<Q> quantityClass) {
 		return Stream.of(QuantityTypeId.values())
 				.filter(qt -> qt.quantityClass.equals(quantityClass))

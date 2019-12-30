@@ -1,7 +1,6 @@
 package labvision.dto.experiment.report;
 
 import labvision.entities.QuantityTypeId;
-import labvision.measure.SI;
 
 /**
  * Information required to display a result
@@ -40,9 +39,5 @@ public class ResultInfo {
 
 	public QuantityTypeId getQuantityTypeId() {
 		return quantityTypeId;
-	}
-	
-	public String getUnitString() {
-		return SI.getInstance().getUnitFor(quantityTypeId).toString();
 	}
 }
