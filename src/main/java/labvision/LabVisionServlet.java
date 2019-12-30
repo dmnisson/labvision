@@ -3,11 +3,10 @@ package labvision;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class LabVisionServlet extends HttpServlet {
+public class LabVisionServlet extends AbstractLabVisionServlet {
 	/**
 	 * Unique identifier for version for serialization
 	 */

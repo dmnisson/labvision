@@ -2,19 +2,12 @@ package labvision;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -23,14 +16,10 @@ import labvision.dto.experiment.MeasurementForExperimentView;
 import labvision.dto.experiment.MeasurementValueForExperimentView;
 import labvision.dto.experiment.MeasurementValueForFacultyExperimentView;
 import labvision.dto.faculty.experiment.ExperimentForFacultyExperimentTable;
-import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
 import labvision.entities.Instructor;
-import labvision.entities.MeasurementValue;
-import labvision.entities.Student;
 import labvision.models.NavbarModel;
 import labvision.services.ExperimentService;
-import labvision.services.InstructorService;
 import labvision.utils.ThrowingWrappers;
 
 /**
@@ -38,7 +27,7 @@ import labvision.utils.ThrowingWrappers;
  * @author davidnisson
  *
  */
-public class FacultyServlet extends HttpServlet {
+public class FacultyServlet extends AbstractLabVisionServlet {
 
 	/**
 	 * Unique identifier for this version for serialization.
@@ -47,30 +36,15 @@ public class FacultyServlet extends HttpServlet {
 	
 	public static final String FACULTY_SERVLET_NAME = "labvision-faculty";
 	
-	private IPathConstructor getPathConstructor(ServletContext context) {
-		return (IPathConstructor) context.getAttribute(LabVisionServletContextListener.PATH_CONSTRUCTOR_ATTR);
+	private String getExperimentPath(int id) throws ServletNotFoundException,ServletMappingNotFoundException{
+		return getPathConstructor()
+				.getPathFor(FACULTY_SERVLET_NAME, "/experiment/" + id);
 	}
 	
-	private Map<Integer, String> getExperimentPaths(Collection<? extends Integer> experimentIds, ServletContext context) {
-		return experimentIds.stream()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						ThrowingWrappers.throwingFunctionWrapper(
-								id -> getPathConstructor(context)
-								.getPathFor(FACULTY_SERVLET_NAME, "/experiment/" + id))
-						));
+	private String getEditMeasurementPath(int id) throws ServletNotFoundException,ServletMappingNotFoundException{
+		return getPathConstructor()
+				.getPathFor(FACULTY_SERVLET_NAME, "/measurement/" + id + "/edit");
 	}
-	
-	private Map<Integer, String> getEditMeasurementPaths(Collection<? extends Integer> measurementIds, ServletContext context) {
-		return measurementIds.stream()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						ThrowingWrappers.throwingFunctionWrapper(
-								id -> getPathConstructor(context)
-								.getPathFor(FACULTY_SERVLET_NAME, "/measurement/" + id + "/edit"))
-						));
-	}
-	
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -212,12 +186,13 @@ public class FacultyServlet extends HttpServlet {
 							.map(MeasurementValueForExperimentView::getId)
 							.collect(Collectors.toMap(
 									Function.identity(),
-									vid -> experimentService.getParameterValues(vid))))));
-		req.setAttribute("editMeasurementPaths", getEditMeasurementPaths(
-				measurements.stream()
-					.map(MeasurementForExperimentView::getId)
-					.collect(Collectors.toList()),
-				getServletContext()));
+									vid -> experimentService.getParameterValues(vid)
+							))
+						))
+				);
+		req.setAttribute("editMeasurementPaths", ThrowingWrappers.collectionToMap(measurements.stream()
+			.map(MeasurementForExperimentView::getId)
+			.collect(Collectors.toList()), id1 -> getEditMeasurementPath(id1)));
 		req.getRequestDispatcher("/WEB-INF/faculty/experiment.jsp").forward(req, resp);
 	}
 
@@ -230,11 +205,9 @@ public class FacultyServlet extends HttpServlet {
 		List<ExperimentForFacultyExperimentTable> experiments = experimentService.getExperiments(instructorId);
 		
 		req.setAttribute("experiments", experiments);
-		req.setAttribute("experimentPaths", getExperimentPaths(
-				experiments.stream()
-					.map(ExperimentForFacultyExperimentTable::getId)
-					.collect(Collectors.toList()),
-				getServletContext()));
+		req.setAttribute("experimentPaths", ThrowingWrappers.collectionToMap(experiments.stream()
+			.map(ExperimentForFacultyExperimentTable::getId)
+			.collect(Collectors.toList()), id -> getExperimentPath(id)));
 		req.getRequestDispatcher("/WEB-INF/faculty/experiments.jsp").forward(req, resp);
 	}
 

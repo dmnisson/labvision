@@ -1,28 +1,16 @@
 package labvision;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.MultipartConfig;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -46,21 +34,17 @@ import labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import labvision.dto.student.reports.ReportForStudentReportsTable;
 import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
-import labvision.entities.FileType;
 import labvision.entities.Measurement;
-import labvision.entities.MeasurementValue;
 import labvision.entities.Parameter;
-import labvision.entities.ReportDocument;
 import labvision.entities.ReportDocumentType;
 import labvision.entities.ReportedResult;
 import labvision.entities.Student;
 import labvision.measure.Amount;
 import labvision.measure.SI;
 import labvision.models.NavbarModel;
+import labvision.services.DashboardService;
 import labvision.services.ExperimentService;
 import labvision.services.ReportService;
-import labvision.services.CourseService;
-import labvision.services.DashboardService;
 import labvision.services.StudentService;
 import labvision.utils.StringUtils;
 import labvision.utils.ThrowingWrappers;
@@ -68,21 +52,13 @@ import labvision.utils.ThrowingWrappers;
 @MultipartConfig(fileSizeThreshold = 1024 * 1024,
 	maxFileSize = 1024 * 1024 * 5, 
 	maxRequestSize = 1024 * 1024 * 5 * 5)
-public class StudentServlet extends HttpServlet {
+public class StudentServlet extends AbstractLabVisionServlet {
 	/**
 	 * Version 0.0.1
 	 */
 	private static final long serialVersionUID = -4488832460194220512L;
 
 	public static final String STUDENT_SERVLET_NAME = "labvision-student";
-	
-	private static String URL_COMPUTATION_ERROR_MESSAGE = "Could not compute URLs. "
-			+ "This is likely a problem with the app configuration. "
-			+ "Please contact your institution for assistance.";
-	
-	private IPathConstructor getPathConstructor() {
-		return (IPathConstructor) getServletContext().getAttribute(LabVisionServletContextListener.PATH_CONSTRUCTOR_ATTR);
-	}
 	
 	/**
 	 * Get experiment detail view for an experiment ID
@@ -97,62 +73,15 @@ public class StudentServlet extends HttpServlet {
 	}
 	
 	/**
-	 * Retrieve mapping of experiment IDs to paths for experiment detail views
-	 * @param experimentIds the IDs
-	 * @return the mapping of experiment IDs to paths
-	 */
-	private Map<Integer, String> getExperimentPaths(Collection<? extends Integer> experimentIds) {
-		return experimentIds.stream().distinct()
-				.collect(Collectors.toMap(
-						Function.identity(), 
-						ThrowingWrappers.throwingFunctionWrapper(id ->
-								getExperimentPath(id)
-						)));
-	}
-	
-	/**
-	 * Retrieve mapping of measurement IDs to paths for creating new measurement values
-	 * @param measurementIds the IDs
-	 * @return the mapping of measurement IDs to new-value paths
-	 */
-	private Map<Integer, String> getNewMeasurementValuePaths(Collection<? extends Integer> measurementIds) {
-		return measurementIds.stream().distinct()
-				.collect(Collectors.toMap(
-						Function.identity(),
-						ThrowingWrappers.throwingFunctionWrapper(
-								id -> getPathConstructor()
-									.getPathFor(STUDENT_SERVLET_NAME, "/measurement/newvalue/" + id))
-						));
-	}
-	
-	/**
-	 * Retrieve mapping of report IDs to report view paths
-	 * @param reportIds the report IDs
-	 * @return the mapping of report IDs to report view paths
+	 * Get a path for creating a new measurement value for a given measurement
+	 * @param id the measurement ID
+	 * @return the path for creating a new measurement value
 	 * @throws ServletNotFoundException
 	 * @throws ServletMappingNotFoundException
 	 */
-	private Map<Integer, String> getReportPaths(Collection<? extends Integer> reportIds) throws ServletNotFoundException, ServletMappingNotFoundException {
-		return reportIds.stream()
-				.collect(Collectors.toMap(Function.identity(), 
-						ThrowingWrappers.throwingFunctionWrapper(
-								id -> getReportPath(id)
-								)));
-	}
-	
-	/**
-	 * Retrieve mapping of experiment IDs to paths for creating new reports
-	 * @param experimentIds the experiment IDs
-	 * @return the mapping of experiment IDs to new report form paths
-	 * @throws ServletNotFoundException
-	 * @throws ServletMappingNotFoundException
-	 */
-	private Map<Integer, String> getNewReportPaths(Collection<? extends Integer> experimentIds) throws ServletNotFoundException, ServletMappingNotFoundException {
-		return experimentIds.stream()
-				.collect(Collectors.toMap(Function.identity(), 
-						ThrowingWrappers.throwingFunctionWrapper(
-								eid -> getNewReportPath(eid)
-								)));
+	public String getNewMeasurementValuePath(int id) throws ServletNotFoundException,ServletMappingNotFoundException{
+		return getPathConstructor()
+				.getPathFor(STUDENT_SERVLET_NAME, "/measurement/newvalue/" + id);
 	}
 	
 	/**
@@ -187,52 +116,10 @@ public class StudentServlet extends HttpServlet {
 		return getPathConstructor().getPathFor(STUDENT_SERVLET_NAME, "/report/edit/" + id);
 	}
 	
-	/**
-	 * Get the path for changing the report document
-	 * @param id the report ID
-	 * @return the path
-	 * @throws ServletNotFoundException
-	 * @throws ServletMappingNotFoundException
-	 */
-	private String getUpdateReportDocumentPath(int id) throws ServletNotFoundException, ServletMappingNotFoundException {
-		return getPathConstructor().getPathFor(STUDENT_SERVLET_NAME, "/report/changedoc/" + id);
+	public String getCoursePath(int id) throws ServletNotFoundException,ServletMappingNotFoundException{
+		return getPathConstructor()
+				.getPathFor(STUDENT_SERVLET_NAME, "/course/" + id);
 	}
-	
-	/**
-	 * Get the path that allows the user to see a form element to change the report document
-	 * @param id the report ID
-	 * @return the path
-	 * @throws ServletNotFoundException
-	 * @throws ServletMappingNotFoundException
-	 */
-	private String getChangeFilesystemReportDocumentPath(int id) throws ServletNotFoundException, ServletMappingNotFoundException {
-		return getEditReportPath(id) + "?uploadfile=true";
-	}
-	
-	/**
-	 * Retrieve mapping of course IDs to URLs of course detail pages
-	 * @param courseIds the course IDs
-	 * @param context the servlet context
-	 * @return the mapping of course IDs to course view paths
-	 */
-	private Map<Integer, String> getCoursePaths(Collection<? extends Integer> courseIds, ServletContext context) {
-		return courseIds.stream().distinct()
-				.collect(Collectors.toMap(Function.identity(),
-					ThrowingWrappers.throwingFunctionWrapper(
-							id -> getPathConstructor()
-								.getPathFor(STUDENT_SERVLET_NAME, "/course/" + id))));
-	}
-	
-	/**
-	 * Send and log errors in URL computations
-	 * @param exception the exception
-	 */
-	private void handleURLComputationError(HttpServletResponse response, Exception exception) throws IOException {
-		Logger.getLogger(this.getClass())
-			.error(URL_COMPUTATION_ERROR_MESSAGE, exception);
-		response.sendError(500, URL_COMPUTATION_ERROR_MESSAGE);
-	}
-	
 	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -432,28 +319,12 @@ public class StudentServlet extends HttpServlet {
 				.distinct().collect(Collectors.toList());
 		
 		request.setAttribute("reports", reports);
-		request.setAttribute("reportPaths", getReportPaths(reportIds));
-		request.setAttribute("editReportPaths", getEditReportPaths(reportIds));
-		request.setAttribute("coursePaths", getCoursePaths(courseIds));
-		request.setAttribute("experimentPaths", getExperimentPaths(experimentIds));
+		request.setAttribute("reportPaths", ThrowingWrappers.collectionToMap(reportIds, id1 -> getReportPath(id1)));
+		request.setAttribute("editReportPaths", ThrowingWrappers.collectionToMap(reportIds, id3 -> getEditReportPath(id3)));
+		request.setAttribute("coursePaths", ThrowingWrappers.collectionToMap(courseIds, id2 -> getCoursePath(id2)));
+		request.setAttribute("experimentPaths", ThrowingWrappers.collectionToMap(experimentIds, id -> getExperimentPath(id)));
 		
 		request.getRequestDispatcher("/WEB-INF/student/reports.jsp").forward(request, response);
-	}
-
-	public Map<Integer, Object> getCoursePaths(List<Integer> courseIds) {
-		return courseIds.stream().collect(
-			Collectors.toMap(
-				Function.identity(),
-				ThrowingWrappers.throwingFunctionWrapper(
-					id -> getCoursePath(id)
-				)
-			)
-		);
-	}
-
-	private Object getCoursePath(int courseId) throws ServletNotFoundException, ServletMappingNotFoundException {
-		return getPathConstructor()
-				.getPathFor(STUDENT_SERVLET_NAME, "/course/" + courseId);
 	}
 
 	private void doGetExperiment(HttpServletRequest request, HttpServletResponse response, HttpSession session,
@@ -489,25 +360,17 @@ public class StudentServlet extends HttpServlet {
 									Function.identity(),
 									vid -> experimentService.getParameterValues(vid))))));
 		request.setAttribute("reportedResults", reportedResults);
-		request.setAttribute("reportPaths", getReportPaths(reportedResults.stream()
-				.map(ReportedResultForStudentExperimentView::getId).collect(Collectors.toList())));
-		request.setAttribute("reportEditPaths", getEditReportPaths(reportedResults.stream()
-				.map(ReportedResultForStudentExperimentView::getId).collect(Collectors.toList())));
+		request.setAttribute("reportPaths", ThrowingWrappers.collectionToMap(reportedResults.stream()
+		.map(ReportedResultForStudentExperimentView::getId).collect(Collectors.toList()), id2 -> getReportPath(id2)));
+		request.setAttribute("reportEditPaths", ThrowingWrappers.collectionToMap(reportedResults.stream()
+		.map(ReportedResultForStudentExperimentView::getId).collect(Collectors.toList()), id3 -> getEditReportPath(id3)));
 		request.setAttribute("newReportPath", getNewReportPath(experimentId));
-		request.setAttribute("newMeasurementValuePaths", getNewMeasurementValuePaths(
-				measurements.stream()
-					.collect(Collectors.mapping(
-							MeasurementForExperimentView::getId,
-							Collectors.toList()))));
+		request.setAttribute("newMeasurementValuePaths", ThrowingWrappers.collectionToMap(measurements.stream()
+		.collect(Collectors.mapping(
+				MeasurementForExperimentView::getId,
+				Collectors.toList())), id1 -> getNewMeasurementValuePath(id1)));
 		
 		request.getRequestDispatcher("/WEB-INF/student/experiment.jsp").forward(request, response);
-	}
-
-	private Map<Integer, String> getEditReportPaths(List<Integer> reportIds) throws ServletNotFoundException, ServletMappingNotFoundException {
-		return reportIds.stream().distinct()
-				.collect(Collectors.toMap(Function.identity(), 
-						ThrowingWrappers.throwingFunctionWrapper(
-								id -> getEditReportPath(id))));
 	}
 
 	private void doGetExperiments(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException, ServletNotFoundException, ServletMappingNotFoundException {
@@ -526,9 +389,9 @@ public class StudentServlet extends HttpServlet {
 			.map(ExperimentForStudentExperimentTable::getId)
 			.collect(Collectors.toList());
 		
-		request.setAttribute("experimentPaths", getExperimentPaths(pathMapKeys));
+		request.setAttribute("experimentPaths", ThrowingWrappers.collectionToMap(pathMapKeys, id -> getExperimentPath(id)));
 		
-		request.setAttribute("newReportPaths", getNewReportPaths(pathMapKeys));
+		request.setAttribute("newReportPaths", ThrowingWrappers.collectionToMap(pathMapKeys, id1 -> getNewReportPath(id1)));
 		
 		request.getRequestDispatcher("/WEB-INF/student/experiments.jsp").forward(request, response);
 	}
@@ -536,8 +399,6 @@ public class StudentServlet extends HttpServlet {
 	private void doGetDashboard(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException, ServletException {
 		DashboardService dashboardService = (DashboardService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_DASHBOARD_SERVICE_ATTR);
-		CourseService courseService = (CourseService) getServletContext()
-				.getAttribute(LabVisionServletContextListener.COURSE_SERVICE_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
 		int studentId = student.getId();
@@ -554,19 +415,14 @@ public class StudentServlet extends HttpServlet {
 		request.setAttribute("recentCourses", recentCourses);
 		
 		request.setAttribute("experimentPaths", 
-				getExperimentPaths(
-						Stream.concat(currentExperiments.stream(), recentExperiments.stream())
-						.map(ExperimentForStudentDashboard::getId)
-						.collect(Collectors.toList())
-				));
+				ThrowingWrappers.collectionToMap(Stream.concat(currentExperiments.stream(), recentExperiments.stream())
+				.map(ExperimentForStudentDashboard::getId)
+				.collect(Collectors.toList()), id -> getExperimentPath(id)));
 		
 		request.setAttribute("coursePaths", 
-				getCoursePaths(
-						recentCourses.stream()
-						.map(RecentCourseForStudentDashboard::getId)
-						.collect(Collectors.toList()),
-				getServletContext()
-				));
+				ThrowingWrappers.collectionToMap(recentCourses.stream()
+				.map(RecentCourseForStudentDashboard::getId)
+				.collect(Collectors.toList()), id1 -> getCoursePath(id1)));
 		
 		request.getRequestDispatcher("/WEB-INF/student/dashboard.jsp").forward(request, response);
 	}
@@ -723,8 +579,6 @@ public class StudentServlet extends HttpServlet {
 				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
 		StudentService studentService = (StudentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.STUDENT_SERVICE_ATTR);
-		EntityManagerFactory emf = (EntityManagerFactory) getServletContext()
-				.getAttribute(LabVisionServletContextListener.ENTITY_MANAGER_FACTORY_ATTR);
 		
 		Student student = (Student) session.getAttribute("user");
 		
