@@ -98,30 +98,13 @@
           <p>Maximum file size allowed: 5 MB</p>
 	        </c:when>
           <c:otherwise>
-          <div class="row">
-	          <div class="col">
-	            <%-- choose icon for file type --%>
-		          <c:choose>
-		          <c:when test="${documentFileType eq PDF}">
-		          <i class="far fa-file-pdf"></i>
-		          </c:when>
-		          <c:when test="${documentFileType eq WORD or documentFileType eq WORD_COMPAT}">
-		          <i class="far fa-file-word"></i>
-		          </c:when>
-		          <c:otherwise>
-		          <i class="far fa-file"></i>
-		          </c:otherwise>
-		          </c:choose>
-		          
-		          <a href="${reportDocumentURL}">${filename}</a>
-	          </div>
-	          <div class="col">
-	            Last updated <javatime:format value="${documentLastUpdated}" style="MM" />
-	            <a class="btn btn-primary" href="${changeReportFilesystemDocumentPath}">
-	              Change
-	            </a>
-	          </div>
-	        </div>
+          <t:reportdocumentlink
+            documentType="FILESYSTEM"
+		        documentFileType="${documentFileType}"
+		        reportDocumentURL="${reportDocumentURL}"
+		        filename="${filename}"
+            changeButtonPath="${changeReportFilesystemDocumentPath}"
+          />
 	        </c:otherwise>
           </c:choose>
         </div>
