@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.measure.Dimension;
 import javax.measure.Quantity;
@@ -369,5 +370,12 @@ public class Experiment implements LabVisionEntity {
 		if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	public List<Integer> getStudentIds() {
+		return this.getCourse().getCourseClasses().stream()
+				.flatMap(cc -> cc.getStudents().stream())
+				.map(s -> s.getId())
+				.collect(Collectors.toList());
 	}
 }

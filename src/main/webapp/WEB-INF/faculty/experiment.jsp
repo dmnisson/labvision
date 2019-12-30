@@ -22,7 +22,7 @@
   </div>
   <div class="row">
     <div class="col">
-      <h2>Student Measurements</h2>
+      <h2>Student Measurements and Reports</h2>
     </div>
   </div>
   <div class="row">
@@ -50,7 +50,7 @@
             <tr class="collapse students${courseClass.id}" id="student${student.id}">
               <td></td>
               <td>
-                <button class="btn btn-link p-2" type="button" data-toggle="collapse" data-target="#measurementValues-${courseClass.id}-${student.id}" role="treeitem" aria-level="2">
+                <button class="btn btn-link p-2" type="button" data-toggle="collapse" data-target=".info-${student.id}, .info-unselected" role="treeitem" aria-level="2">
                   ${student.displayName}
                 </button>
               </td>
@@ -92,10 +92,14 @@
       </div>
       <div class="row">
         <div class="col">
+          <div class="collapse show info-unselected" id="measurementValues-unselected">
+            <p class="text-center">Select student to view measurement values</p>
+          </div>
           <c:forEach var="courseClass" items="${experiment.course.courseClasses}">
           <c:forEach var="student" items="${courseClass.students}">
-          <div class="collapse" id="measurementValues-${courseClass.id}-${student.id}">
+          <div class="collapse info-${student.id}" id="measurementValues-${courseClass.id}-${student.id}">
             <h5>${student.displayName} for ${courseClass.name}</h5>
+            <h6>Measurement Values</h6>
 	          <t:measurementvaluestable 
 	            measurement="${measurement}"
 	            measurementvalues="${measurementValues[measurement.id][courseClass.id][student.id]}"
@@ -108,6 +112,21 @@
           </c:forEach>
           </c:forEach>
         </div>
+      </div>
+      </c:forEach>
+      <h3>Reports</h3>
+      <div class="collapse show info-unselected" id="reports-unselected">
+        <p class="text-center">Select student to view reports</p>
+      </div>
+      <c:forEach var="studentId" items="${studentIds}">
+      <h5>${student.name}</h5>
+      <div class="collapse info-${studentId}" id="reports-${studentId}">
+      <t:reportstable
+        id="reportsTable${studentId}"
+        reports="${reports[studentId]}"
+        reportPaths="${reportPaths}"
+        reportScorePaths="${reportScorePaths}"
+      />
       </div>
       </c:forEach>
     </div>

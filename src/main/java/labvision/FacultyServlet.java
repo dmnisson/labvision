@@ -1,7 +1,6 @@
 package labvision;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -16,10 +15,12 @@ import labvision.dto.experiment.MeasurementForExperimentView;
 import labvision.dto.experiment.MeasurementValueForExperimentView;
 import labvision.dto.experiment.MeasurementValueForFacultyExperimentView;
 import labvision.dto.faculty.experiment.ExperimentForFacultyExperimentTable;
+import labvision.dto.faculty.report.ReportForFacultyExperimentView;
 import labvision.entities.Experiment;
 import labvision.entities.Instructor;
 import labvision.models.NavbarModel;
 import labvision.services.ExperimentService;
+import labvision.services.ReportService;
 import labvision.utils.ThrowingWrappers;
 
 /**
@@ -43,7 +44,18 @@ public class FacultyServlet extends AbstractLabVisionServlet {
 	
 	private String getEditMeasurementPath(int id) throws ServletNotFoundException,ServletMappingNotFoundException{
 		return getPathConstructor()
-				.getPathFor(FACULTY_SERVLET_NAME, "/measurement/" + id + "/edit");
+				.getPathFor(FACULTY_SERVLET_NAME, "/measurement/edit/" + id);
+	}
+	
+
+	private String getReportScorePath(Integer id) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return getPathConstructor()
+				.getPathFor(FACULTY_SERVLET_NAME, "/report/score/" + id);
+	}
+
+	private String getReportPath(Integer id) throws ServletNotFoundException, ServletMappingNotFoundException {
+		return getPathConstructor()
+				.getPathFor(FACULTY_SERVLET_NAME, "/report/" + id);
 	}
 
 	@Override
@@ -72,7 +84,8 @@ public class FacultyServlet extends AbstractLabVisionServlet {
 			doGetReports(req, resp, session);
 			break;
 		case "report":
-			doGetReport(req, resp, session, pathParts[2]);
+			doGetReport(req, resp, session, pathParts[2],
+				pathParts.length == 3 ? null : pathParts[3]);
 			break;
 		case "courses":
 			doGetCourses(req, resp, session);
@@ -105,11 +118,14 @@ public class FacultyServlet extends AbstractLabVisionServlet {
 			HttpServletRequest req,
 			HttpServletResponse resp,
 			HttpSession session,
-			String measurementIdString,
-			String measurementAction) {
-		if (measurementAction == null) {
-			measurementAction = "view";
+			String action,
+			String arg) {
+		if (arg == null) {
+			arg = action;
+			action = "view";
 		}
+		
+		int measurementId = Integer.parseInt(arg);
 		
 		// TODO Auto-generated method stub
 		
@@ -145,7 +161,7 @@ public class FacultyServlet extends AbstractLabVisionServlet {
 		
 	}
 
-	private void doGetReport(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String string) {
+	private void doGetReport(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String action, String arg) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -158,6 +174,8 @@ public class FacultyServlet extends AbstractLabVisionServlet {
 	private void doGetExperiment(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String experimentIdString) throws ServletException, IOException {
 		ExperimentService experimentService = (ExperimentService) getServletContext()
 				.getAttribute(LabVisionServletContextListener.EXPERIMENT_SERVICE_ATTR);
+		ReportService reportService = (ReportService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.REPORT_SERVICE_ATTR);
 		
 		Instructor instructor = (Instructor) session.getAttribute("user");
 		int instructorId = instructor.getId();
@@ -193,6 +211,24 @@ public class FacultyServlet extends AbstractLabVisionServlet {
 		req.setAttribute("editMeasurementPaths", ThrowingWrappers.collectionToMap(measurements.stream()
 			.map(MeasurementForExperimentView::getId)
 			.collect(Collectors.toList()), id1 -> getEditMeasurementPath(id1)));
+		
+		List<Integer> studentIds = experiment.getStudentIds();
+		List<ReportForFacultyExperimentView> reports = 
+				reportService.getReportsForExperiment(experiment.getId());
+		List<Integer> reportIds = reports.stream()
+				.map(ReportForFacultyExperimentView::getId)
+				.collect(Collectors.toList());
+		Map<Integer, List<ReportForFacultyExperimentView>> reportsByStudentId =
+				reports.stream()
+				.collect(Collectors.groupingBy(r -> r.getStudentId()));
+		
+		req.setAttribute("studentIds", studentIds);
+		req.setAttribute("reports", reportsByStudentId);
+		req.setAttribute("reportPaths",
+				ThrowingWrappers.collectionToMap(reportIds, id -> getReportPath(id)));
+		req.setAttribute("reportScorePaths",
+				ThrowingWrappers.collectionToMap(reportIds, id -> getReportScorePath(id)));
+		
 		req.getRequestDispatcher("/WEB-INF/faculty/experiment.jsp").forward(req, resp);
 	}
 

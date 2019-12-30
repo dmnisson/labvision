@@ -27,6 +27,7 @@ import javax.servlet.ServletContext;
 import labvision.LabVisionConfig;
 import labvision.dto.experiment.report.ReportForReportView;
 import labvision.dto.experiment.report.ResultInfo;
+import labvision.dto.faculty.report.ReportForFacultyExperimentView;
 import labvision.dto.student.reports.ReportForStudentReportsTable;
 import labvision.entities.Course;
 import labvision.entities.Course_;
@@ -422,6 +423,24 @@ public class ReportService extends JpaService {
 			.orderBy(cb.desc(root.get(ReportedResult_.added)));
 			
 			TypedQuery<ReportForStudentReportsTable> query = manager.createQuery(cq);
+			return query.getResultList();
+		});
+	}
+
+	public List<ReportForFacultyExperimentView> getReportsForExperiment(int experimentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.faculty.report.ReportForFacultyExperimentView("
+					+ "	rr.id,"
+					+ " rr.student.id,"
+					+ " rr.name,"
+					+ "	rr.added,"
+					+ "	rr.score"
+					+ ") FROM ReportedResult rr "
+					+ "WHERE rr.experiment.id=:experimentid";
+			TypedQuery<ReportForFacultyExperimentView> query = manager.createQuery(
+					queryString, ReportForFacultyExperimentView.class);
+			query.setParameter("experimentid", experimentId);
 			return query.getResultList();
 		});
 	}
