@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
 
+import labvision.dto.course.CourseInfo;
 import labvision.entities.Course;
 import labvision.entities.CourseClass;
 import labvision.entities.Experiment;
@@ -85,6 +87,25 @@ public class CourseService extends JpaService {
 			
 			manager.getTransaction().commit();
 			return courseClass;
+		});
+	}
+	
+	/**
+	 * Get information about the course with the given ID
+	 * @param id the course ID
+	 * @return the course information
+	 */
+	public CourseInfo getCourseInfo(int id) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.course.CourseInfo("
+					+ "	c.id,"
+					+ "	c.name"
+					+ ") FROM Course c "
+					+ "WHERE c.id=:courseid";
+			TypedQuery<CourseInfo> query = manager.createQuery(queryString, CourseInfo.class);
+			query.setParameter("courseid", id);
+			return query.getResultStream().findAny().orElse(null);
 		});
 	}
 }

@@ -19,6 +19,7 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import labvision.ExperimentPrefetch;
+import labvision.dto.course.CourseInfo;
 import labvision.dto.experiment.ExperimentInfo;
 import labvision.dto.experiment.MeasurementForExperimentView;
 import labvision.dto.experiment.MeasurementValueForExperimentView;
@@ -582,6 +583,25 @@ public class ExperimentService extends JpaService {
 			query.setParameter("experimentid", experimentId);
 			query.setParameter("studentid", studentId);
 			return query.getResultList();
+		});
+	}
+
+	/**
+	 * Get course information for the course of a given experiment
+	 * @param experimentId the ID of the experiment
+	 * @return the course info, or null if the experiment is not found
+	 */
+	public CourseInfo getCourseInfo(int experimentId) {
+		return withEntityManager(manager -> {
+			String queryString =
+					"SELECT new labvision.dto.course.CourseInfo("
+					+ "	e.course.id,"
+					+ "	e.course.name"
+					+ ") FROM Experiment e "
+					+ "WHERE e.id=:experimentid";
+			TypedQuery<CourseInfo> query = manager.createQuery(queryString, CourseInfo.class);
+			query.setParameter("experimentid", experimentId);
+			return query.getResultStream().findAny().orElse(null);
 		});
 	}
 }
