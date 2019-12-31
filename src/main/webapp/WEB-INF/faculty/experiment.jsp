@@ -99,7 +99,6 @@
           <c:forEach var="student" items="${courseClass.students}">
           <div class="collapse info-${student.id}" id="measurementValues-${courseClass.id}-${student.id}">
             <h5>${student.displayName} for ${courseClass.name}</h5>
-            <h6>Measurement Values</h6>
 	          <t:measurementvaluestable 
 	            measurement="${measurement}"
 	            measurementvalues="${measurementValues[measurement.id][courseClass.id][student.id]}"
