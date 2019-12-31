@@ -2,9 +2,11 @@
 <%@ taglib tagdir="/WEB-INF/tags" prefix="t" %>
 <%@ tag description="Generic User Page Layout" language="java" pageEncoding="UTF-8"%>
 <%@ attribute name="title" %>
+<%@ attribute name="style" fragment="true" %>
+<%@ attribute name="script" fragment="true" %>
 <%@ attribute name="activenavitem" %>
 <%@ attribute name="navbarModel" %>
-<t:genericpage title="${title}">
+<t:genericpage title="${title}" style="${style}" script="${script}">
 
 <nav class="navbar fixed-top navbar-expand-md navbar-light bg-light">
   <a class="navbar-brand" href="/">LabVision</a>
