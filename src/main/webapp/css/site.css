@@ -33,3 +33,9 @@
 .course-class::before {
   content: "-"
 }
+
+.student:not(.collapsed) {
+	text-decoration: none;
+	color: #000;
+	font-weight: 600;
+}

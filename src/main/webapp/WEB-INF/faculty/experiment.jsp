@@ -47,10 +47,10 @@
             </tr>
             
             <c:forEach var="student" items="${courseClass.students}">
-            <tr class="collapse student students${courseClass.id}" id="student${student.id}">
+            <tr class="collapse students${courseClass.id}" id="student${student.id}">
               <td></td>
               <td>
-                <button class="btn btn-link p-2" type="button" data-toggle="collapse" data-target=".info-${student.id}, .info-unselected" role="treeitem" aria-level="2">
+                <button class="btn btn-link p-2 student collapsed" type="button" data-toggle="collapse" data-target=".info-${student.id}, .info-unselected" role="treeitem" aria-level="2">
                   ${student.displayName}
                 </button>
               </td>
