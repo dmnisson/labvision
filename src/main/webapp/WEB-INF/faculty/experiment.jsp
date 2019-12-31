@@ -40,14 +40,14 @@
             <c:forEach var="courseClass" items="${experiment.course.courseClasses}">
             <tr id="courseClass${courseClass.id}" >
               <td colspan="3">
-                <button class="btn btn-link" type="button" data-toggle="collapse" data-target=".students${courseClass.id}" role="treeitem" aria-level="1">
+                <button class="btn btn-link course-class collapsed" type="button" data-toggle="collapse" data-target=".students${courseClass.id}" role="treeitem" aria-level="1">
                   ${courseClass.name}
                 </button>
               </td>
             </tr>
             
             <c:forEach var="student" items="${courseClass.students}">
-            <tr class="collapse students${courseClass.id}" id="student${student.id}">
+            <tr class="collapse student students${courseClass.id}" id="student${student.id}">
               <td></td>
               <td>
                 <button class="btn btn-link p-2" type="button" data-toggle="collapse" data-target=".info-${student.id}, .info-unselected" role="treeitem" aria-level="2">
@@ -87,7 +87,7 @@
       </div>
       <div class="row">
         <div class="col">
-          <a class="btn btn-default" href="${editMeasurementPaths[measurement.id]}">Edit Measurement</a>
+          <a class="btn btn-secondary" href="${editMeasurementPaths[measurement.id]}">Edit Measurement</a>
         </div>
       </div>
       <div class="row">

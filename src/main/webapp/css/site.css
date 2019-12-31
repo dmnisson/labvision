@@ -25,3 +25,11 @@
 .tree-table-cell {
 	line-height: 1.5;
 }
+
+.course-class.collapsed::before {
+  content: "+"
+}
+
+.course-class::before {
+  content: "-"
+}
