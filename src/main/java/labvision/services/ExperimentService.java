@@ -402,7 +402,8 @@ public class ExperimentService extends JpaService {
 	public List<Integer> getInstructorIdsFor(int experimentId) {
 		return withEntityManager(manager -> {
 			String queryString =
-					"SELECT e.instructors.id FROM Experiment e " +
+					"SELECT i.id FROM Experiment e " +
+					"JOIN e.instructors i " +
 					"WHERE e.id=:experimentid";
 			TypedQuery<Integer> query = manager.createQuery(queryString, Integer.class);
 			query.setParameter("experimentid", experimentId);
