@@ -1,5 +1,6 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
+<%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ tag language="java" pageEncoding="UTF-8"%>
 <%@ attribute name="measurement" type="labvision.dto.experiment.MeasurementForExperimentView" %>
 <%@ attribute name="measurementvalues" type="java.util.List" %>
@@ -33,7 +34,9 @@
           ${parameterValue.value} ± ${parameterValue.uncertainty}
         </td>
         </c:forEach>
-        <td>${measurementValue.taken}</td>
+        <td>
+          <javatime:format value="${measurementValue.taken}" style="SS" />
+        </td>
       </tr>
       </c:forEach>
     </tbody>
