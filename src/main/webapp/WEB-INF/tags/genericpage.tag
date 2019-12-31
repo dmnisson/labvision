@@ -2,6 +2,7 @@
 <%@ tag description="Generic Page Layout" language="java" pageEncoding="UTF-8"%>
 <%@ attribute name="title" %>
 <%@ attribute name="style" fragment="true" %>
+<%@ attribute name="script" fragment="true" %>
 <!DOCTYPE html5>
 <html>
 <head>
