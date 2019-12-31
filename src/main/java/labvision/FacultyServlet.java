@@ -1,6 +1,7 @@
 package labvision;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -14,6 +15,8 @@ import javax.servlet.http.HttpSession;
 import labvision.dto.experiment.MeasurementForExperimentView;
 import labvision.dto.experiment.MeasurementValueForExperimentView;
 import labvision.dto.experiment.MeasurementValueForFacultyExperimentView;
+import labvision.dto.experiment.report.ReportForFacultyReportView;
+import labvision.dto.experiment.report.ResultInfo;
 import labvision.dto.faculty.experiment.ExperimentForFacultyExperimentTable;
 import labvision.dto.faculty.report.ReportForFacultyExperimentView;
 import labvision.entities.Experiment;
@@ -84,8 +87,12 @@ public class FacultyServlet extends AbstractLabVisionServlet {
 			doGetReports(req, resp, session);
 			break;
 		case "report":
-			doGetReport(req, resp, session, pathParts[2],
-				pathParts.length == 3 ? null : pathParts[3]);
+			try {
+				doGetReport(req, resp, session, pathParts[2],
+					pathParts.length == 3 ? null : pathParts[3]);
+			} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
+				handleURLComputationError(resp, e);
+			}
 			break;
 		case "courses":
 			doGetCourses(req, resp, session);
@@ -161,9 +168,31 @@ public class FacultyServlet extends AbstractLabVisionServlet {
 		
 	}
 
-	private void doGetReport(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String action, String arg) {
-		// TODO Auto-generated method stub
+	private void doGetReport(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String action, String arg) throws ServletException, IOException, ServletNotFoundException, ServletMappingNotFoundException {
+		if (arg == null) {
+			arg = action;
+			action = "view";
+		}
 		
+		int reportId = Integer.parseInt(arg);
+		
+		ReportService reportService = (ReportService) getServletContext()
+				.getAttribute(LabVisionServletContextListener.REPORT_SERVICE_ATTR);
+		
+		ReportForFacultyReportView reportInfo = reportService.getReport(reportId, ReportForFacultyReportView.class);
+		List<ResultInfo> acceptedResults = reportService.getAcceptedResults(reportId);
+		
+		req.setAttribute("report", reportInfo);
+		req.setAttribute("acceptedResults", acceptedResults);
+		req.setAttribute("reportDocumentURL", reportService.getDocumentURL(
+				reportId,
+				getServletContext(),
+				req.getServerName(),
+				req.getServerPort()));
+		req.setAttribute("scoring", action.equals("score"));
+		req.setAttribute("scorePath", getReportScorePath(reportId));
+		
+		req.getRequestDispatcher("/WEB-INF/faculty/report.jsp").forward(req, resp);
 	}
 
 	private void doGetReports(HttpServletRequest req, HttpServletResponse resp, HttpSession session) {
@@ -271,7 +300,12 @@ public class FacultyServlet extends AbstractLabVisionServlet {
 			doPostExperiment(req, resp, session, pathParts[2]);
 			break;
 		case "report":
-			doPostReport(req, resp, session, pathParts[2]);
+			try {
+				doPostReport(req, resp, session, pathParts[2],
+					pathParts.length == 3 ? null : pathParts[3]);
+			} catch (ServletNotFoundException | ServletMappingNotFoundException e) {
+				handleURLComputationError(resp, e);
+			}
 			break;
 		case "student":
 			doPostStudent(req, resp, session, pathParts[2]);
@@ -286,9 +320,26 @@ public class FacultyServlet extends AbstractLabVisionServlet {
 		
 	}
 
-	private void doPostReport(HttpServletRequest req, HttpServletResponse resp, HttpSession session, String string) {
-		// TODO Auto-generated method stub
+	private void doPostReport(HttpServletRequest req, HttpServletResponse resp, HttpSession session, 
+			String action, String arg) throws IOException, ServletNotFoundException, ServletMappingNotFoundException {
+		if (arg == null) {
+			arg = action;
+			action = "score";
+		}
+		int reportId = Integer.parseInt(arg);
 		
+		try {
+			BigDecimal score = new BigDecimal(req.getParameter("score"));
+			
+			ReportService reportService = (ReportService) getServletContext()
+					.getAttribute(LabVisionServletContextListener.REPORT_SERVICE_ATTR);
+			
+			reportService.scoreReport(reportId, score);
+			
+			resp.sendRedirect(getReportPath(reportId));
+		} catch (NumberFormatException e) {
+			resp.sendRedirect(getReportScorePath(reportId));
+		}
 	}
 
 	private void doPostExperiment(HttpServletRequest req, HttpServletResponse resp, HttpSession session,

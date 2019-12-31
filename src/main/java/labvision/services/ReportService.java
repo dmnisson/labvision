@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -25,6 +26,7 @@ import javax.persistence.criteria.Root;
 import javax.servlet.ServletContext;
 
 import labvision.LabVisionConfig;
+import labvision.dto.experiment.report.ReportForFacultyReportView;
 import labvision.dto.experiment.report.ReportForReportView;
 import labvision.dto.experiment.report.ResultInfo;
 import labvision.dto.faculty.report.ReportForFacultyExperimentView;
@@ -92,9 +94,17 @@ public class ReportService extends JpaService {
 	}
 	
 	public ReportForReportView getReport(int reportId) {
+		return getReport(reportId, ReportForReportView.class);
+	}
+
+	public <DTO extends ReportForReportView> DTO getReport(
+			int reportId, Class<DTO> dtoClass) {
 		return withEntityManager(manager -> {
+			String dtoClassName = dtoClass.getCanonicalName();
+			boolean needStudentInfo = ReportForFacultyReportView.class.isAssignableFrom(dtoClass);
+			
 			String queryString =
-					"SELECT new labvision.dto.experiment.report.ReportForReportView(" +
+					"SELECT new " + dtoClassName + "(" +
 					"	rr.id," +
 					"	rr.experiment.id," +
 					"	rr.name," +
@@ -103,12 +113,14 @@ public class ReportService extends JpaService {
 					"	rr.reportDocument.filename," +
 					"	rr.reportDocument.lastUpdated," +
 					"	rr.score" +
+					(needStudentInfo ? ", rr.student.id" : "") +
+					(needStudentInfo ? ", rr.student.name" : "") +
 					") FROM ReportedResult rr " +
 					"WHERE rr.id=:reportid";
 			
 			// first check if report exists
-			TypedQuery<ReportForReportView> query = 
-					manager.createQuery(queryString, ReportForReportView.class);
+			TypedQuery<DTO> query = 
+					manager.createQuery(queryString, dtoClass);
 			query.setParameter("reportid", reportId);
 			return query.getResultStream().findAny().orElse(null);
 		});
@@ -443,6 +455,17 @@ public class ReportService extends JpaService {
 					queryString, ReportForFacultyExperimentView.class);
 			query.setParameter("experimentid", experimentId);
 			return query.getResultList();
+		});
+	}
+
+	public void scoreReport(int reportId, BigDecimal score) {
+		withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			ReportedResult report = manager.find(ReportedResult.class, reportId);
+			report.setScore(score);
+			
+			manager.getTransaction().commit();
 		});
 	}
 }

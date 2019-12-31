@@ -251,7 +251,7 @@ public class StudentServlet extends AbstractLabVisionServlet {
 				return;
 			}
 			
-			ReportForReportView reportData = reportService.getReport(reportId);
+			ReportForReportView reportData = reportService.getReport(reportId, ReportForReportView.class);
 			acceptedResults = reportService.getAcceptedResults(reportId);
 			reportDocumentURL = reportService.getDocumentURL(
 					reportId,
