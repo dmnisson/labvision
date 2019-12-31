@@ -558,8 +558,8 @@ class TestExperimentService {
 		assertEquals(Units.METRE_PER_SQUARE_SECOND.getDimension(),
 				Variable.dimensionObjectFor(mv32.getDimension()));
 		
-		assertEquals(Units.METRE_PER_SQUARE_SECOND.toString(), mv22.getUnitString());
-		assertEquals(Units.METRE_PER_SQUARE_SECOND.toString(), mv32.getUnitString());
+		assertEquals(Units.METRE_PER_SQUARE_SECOND.toString(), mv22.getQuantityTypeId().getUnitString());
+		assertEquals(Units.METRE_PER_SQUARE_SECOND.toString(), mv32.getQuantityTypeId().getUnitString());
 		
 		assertEquals(7.1, mv22.getValue());
 		assertEquals(7.2, mv32.getValue());
@@ -592,7 +592,7 @@ class TestExperimentService {
 		
 		// check unit symbols
 		mv3.stream()
-			.map(MeasurementValueForExperimentView::getUnitString)
+			.map(mv -> mv.getQuantityTypeId().getUnitString())
 			.forEach(str -> assertEquals(Units.RADIAN.toString(), str));
 		
 		// check ordering of values and uncertainties
@@ -643,7 +643,7 @@ class TestExperimentService {
 		
 		// check unit symbols
 		Stream.concat(mv14.stream(), mv34.stream())
-			.map(MeasurementValueForExperimentView::getUnitString)
+			.map(mv -> mv.getQuantityTypeId().getUnitString())
 			.forEach(str -> assertEquals(Units.METRE_PER_SECOND.toString(), str));
 		
 		// check ordering of values and uncertainties
@@ -709,7 +709,7 @@ class TestExperimentService {
 		.forEach(i -> {
 			assertArrayEquals(expectedUnitStrings[i], 
 					service.getMeasurements(experimentIds[i]).stream()
-						.map(MeasurementForExperimentView::getUnitString)
+						.map(mv -> mv.getQuantityTypeId().getUnitString())
 						.toArray(String[]::new));
 		});
 	}
@@ -733,7 +733,7 @@ class TestExperimentService {
 				Units.WATT.toString()
 		};
 		assertArrayEquals(expectedUnitStrings, e2m1p.stream()
-				.map(ParameterForExperimentView::getUnitString)
+				.map(p -> p.getQuantityTypeId().getUnitString())
 				.toArray(String[]::new));
 		
 		// no other measurements have parameters
