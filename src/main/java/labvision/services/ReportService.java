@@ -437,7 +437,8 @@ public class ReportService extends JpaService {
 					+ "	rr.added,"
 					+ "	rr.score"
 					+ ") FROM ReportedResult rr "
-					+ "WHERE rr.experiment.id=:experimentid";
+					+ "WHERE rr.experiment.id=:experimentid "
+					+ "ORDER BY rr.added DESC";
 			TypedQuery<ReportForFacultyExperimentView> query = manager.createQuery(
 					queryString, ReportForFacultyExperimentView.class);
 			query.setParameter("experimentid", experimentId);
