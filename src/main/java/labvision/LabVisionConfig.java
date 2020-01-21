@@ -15,6 +15,12 @@ import java.util.logging.Logger;
  *
  */
 public class LabVisionConfig {
+	private static final String CSRF_SALT_ALGORITHM_KEY = "csrfSaltAlgorithm";
+
+	private static final String CSRF_SALT_EXPIRATION_TIME_KEY = "csrfSaltExpirationTime";
+
+	private static final String MAX_CSRF_SALT_CACHE_SIZE_KEY = "maxCsrfSaltCacheSize";
+
 	private static final String STUDENT_DASHBOARD_MAX_RECENT_COURSES_KEY = "studentDashboardMaxRecentCourses";
 
 	private static final String STUDENT_DASHBOARD_MAX_RECENT_EXPERIMENTS_KEY = "studentDashboardMaxRecentExperiments";
@@ -116,5 +122,22 @@ public class LabVisionConfig {
 	public String getReportUploadFilePath() {
 		return props.getProperty(REPORT_UPLOAD_FILE_PATH_KEY,
 				Paths.get("reports").toAbsolutePath().toString());
+	}
+
+	public long getMaxCsrfSaltCacheSize() {
+		return Long.parseLong(props.getProperty(MAX_CSRF_SALT_CACHE_SIZE_KEY,
+				"2048"));
+	}
+
+	/**
+	 * CSRF salt expiration time in seconds
+	 * @return CSRF salt expiration time
+	 */
+	public long getCsrfSaltExpirationTime() {
+		return Long.parseLong(props.getProperty(CSRF_SALT_EXPIRATION_TIME_KEY, "900"));
+	}
+
+	public String getCsrfSaltAlgorithm() {
+		return props.getProperty(CSRF_SALT_ALGORITHM_KEY, "NativePRNG");
 	}
 }
