@@ -38,6 +38,7 @@ import labvision.entities.Measurement;
 import labvision.entities.MeasurementValue;
 import labvision.entities.Measurement_;
 import labvision.entities.Parameter;
+import labvision.entities.QuantityTypeId;
 import labvision.entities.Student;
 import labvision.measure.Amount;
 
@@ -602,6 +603,110 @@ public class ExperimentService extends JpaService {
 			TypedQuery<CourseInfo> query = manager.createQuery(queryString, CourseInfo.class);
 			query.setParameter("experimentid", experimentId);
 			return query.getResultStream().findAny().orElse(null);
+		});
+	}
+
+	/**
+	 * Finds and updates an experiment
+	 * @param experimentId the experiment ID
+	 * @param name new experiment name
+	 * @param description new description
+	 * @param reportDueDate new report due date
+	 * @return the experiment object
+	 */
+	public Experiment updateExperiment(int experimentId, String name, String description, LocalDateTime reportDueDate) {
+		return withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Experiment experiment = manager.find(Experiment.class, experimentId);
+			
+			experiment.setName(name);
+			experiment.setDescription(description);
+			experiment.setReportDueDate(reportDueDate);
+			
+			manager.getTransaction().commit();
+			
+			return experiment;
+		});
+	}
+
+	public <Q extends Quantity<Q>> Measurement updateMeasurement(int measurementId, String name, Class<Q> quantityType) {
+		return withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Measurement measurement = manager.find(Measurement.class, measurementId);
+			measurement.setName(name);
+			measurement.setQuantityTypeId(QuantityTypeId.of(quantityType));
+			
+			manager.getTransaction().commit();
+			
+			return measurement;
+		});
+	}
+
+	public <Q extends Quantity<Q>> Parameter updateParameter(int parameterId, String name, Class<Q> quantityType) {
+		return withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Parameter parameter = manager.find(Parameter.class, parameterId);
+			parameter.setName(name);
+			parameter.setQuantityTypeId(QuantityTypeId.of(quantityType));
+			
+			manager.getTransaction().commit();
+			
+			return parameter;
+		});
+	}
+
+	public void removeParameter(int parameterId) {
+		withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Parameter parameter = manager.find(Parameter.class, parameterId);
+			parameter.getMeasurement().removeParameter(parameter);
+			manager.remove(parameter);
+			
+			manager.getTransaction().commit();
+		});
+	}
+
+	public void removeMeasurement(int measurementId) {
+		withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Measurement measurement = manager.find(Measurement.class, measurementId);
+			measurement.getExperiment().removeMeasurement(measurement);
+			manager.remove(measurement);
+			
+			manager.getTransaction().commit();
+		});
+	}
+
+	public <Q extends Quantity<Q>> Measurement addMeasurement(int experimentId, String name, Class<Q> quantityType) {
+		return withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Experiment experiment = manager.find(Experiment.class, experimentId);
+			Measurement measurement = experiment.addMeasurement(name, quantityType);
+			manager.persist(measurement);
+			
+			manager.getTransaction().commit();
+			
+			return measurement;
+		});
+	}
+
+	public <Q extends Quantity<Q>> Parameter addParameter(int measurementId, String name, Class<Q> quantityType) {
+		return withEntityManager(manager -> {
+			manager.getTransaction().begin();
+			
+			Measurement measurement = manager.find(Measurement.class, measurementId);
+			Parameter parameter = measurement.addParameter(name, quantityType);
+			manager.persist(parameter);
+			
+			manager.getTransaction().commit();
+			
+			return parameter;
 		});
 	}
 }

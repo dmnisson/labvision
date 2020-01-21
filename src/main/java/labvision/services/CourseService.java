@@ -108,4 +108,25 @@ public class CourseService extends JpaService {
 			return query.getResultStream().findAny().orElse(null);
 		});
 	}
+
+	/**
+	 * Create an experiment and add it to a course
+	 * @param courseId the course id
+	 * @param name the name of the new experiment
+	 * @param description the description of the new experiment
+	 * @param reportDueDate the due date for submission of reports
+	 * @return the newly created experiment object
+	 */
+	public Experiment addExperiment(int courseId, String name, String description, LocalDateTime reportDueDate) {
+		return withEntityManager(manager -> {
+			Course course = manager.find(Course.class, courseId);
+			
+			manager.getTransaction().begin();
+			Experiment experiment = course.addExperiment(name, description, reportDueDate);
+			manager.persist(experiment);
+			manager.getTransaction().commit();
+			
+			return experiment;
+		});
+	}
 }
