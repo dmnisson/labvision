@@ -134,7 +134,7 @@ public class LabVisionConfig {
 	 * @return CSRF salt expiration time
 	 */
 	public long getCsrfSaltExpirationTime() {
-		return Long.parseLong(props.getProperty(CSRF_SALT_EXPIRATION_TIME_KEY, "900"));
+		return Long.parseLong(props.getProperty(CSRF_SALT_EXPIRATION_TIME_KEY, "3600"));
 	}
 
 	public String getCsrfSaltAlgorithm() {
