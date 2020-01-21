@@ -12,7 +12,7 @@
       <h1>${experiment.name}</h1>
     </div>
     <div class="col-sm-3">
-      <button type="button" id="editBtn" class="btn btn-primary">Edit Experiment</button>
+      <a class="btn btn-primary" href="${editExperimentPath}">Edit Experiment</a>
     </div>
   </div>
   <div class="row">
