@@ -87,11 +87,6 @@
       </div>
       <div class="row">
         <div class="col">
-          <a class="btn btn-secondary" href="${editMeasurementPaths[measurement.id]}">Edit Measurement</a>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
           <div class="collapse show info-unselected" id="measurementValues-unselected">
             <p class="text-center">Select student to view measurement values</p>
           </div>
