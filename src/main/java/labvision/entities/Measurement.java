@@ -79,6 +79,11 @@ public class Measurement extends Variable<Measurement, MeasurementValue> impleme
 		return parameter;
 	}
 
+	public void removeParameter(Parameter parameter) {
+		this.parameters.remove(parameter);
+		parameter.setMeasurement(null);
+	}
+	
 	public PersistableAmount getMean() {
 		return mean;
 	}

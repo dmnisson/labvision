@@ -232,6 +232,12 @@ public class Experiment implements LabVisionEntity {
 		return measurement;
 	}
 
+
+	public void removeMeasurement(Measurement measurement) {
+		measurements.remove(measurement);
+		measurement.setExperiment(null);
+	}
+	
 	public List<Result> getAcceptedResults() {
 		return acceptedResults;
 	}
