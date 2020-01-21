@@ -262,6 +262,7 @@ $(function() {
 <jsp:body>
 <div class="container-fluid p-lg-5 userpage-container">
   <form id="editExperimentForm" method="POST" action="${actionURL}">
+    <t:csrfsalt value="${csrfSalt}" />
     <input class="form-control form-control-lg" type="text" name="experimentName" id="experimentName" value="${name}" placeholder="Name of experiment" />
     
     <div class="form-group">

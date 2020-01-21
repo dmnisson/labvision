@@ -52,6 +52,7 @@
       <c:set var="WORD_COMPAT" value="<%= FileType.WORD_COMPAT %>" />
       
       <form method="POST" action="${actionUrl}" enctype="multipart/form-data">
+        <t:csrfsalt value="${csrfSalt}" />
         <div class="form-group">
           <label for="reportName">Name of report</label>
           <input class="form-control" type="text" name="reportName" id="reportName" value="${name}" />

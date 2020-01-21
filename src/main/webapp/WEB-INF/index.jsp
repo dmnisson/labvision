@@ -18,6 +18,7 @@
 						<h3 class="card-title">Students and Faculty</h3>
 						<p class="card-text">Sign in to view and manage lab results.</p>
 						<form method="POST" action="/login">
+						  <t:csrfsalt value="${csrfSalt}" />
 							<div class="form-group">
 								<label for="username">Username</label>
 								<input type="text" id="username" name="username" class="form-control" />

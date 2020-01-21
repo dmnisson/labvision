@@ -37,6 +37,7 @@
         <c:forEach var="measurement" items="${measurements}">
         <div class="tab-pane" id="measurement-${measurement.id}" role="tabpanel" aria-labelledby="measurement-${measurement.id}-tab">
           <form method="POST" action="${newMeasurementValuePaths[measurement.id]}">
+            <t:csrfsalt value="${csrfSalt}" />
 	          <t:measurementvaluestable
 	            measurement="${measurement}"
 	            measurementvalues="${measurementValues[measurement.id]}"

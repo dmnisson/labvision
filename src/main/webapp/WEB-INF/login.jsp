@@ -5,6 +5,7 @@
 <t:genericpage title="Login">
   <div class="signin-page-div">
 	  <form class="signin-form" method="post">
+	    <t:csrfsalt value="${csrfSalt}" />
 	    <c:if test="${ param.error eq 401 }">
 	      <div class="alert alert-warning">
 	        Invalid email or password.

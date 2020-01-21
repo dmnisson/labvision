@@ -59,6 +59,7 @@
 		  
 		  <c:otherwise>
 		  <form method="POST" action="${scorePath}">
+		    <t:csrfsalt value="${csrfSalt}" />
 		    <div class="form-group">
 		      <label for="score">Score</label>
 		      <input type="number" id="score" name="score" value="${score}" step="0.01" />
