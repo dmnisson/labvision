@@ -24,6 +24,10 @@
     <servlet-name>report-docs</servlet-name>
     <servlet-class>labvision.ReportDocumentServlet</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>labvision-device-token-signer</servlet-name>
+    <servlet-class>labvision.auth.DeviceTokenSignerServlet</servlet-class>
+  </servlet>
   <servlet-mapping>
     <servlet-name>labvision</servlet-name>
     <url-pattern>/</url-pattern>
