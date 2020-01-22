@@ -70,7 +70,6 @@ public class AuthFilter implements Filter {
 								user,
 								httpRequest
 						);
-						System.out.println(newToken.toString());
 						deviceAuth.addDeviceToken(httpResponse, newToken);
 					}
 				} catch (InvalidKeyException | NoSuchAlgorithmException
