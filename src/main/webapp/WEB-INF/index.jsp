@@ -28,9 +28,9 @@
 								<input type="password" id="password" name="password" class="form-control" />
 							</div>
 							<div class="form-check mb-3">
-				             <input class="form-check-input" type="checkbox" name="rememberMe" />
-				             <label class="form-check-label" for="rememberMe">Remember Me</label>
-				            </div>
+                <input class="form-check-input" type="checkbox" name="rememberMe" />
+                <label class="form-check-label" for="rememberMe">Remember Me</label>
+				      </div>
 							<button type="submit" class="btn btn-primary">Submit</button>
 						</form>
 					</div>
