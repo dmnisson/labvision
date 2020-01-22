@@ -126,7 +126,7 @@ public class AuthServlet extends HttpServlet {
 				if (!rememberMe) {
 					DeviceAuthentication.clearDeviceToken(resp);
 			    } else {
-					if (Objects.isNull(deviceToken)) {
+					if (Objects.isNull(deviceToken) || deviceToken.getUserId() != user.getId()) {
 						// first add the device to the database
 						Device device = new Device();
 						device.setUser(user);
