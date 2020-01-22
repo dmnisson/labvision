@@ -25,6 +25,11 @@ The quickest way to set up LabVision on your local system is to clone the reposi
 keytool -keystore keystore -alias jetty -genkey -keyalg RSA -sigalg SHA256withRSA
 ```
 
+You will also need to generate a PKCS12 keystore for device-based authentication to work properly:
+
+```
+keytool -genkey -alias devauth -keystore devauth.p12 -storetype PKCS12 -keyalg RSA -storepass Password123
+```
 
 The keystore password will then need to be configured in the file jetty-ssl-keystore.xml, a [sample](https://github.com/dmnisson/labvision/blob/master/jetty-ssl-keystore.example.xml) of which is provided in the repository. 
 
