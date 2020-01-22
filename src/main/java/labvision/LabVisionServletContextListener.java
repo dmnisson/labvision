@@ -5,6 +5,8 @@ import javax.persistence.Persistence;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import labvision.auth.DeviceAuthentication;
+import labvision.auth.DeviceTokenSigning;
 import labvision.services.CourseService;
 import labvision.services.DashboardService;
 import labvision.services.ExperimentService;
@@ -16,6 +18,7 @@ import labvision.services.UserService;
 
 public class LabVisionServletContextListener implements ServletContextListener {
 
+	public static final String DEVICE_AUTHENTICATION_ATTR = "deviceAuthentication";
 	public static final String PATH_CONSTRUCTOR_ATTR = "pathConstructor";
 	public static final String COURSE_SERVICE_ATTR = "courseService";
 	public static final String STUDENT_DASHBOARD_SERVICE_ATTR = "studentDashboardService";
@@ -26,6 +29,7 @@ public class LabVisionServletContextListener implements ServletContextListener {
 	public static final String ENTITY_MANAGER_FACTORY_ATTR = "emf";
 	public static final String CONFIG_ATTR = "config";
 	public static final String REPORT_SERVICE_ATTR = "reportService";
+	public static final String DEVICE_TOKEN_SIGNING_ATTR = "deviceTokenSigning";
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -33,6 +37,9 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		LabVisionConfig config = new LabVisionConfig(configPath);
 		
 		event.getServletContext().setAttribute(CONFIG_ATTR, config);
+		
+		DeviceTokenSigning deviceTokenSigning = new DeviceTokenSigning(config);
+		event.getServletContext().setAttribute(DEVICE_TOKEN_SIGNING_ATTR, deviceTokenSigning);
 		
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(
 				config.getPersistenceUnitName());
@@ -42,8 +49,11 @@ public class LabVisionServletContextListener implements ServletContextListener {
 		IPathConstructor pathConstructor = new PathConstructor(event.getServletContext());
 		event.getServletContext().setAttribute(PATH_CONSTRUCTOR_ATTR, pathConstructor);
 		
-		JpaService userService = new UserService(emf);
+		UserService userService = new UserService(emf);
 		event.getServletContext().setAttribute(USER_SERVICE_ATTR, userService);
+		
+		DeviceAuthentication deviceAuthentication = new DeviceAuthentication(config);
+		event.getServletContext().setAttribute(DEVICE_AUTHENTICATION_ATTR, deviceAuthentication);
 		
 		StudentService studentService = new StudentService(emf, config);
 		event.getServletContext().setAttribute(STUDENT_SERVICE_ATTR, studentService);

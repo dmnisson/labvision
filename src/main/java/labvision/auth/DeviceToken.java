@@ -42,7 +42,7 @@ public class DeviceToken {
 	}
 
 	public static DeviceToken parseDeviceToken(String tokenString) {
-		String[] tokenParts = tokenString.split(";");
+		String[] tokenParts = tokenString.split("\\|");
 		
 		Base64.Decoder decoder = Base64.getDecoder();
 		
@@ -73,12 +73,17 @@ public class DeviceToken {
 			signatureString = encoder.encodeToString(signature);
 		}
 		
+		return this.toUnsignedString() + signatureString;
+	}
+
+	public String toUnsignedString() {
+		Base64.Encoder encoder = Base64.getEncoder();
+		
 		return encoder.encodeToString(ByteBuffer.allocate(Integer.BYTES)
 				.putInt(userId)
-				.array()) + ";" +
-				deviceId + ";" +
-				expiration.toString() + ";" +
-				signatureString;
+				.array()) + "|" +
+				deviceId + "|" +
+				expiration.toString() + "|";
 	}
 
 	public byte[] getSignature() {
@@ -86,6 +91,6 @@ public class DeviceToken {
 	}
 
 	public byte[] getDataBytes() {
-		return this.toString().getBytes(Charset.forName("UTF-8"));
+		return this.toUnsignedString().getBytes(Charset.forName("UTF-8"));
 	}
 }

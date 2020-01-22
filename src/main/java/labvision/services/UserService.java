@@ -9,8 +9,6 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import labvision.entities.Device;
-import labvision.entities.Experiment;
-import labvision.entities.Instructor;
 import labvision.entities.User;
 import labvision.entities.User_;
 
@@ -80,6 +78,12 @@ public class UserService extends JpaService {
 			tx.commit();
 			
 			return managedDevice;
+		});
+	}
+
+	public Device getDevice(String deviceId) {
+		return withEntityManager(manager -> {
+			return manager.find(Device.class, deviceId);
 		});
 	}
 }

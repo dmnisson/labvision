@@ -27,9 +27,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import labvision.LabVisionConfig;
+import labvision.LabVisionServletContextListener;
 import labvision.entities.Device;
 import labvision.entities.User;
-import labvision.services.UserService;
 
 /**
  * Device-based authentication for users who select "Remember Me"
@@ -38,12 +38,10 @@ import labvision.services.UserService;
  */
 public class DeviceAuthentication {
 	private static final String DEVICE_TOKEN_COOKIE_NAME = "dt";
-	private LabVisionConfig config;
-	private UserService userService;
+	private final LabVisionConfig config;
 	
-	public DeviceAuthentication(LabVisionConfig config, UserService userService) {
+	public DeviceAuthentication(LabVisionConfig config) {
 		this.config = config;
-		this.userService = userService;
 	}
 
 	/**
@@ -73,18 +71,12 @@ public class DeviceAuthentication {
 		cookie.setMaxAge(0);
 		resp.addCookie(cookie);
 	}
-
-	public DeviceToken createDeviceToken(User user, HttpServletRequest req) throws IOException {
-		// first add the device to the database
-		Device device = new Device();
-		device.setUser(user);
-		device = userService.addDevice(user, device);
-		
-		// then create the device token
+	
+	public DeviceToken createDeviceToken(Device device, User user, HttpServletRequest req) throws IOException {
 		OffsetDateTime expiration = OffsetDateTime.now(ZoneOffset.UTC)
 				.plusSeconds(config.getDeviceTokenExpirationTime());
 		
-		// finally get it signed
+		// get the token signed
 		DeviceToken unsignedToken = new DeviceToken(user.getId(), device.getId(), expiration, null);
 		String deviceTokenSignerUrl = config.getDeviceTokenSignerUrl();
 		byte[] signature;

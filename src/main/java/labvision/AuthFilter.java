@@ -4,9 +4,10 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
+import java.security.cert.CertificateException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -41,8 +42,6 @@ public class AuthFilter implements Filter {
 		
 		HttpSession session = httpRequest.getSession(false);
 		
-		LabVisionConfig config = (LabVisionConfig) filterConfig.getServletContext()
-				.getAttribute(LabVisionServletContextListener.CONFIG_ATTR);
 		UserService userService = (UserService) filterConfig.getServletContext()
 				.getAttribute(LabVisionServletContextListener.USER_SERVICE_ATTR);
 		
@@ -52,13 +51,30 @@ public class AuthFilter implements Filter {
 			if (token == null) {
 				isForbidden = true;
 			} else {
-				DeviceAuthentication deviceAuth = new DeviceAuthentication(config, userService);
+				DeviceAuthentication deviceAuth = (DeviceAuthentication) filterConfig.getServletContext()
+						.getAttribute(LabVisionServletContextListener.DEVICE_AUTHENTICATION_ATTR);
 				try {
-					isForbidden = !deviceAuth.verifyDeviceToken(token,
-							userService.getUser(token.getUserId(), true),
-							httpRequest);
-				} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
-						| SignatureException e) {
+					User user = userService.getUser(token.getUserId(), true);
+					isForbidden = !deviceAuth.verifyDeviceToken(
+						token,
+						user,
+						httpRequest
+					);
+					if (!isForbidden) {
+						// set device's user in session
+						httpRequest.getSession().setAttribute("user", user);
+						
+						// renew the device token
+						DeviceToken newToken = deviceAuth.createDeviceToken(
+								userService.getDevice(token.getDeviceId()),
+								user,
+								httpRequest
+						);
+						System.out.println(newToken.toString());
+						deviceAuth.addDeviceToken(httpResponse, newToken);
+					}
+				} catch (InvalidKeyException | NoSuchAlgorithmException
+						| SignatureException | KeyStoreException | CertificateException e) {
 					Logger.getLogger(this.getClass())
 						.error("Exception verifying device signature", e);
 					isForbidden = true;

@@ -2,9 +2,10 @@ package labvision;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
+import java.security.cert.CertificateException;
 import java.util.Objects;
 
 import javax.servlet.ServletException;
@@ -17,6 +18,7 @@ import org.jboss.logging.Logger;
 
 import labvision.auth.DeviceAuthentication;
 import labvision.auth.DeviceToken;
+import labvision.entities.Device;
 import labvision.entities.User;
 import labvision.services.UserService;
 
@@ -47,15 +49,12 @@ public class AuthServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		
-		LabVisionConfig config = (LabVisionConfig) 
-				this.getServletContext().getAttribute(LabVisionServletContextListener.CONFIG_ATTR);
 		UserService userService = (UserService)
 				this.getServletContext().getAttribute(LabVisionServletContextListener.USER_SERVICE_ATTR);
 		
 		DeviceToken deviceToken = DeviceAuthentication.getDeviceToken(req);
-		DeviceAuthentication deviceAuthentication = 
-				new DeviceAuthentication(config, userService);
+		DeviceAuthentication deviceAuthentication = (DeviceAuthentication) getServletContext()
+				.getAttribute(LabVisionServletContextListener.DEVICE_AUTHENTICATION_ATTR);
 		
 		if (Objects.isNull(deviceToken)) {
 			req.getRequestDispatcher("/WEB-INF/login.jsp").forward(req, resp);
@@ -72,7 +71,7 @@ public class AuthServlet extends HttpServlet {
 					}
 					resp.sendRedirect(redirect);
 				}
-			} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | SignatureException e) {
+			} catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException | KeyStoreException | CertificateException e) {
 				Logger.getLogger(this.getClass()).warnf(e,
 						"Problem validating user %s on device %s, displaying login page",
 						deviceToken.getUserId(), deviceToken.getDeviceId());
@@ -103,10 +102,10 @@ public class AuthServlet extends HttpServlet {
 		String password = req.getParameter("password");
 		boolean rememberMe = req.getParameter("rememberMe") != null;
 		
-		LabVisionConfig config = (LabVisionConfig) this.getServletContext()
-				.getAttribute(LabVisionServletContextListener.CONFIG_ATTR);
 		UserService userService = (UserService) this.getServletContext()
 				.getAttribute(LabVisionServletContextListener.USER_SERVICE_ATTR);
+		DeviceAuthentication deviceAuthentication = (DeviceAuthentication) this.getServletContext()
+				.getAttribute(LabVisionServletContextListener.DEVICE_AUTHENTICATION_ATTR);
 		
 		User user = userService.getUser(username, true);
 		
@@ -118,8 +117,6 @@ public class AuthServlet extends HttpServlet {
 		
 		try {
 			DeviceToken deviceToken = DeviceAuthentication.getDeviceToken(req);
-			DeviceAuthentication deviceAuthentication = 
-					new DeviceAuthentication(config, userService);
 			if (!user.passwordMatches(password)) {
 				req.getRequestDispatcher("/WEB-INF/login.jsp").forward(req, resp);
 			} else {
@@ -130,9 +127,22 @@ public class AuthServlet extends HttpServlet {
 					DeviceAuthentication.clearDeviceToken(resp);
 			    } else {
 					if (Objects.isNull(deviceToken)) {
-						deviceToken = deviceAuthentication.createDeviceToken(user, req);
-						deviceAuthentication.addDeviceToken(resp, deviceToken);
+						// first add the device to the database
+						Device device = new Device();
+						device.setUser(user);
+						device = userService.addDevice(user, device);
+						
+						// then create the new device token
+						deviceToken = deviceAuthentication.createDeviceToken(device, user, req);
+					} else {
+						// renew the token
+						deviceToken = deviceAuthentication.createDeviceToken(
+								userService.getDevice(deviceToken.getDeviceId()),
+								user,
+								req
+						);
 					}
+					deviceAuthentication.addDeviceToken(resp, deviceToken);
 				}
 				
 				String redirect = req.getParameter("redirect");
@@ -154,6 +164,10 @@ public class AuthServlet extends HttpServlet {
 	
 	private void doPostLogout(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		HttpSession session = req.getSession();
+		
+		// clear device token if user has one
+		DeviceAuthentication.clearDeviceToken(resp);
+		
 		session.invalidate();
 		
 		resp.sendRedirect(req.getContextPath() + "/login");
