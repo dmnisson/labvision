@@ -3,16 +3,19 @@ package labvision.auth;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.security.InvalidKeyException;
-import java.security.KeyFactory;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Base64;
@@ -84,32 +87,40 @@ public class DeviceAuthentication {
 		// finally get it signed
 		DeviceToken unsignedToken = new DeviceToken(user.getId(), device.getId(), expiration, null);
 		String deviceTokenSignerUrl = config.getDeviceTokenSignerUrl();
+		byte[] signature;
 		if (deviceTokenSignerUrl == null) {
-			throw new RuntimeException("Device token signer not set");
+			// sign the token using the built-in modules
+			DeviceTokenSigning signing = (DeviceTokenSigning) req.getServletContext()
+					.getAttribute(LabVisionServletContextListener.DEVICE_TOKEN_SIGNING_ATTR);
+			try {
+				signature = signing.getSignature(unsignedToken.getDataBytes());
+			} catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException | UnrecoverableKeyException | KeyStoreException | CertificateException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			URL signerURL = new URL(deviceTokenSignerUrl);
+			HttpsURLConnection conn = (HttpsURLConnection)signerURL.openConnection();
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Length", String.valueOf(unsignedToken.getDataBytes().length));
+			conn.setRequestProperty("Content-Type", "text/plain");
+			conn.setDoInput(true);
+			conn.setDoOutput(true);
+			
+			Base64.Encoder encoder = Base64.getEncoder();
+			String dataString = encoder.encodeToString(unsignedToken.getDataBytes());
+			
+			DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+			out.writeUTF(dataString);
+			out.close();
+			
+			Base64.Decoder decoder = Base64.getDecoder();
+			
+			DataInputStream in = new DataInputStream(conn.getInputStream());
+			String encSignature = in.readUTF();
+			in.close();
+			
+			signature = decoder.decode(encSignature);
 		}
-		
-		URL signerURL = new URL(deviceTokenSignerUrl);
-		HttpsURLConnection conn = (HttpsURLConnection)signerURL.openConnection();
-		conn.setRequestMethod("POST");
-		conn.setRequestProperty("Content-Length", String.valueOf(unsignedToken.getDataBytes().length));
-		conn.setRequestProperty("Content-Type", "text/plain");
-		conn.setDoInput(true);
-		conn.setDoOutput(true);
-		
-		Base64.Encoder encoder = Base64.getEncoder();
-		String dataString = encoder.encodeToString(unsignedToken.getDataBytes());
-		
-		DataOutputStream out = new DataOutputStream(conn.getOutputStream());
-		out.writeUTF(dataString);
-		out.close();
-		
-		Base64.Decoder decoder = Base64.getDecoder();
-		
-		DataInputStream in = new DataInputStream(conn.getInputStream());
-		String encSignature = in.readUTF();
-		in.close();
-		
-		byte[] signature = decoder.decode(encSignature);
 		
 		return new DeviceToken(user.getId(), device.getId(), expiration, signature);
 	}
@@ -122,22 +133,19 @@ public class DeviceAuthentication {
 		resp.addCookie(cookie);
 	}
 
-	public boolean verifyDeviceToken(DeviceToken deviceToken, User user, HttpServletRequest req) 
-	throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
-		// load the public key
-		FileInputStream keyIn = new FileInputStream(config.getPublicKeyFilename());
-		byte[] encKey = new byte[keyIn.available()];
-		keyIn.read(encKey);
+	public boolean verifyDeviceToken(DeviceToken deviceToken, User user, HttpServletRequest req) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, InvalidKeyException, SignatureException {
+		// load the keystore
+		KeyStore keyStore = KeyStore.getInstance("PKCS12");
+		keyStore.load(
+			new FileInputStream(config.getDeviceTokenKeystoreFilename()),
+			config.getDeviceTokenKeystorePassword().toCharArray()
+		);
 		
-		keyIn.close();
-		
-		// convert the public key
-		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encKey);
-		KeyFactory keyFactory = KeyFactory.getInstance(config.getDeviceTokenKeyAlgorithm());
-		PublicKey pubKey = keyFactory.generatePublic(keySpec);
+		Certificate certificate = keyStore.getCertificate("devauth");
+		PublicKey pubKey = certificate.getPublicKey();
 		
 		// verify the signature
-		Signature signature = Signature.getInstance(config.getDeviceTokenKeyAlgorithm());
+		Signature signature = Signature.getInstance(config.getDeviceTokenSignatureAlgorithm());
 		signature.initVerify(pubKey);
 		signature.update(deviceToken.getDataBytes());
 		if (!signature.verify(deviceToken.getSignature())) {

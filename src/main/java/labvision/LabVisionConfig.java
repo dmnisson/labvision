@@ -15,6 +15,12 @@ import java.util.logging.Logger;
  *
  */
 public class LabVisionConfig {
+	private static final String DEVICE_TOKEN_KEYSTORE_PASSWORD_KEY = "deviceTokenKeystorePassword";
+
+	private static final String DEVICE_TOKEN_SIGNATURE_ALGORITHM_KEY = "deviceTokenSignatureAlgorithm";
+
+	private static final String DEVICE_TOKEN_KEYSTORE_FILENAME_KEY = "deviceTokenKeystoreFilename";
+
 	private static final String CSRF_SALT_ALGORITHM_KEY = "csrfSaltAlgorithm";
 
 	private static final String CSRF_SALT_EXPIRATION_TIME_KEY = "csrfSaltExpirationTime";
@@ -104,11 +110,11 @@ public class LabVisionConfig {
 	}
 
 	public String getPublicKeyFilename() {
-		return props.getProperty(PUBLIC_KEY_FILENAME_KEY, "devauth.cer");
+		return props.getProperty(PUBLIC_KEY_FILENAME_KEY, "devauth.p12");
 	}
 
 	public String getDeviceTokenKeyAlgorithm() {
-		return props.getProperty(DEVICE_TOKEN_KEY_ALGORITHM_NAME_KEY, "SHA256withRSA");
+		return props.getProperty(DEVICE_TOKEN_KEY_ALGORITHM_NAME_KEY, "RSA");
 	}
 
 	public int getStudentDashboardMaxRecentExperiments() {
@@ -139,5 +145,18 @@ public class LabVisionConfig {
 
 	public String getCsrfSaltAlgorithm() {
 		return props.getProperty(CSRF_SALT_ALGORITHM_KEY, "NativePRNG");
+	}
+
+	public String getDeviceTokenKeystoreFilename() {
+		return props.getProperty(DEVICE_TOKEN_KEYSTORE_FILENAME_KEY, "devauth.p12");
+		
+	}
+
+	public String getDeviceTokenSignatureAlgorithm() {
+		return props.getProperty(DEVICE_TOKEN_SIGNATURE_ALGORITHM_KEY, "SHA256withRSA");
+	}
+
+	public String getDeviceTokenKeystorePassword() {
+		return props.getProperty(DEVICE_TOKEN_KEYSTORE_PASSWORD_KEY, "Password123");
 	}
 }
