@@ -25,6 +25,8 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.servlet.ServletContext;
 
+import com.google.common.io.ByteStreams;
+
 import labvision.LabVisionConfig;
 import labvision.dto.experiment.report.ReportForFacultyReportView;
 import labvision.dto.experiment.report.ReportForReportView;
@@ -245,7 +247,7 @@ public class ReportService extends JpaService {
 		
 		FileOutputStream fileOutputStream = new FileOutputStream(filesystemPath.toFile());
 		
-		fileContent.transferTo(fileOutputStream);
+		ByteStreams.copy(fileContent, fileOutputStream);
 		
 		fileOutputStream.close();
 		return filesystemPath;

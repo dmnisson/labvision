@@ -16,3 +16,4 @@ labvision_data.lobs
 /labvision_data.lck
 /.dbeaver/
 /reports/
+/.apt_generated_tests/

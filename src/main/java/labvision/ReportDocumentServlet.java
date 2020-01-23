@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.common.io.ByteStreams;
+
 import labvision.entities.FilesystemReportDocument;
 import labvision.entities.User;
 import labvision.entities.UserRole;
@@ -91,7 +93,7 @@ public class ReportDocumentServlet extends HttpServlet {
 			FileInputStream in = new FileInputStream(file);
 			ServletOutputStream out = resp.getOutputStream();
 			
-			in.transferTo(out);
+			ByteStreams.copy(in, out);
 			
 			out.flush();
 			in.close();
