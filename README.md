@@ -17,6 +17,7 @@ Instructors will be able to:
 * Retrieve submitted lab reports and score them using either a numeric system of points or a letter grade
 
 # Setup
+# TODO update to instruct on how to run the Spring Boot app
 Although many of the pages in this project have not been completed, developers are welcome to test the current state on their system and contribute ideas for what has not yet been implemented. If you would like to do so, then all you need is Apache Maven 3.6.2 and JDK 1.8 or later.
 
 The quickest way to set up LabVision on your local system is to clone the repository, and change to the directory where your clone is located. LabVision is configured to accept connections only on HTTPS, so you will need to generate a public and private key and put it into a keystore that you can install for testing purposes. The easiest way to do this is using the JDK keytool:

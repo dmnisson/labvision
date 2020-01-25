@@ -1,4 +1,5 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri = "http://www.springframework.org/tags" prefix = "s" %>
 <%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
@@ -37,13 +38,13 @@
       <c:forEach var="report" items="${reports}">
         <tr>
           <td class="col-2">
-            <a href="${reportPaths[report.id]}">${report.name}</a>
+            <a href="${s:mvcUrl('SC#getReport').arg(0, report.id).build()}">${report.name}</a>
           </td>
           <td class="col-2">
-            <a href="${experimentPaths[report.experimentId]}">${report.experimentName}</a>
+            <a href="${s:mvcUrl('SC#getExperiment').arg(0, report.experimentId).build()}">${report.experimentName}</a>
           </td>
           <td class="col-2">
-            <a href="${coursePaths[report.courseId]}">${report.courseName}</a>
+            <a href="${s:mvcUrl('SC#getCourse').arg(0, report.courseId).build()}">${report.courseName}</a>
           </td>
           <td class="col-2">
             <c:if test="${empty report.score}">—</c:if>

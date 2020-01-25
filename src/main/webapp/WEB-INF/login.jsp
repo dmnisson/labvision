@@ -5,10 +5,15 @@
 <t:genericpage title="Login">
   <div class="signin-page-div">
 	  <form class="signin-form" method="post">
-	    <t:csrfsalt value="${csrfSalt}" />
-	    <c:if test="${ param.error eq 401 }">
+	    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+	    <c:if test="${ param.error ne null }">
 	      <div class="alert alert-warning">
-	        Invalid email or password.
+	        Your email or password was incorrect, please try again.
+	      </div>
+	    </c:if>
+	    <c:if test="${ param.logout ne null }">
+	      <div class="alert alert-info">
+	        You have successfully logged out.
 	      </div>
 	    </c:if>
 	    <h1 class="h3 mb3 font-weight-normal">Log in to access your account.</h1>
@@ -25,8 +30,8 @@
 	    
 	    <div class="checkbox mb-3">
 	      <label>
-	        <input type="checkbox" name="rememberMe" />
-	        <label for="rememberMe">Remember Me</label>
+	        <input type="checkbox" name="remember-me" />
+	        <label for="remember-me">Remember Me</label>
 	      </label>
 	    </div>
 	    <button class="btn btn-lg btn-primary btn-block">
