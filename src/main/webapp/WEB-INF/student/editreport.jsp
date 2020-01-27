@@ -98,7 +98,7 @@
 	        <c:when test="${empty report.filename or uploadfile eq 'true' or report.documentType ne FILESYSTEM}">        
           <label for="filesystemDocumentFile">Upload your report</label>
           <input class="form-control-file" type="file" name="filesystemDocumentFile" />
-          <p>Maximum file size allowed: 5 MB</p>
+          <p>Maximum file size allowed: <s:eval expression="@environment.getProperty('spring.servlet.multipart.max-file-size')" /></p>
 	        </c:when>
           <c:otherwise>
           <t:reportdocumentlink
