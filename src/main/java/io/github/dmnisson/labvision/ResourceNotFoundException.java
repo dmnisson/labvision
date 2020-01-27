@@ -12,6 +12,7 @@ public class ResourceNotFoundException extends RuntimeException {
 	private final Object resourceId;
 	
 	public ResourceNotFoundException(Class<?> resourceClass, Object resourceId) {
+		super("Could not find resource of type " + resourceClass + "with key: " + resourceId);
 		this.resourceClass = null;
 		this.resourceId = new Object();
 	}
