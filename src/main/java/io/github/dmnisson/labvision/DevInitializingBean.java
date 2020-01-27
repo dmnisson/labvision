@@ -2,6 +2,8 @@ package io.github.dmnisson.labvision;
 
 import java.time.LocalDateTime;
 
+import javax.measure.quantity.Length;
+
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
 import io.github.dmnisson.labvision.entities.Course;
+import io.github.dmnisson.labvision.entities.CourseClass;
 import io.github.dmnisson.labvision.entities.Experiment;
 import io.github.dmnisson.labvision.entities.Student;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
@@ -70,10 +73,19 @@ public class DevInitializingBean implements InitializingBean {
 					"How long is the rod?",
 					"Measure the rod length as best as you can.",
 					LocalDateTime.of(2100, 1, 1, 0, 0, 0));
+			CourseClass seedCourseClass = seedCourse.addCourseClass("Course 101 Online");
 			Student student1 = studentRepository.findByUsername("student1").get();
-			courseRepository.save(seedCourse);
-			student1 = studentRepository.save(student1);
+			
+			seedCourse = courseRepository.save(seedCourse);
+			seedCourseClass = seedCourse.getCourseClasses().stream()
+					.filter(cc -> cc.getName().equals("Course 101 Online"))
+					.findAny().get();
+			
+			student1.addCourseClass(seedCourseClass);
 			student1.addActiveExperiment(seedExperiment);
+			seedExperiment.addMeasurement("Length", Length.class);
+			
+			courseRepository.save(seedCourse);
 			experimentRepository.save(seedExperiment);
 			studentRepository.save(student1);
 		}
