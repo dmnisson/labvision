@@ -1,19 +1,20 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri = "http://www.springframework.org/tags" prefix = "s" %>
 <%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8" %>
 <%@ page import = "io.github.dmnisson.labvision.entities.ReportDocumentType" %>
 <%@ page import = "io.github.dmnisson.labvision.entities.FileType" %>
-<t:userpage title="${empty name ? 'New Report' : 'Editing '}${name} - ${experiment.name} - ${experiment.courseName}">
+<t:userpage title="${empty report.name ? 'New Report' : 'Editing '}${report.name} - ${experiment.name} - ${experiment.courseName}">
 
 <div class="container-fluid p-lg-5 userpage-container">
   <div class="row">
     <div class="col">
       <h1>
         <c:choose>
-        <c:when test="${empty name}">New Report for ${experiment.name}</c:when>
-        <c:otherwise>Editing ${name}</c:otherwise>
+        <c:when test="${empty report.name}">New Report for ${experiment.name}</c:when>
+        <c:otherwise>Editing ${report.name}</c:otherwise>
         </c:choose>
       </h1>
     </div>
@@ -56,7 +57,7 @@
         <t:csrfsalt value="${csrfSalt}" />
         <div class="form-group">
           <label for="reportName">Name of report</label>
-          <input class="form-control" type="text" name="reportName" id="reportName" value="${name}" />
+          <input class="form-control" type="text" name="reportName" id="reportName" value="${report.name}" />
         </div>
 	      <div class="form-group" role="radiogroup">
 		      <div class="form-check form-check-inline">
@@ -68,8 +69,8 @@
 		          value="EXTERNAL"
 		          data-toggle="collapse"
 		          data-target=".externalDocument:not(.show),.filesystemDocument.show"
-		          aria-checked="${documentType eq EXTERNAL}"
-		          <c:if test="${documentType eq EXTERNAL}">checked</c:if>
+		          aria-checked="${report.documentType eq EXTERNAL}"
+		          <c:if test="${report.documentType eq EXTERNAL}">checked</c:if>
 		        />
 		        <label class="form-check-label" for="documentTypeExternal">URL</label>
 		      </div>
@@ -82,19 +83,19 @@
 		          value="FILESYSTEM"
 		          data-toggle="collapse"
 		          data-target=".filesystemDocument:not(.show),.externalDocument.show"
-		          aria-checked="${documentType eq FILESYSTEM}"
-		          <c:if test="${documentType eq FILESYSTEM}">checked</c:if>
+		          aria-checked="${report.documentType eq FILESYSTEM}"
+		          <c:if test="${report.documentType eq FILESYSTEM}">checked</c:if>
 		        />
 		        <label class="form-check-label" for="documentTypeFilesystem">File</label>
 		      </div>
 	      </div>
-	      <div class="form-group collapse externalDocument${documentType eq EXTERNAL ? ' show' : ''}">
+	      <div class="form-group collapse externalDocument${report.documentType eq EXTERNAL ? ' show' : ''}">
 	        <label for="externalDocumentURL">URL of document</label>
 	        <input class="form-control" type="text" name="externalDocumentURL" value="${reportDocumentURL}" placeholder="Address of your report document, e.g. on Google Drive" />
 	      </div>
-	      <div class="form-group collapse filesystemDocument${documentType eq FILESYSTEM ? ' show' : ''}">
+	      <div class="form-group collapse filesystemDocument${report.documentType eq FILESYSTEM ? ' show' : ''}">
 		      <c:choose>
-	        <c:when test="${empty filename or param.uploadfile eq 'true' or documentType ne FILESYSTEM}">        
+	        <c:when test="${empty report.filename or uploadfile eq 'true' or report.documentType ne FILESYSTEM}">        
           <label for="filesystemDocumentFile">Upload your report</label>
           <input class="form-control-file" type="file" name="filesystemDocumentFile" />
           <p>Maximum file size allowed: 5 MB</p>
@@ -102,10 +103,10 @@
           <c:otherwise>
           <t:reportdocumentlink
             documentType="FILESYSTEM"
-		        documentFileType="${documentFileType}"
-		        reportDocumentURL="${reportDocumentURL}"
-		        filename="${filename}"
-            changeButtonPath="${changeReportFilesystemDocumentPath}"
+		        documentFileType="${report.documentFileType}"
+		        reportDocumentURL="${reportDocumentUrl}"
+		        filename="${report.filename}"
+            changeButtonPath="${s:mvcUrl('SC#editReport').arg(0, report.id).arg(1, true).build()}"
           />
 	        </c:otherwise>
           </c:choose>
