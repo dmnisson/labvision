@@ -1,6 +1,6 @@
-package labvision.dto.experiment.report;
+package io.github.dmnisson.labvision.dto.result;
 
-import labvision.entities.QuantityTypeId;
+import io.github.dmnisson.labvision.entities.QuantityTypeId;
 
 /**
  * Information required to display a result
