@@ -39,16 +39,8 @@ public abstract class ServedReportDocument extends ReportDocument {
 	@Override
 	public URL getReportDocumentURL(URL servletURL) {
 		try {
-			URI documentURI = new URI(
-					servletURL.getProtocol(),
-					null,
-					servletURL.getHost(),
-					servletURL.getPort(),
-					servletURL.getPath() + docsPathInfo,
-					null,
-					null);
-			return documentURI.toURL();
-		} catch (MalformedURLException | URISyntaxException e) {
+			return new URL(servletURL.toString() + "/" + docsPathInfo);
+		} catch (MalformedURLException e) {
 			Logger.getLogger(this.getClass()).error("Invalid document URL", e);
 			return null;
 		}
