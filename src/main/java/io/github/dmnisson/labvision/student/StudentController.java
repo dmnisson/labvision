@@ -371,6 +371,7 @@ public class StudentController {
 		
 		String actionUrl = MvcUriComponentsBuilder.fromMethodName(StudentController.class, "updateReport", reportId,
 				null, null, null, null, null, null)
+				.replaceQuery(null)
 				.toUriString();
 		model.addAttribute("actionUrl", actionUrl);
 		
