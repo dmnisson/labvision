@@ -369,7 +369,8 @@ public class StudentController {
 		List<ResultInfo> acceptedResults = experimentRepository.getAcceptedResultInfoFor(report.getExperimentId());
 		model.addAttribute("acceptedResults", acceptedResults);
 		
-		String actionUrl = MvcUriComponentsBuilder.fromMethodName(StudentController.class, "updateReport", reportId, new Object(), new Object())
+		String actionUrl = MvcUriComponentsBuilder.fromMethodName(StudentController.class, "updateReport", reportId,
+				null, null, null, null, null, null)
 				.toUriString();
 		model.addAttribute("actionUrl", actionUrl);
 		
