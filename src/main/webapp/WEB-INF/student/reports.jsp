@@ -55,7 +55,7 @@
           </td>
           <td>
             <c:if test="${report.editAllowed}">
-            <a class="btn btn-primary" href="${editReportPaths[report.id]}">Edit</a>
+            <a class="btn btn-primary" href="${s:mvcUrl('SC#editReport').arg(0, report.id).build()}">Edit</a>
             </c:if>
           </td>
         </tr>
