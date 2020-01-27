@@ -1,11 +1,14 @@
 package io.github.dmnisson.labvision.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
+import io.github.dmnisson.labvision.dto.result.ResultInfo;
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
 import io.github.dmnisson.labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
@@ -159,5 +162,24 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"ORDER BY lu DESC NULLS FIRST")
 	public List<PastExperimentForStudentExperimentTable> findPastExperimentsForStudentExperimentTable(
 			@Param("studentid") Integer studentId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.experiment.ExperimentInfo(" +
+			"	e.id," +
+			"	e.name," +
+			"	e.course.name" +
+			") FROM Experiment e " +
+			"WHERE e.id=:experimentid")
+	public Optional<ExperimentInfo> findExperimentInfo(@Param("experimentid") Integer experimentId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.result.ResultInfo(" +
+			"	ar.id," +
+			"	ar.name," +
+			"	ar.value.value," +
+			"	ar.value.uncertainty," +
+			"	ar.variable.quantityTypeId" +
+			") FROM Experiment e " +
+			"JOIN e.acceptedResults ar " +
+			"WHERE e.id=:experimentid")
+	public List<ResultInfo> getAcceptedResultInfoFor(@Param("experimentid") Integer experimentId);
 		
 }
