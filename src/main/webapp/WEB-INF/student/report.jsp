@@ -6,12 +6,15 @@
   contentType="text/html; charset=UTF-8"
   pageEncoding="UTF-8"
 %>
-<t:userpage title="${name} - ${experiment.name} - ${experiment.courseName}">
+<t:userpage title="${report.name} - ${experiment.name} - ${experiment.courseName}">
 
 <div class="container-fluid p-lg-5 userpage-container">
   <div class="row">
     <div class="col">
-      <h1>${name} - ${experiment.name} <a class="btn btn-primary" href="${editPath}">Edit</a></h1>
+      <h1>${report.name} - ${experiment.name} <a
+        class="btn btn-primary"
+        href="${editPath}"
+      >Edit</a></h1>
     </div>
   </div>
   
@@ -41,12 +44,12 @@
     <div class="col">
       <h2>Report Document</h2>
       <t:reportdocumentlink
-        documentType="${documentType}"
-        documentFileType="${documentFileType}"
-        reportDocumentURL="${reportDocumentURL}"
-        filename="${filename}"
-        score="${score}"
-        documentLastUpdated="${documentLastUpdated}"
+        documentType="${report.documentType}"
+        documentFileType="${report.documentFileType}"
+        reportDocumentURL="${reportDocumentUrl}"
+        filename="${report.filename}"
+        score="${report.score}"
+        documentLastUpdated="${report.documentLastUpdated}"
       /> 
     </div>
   </div>
