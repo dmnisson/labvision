@@ -200,6 +200,52 @@ public class StudentController {
 		return "student/experiment";
 	}
 	
+	@PostMapping("/student/measurementvalue/new/{measurementId}")
+	public String createMeasurementValue(@PathVariable Integer measurementId, HttpServletRequest request,
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+		// need to initialize the measurementValues collection
+		Student student = studentRepository.findById(user.getId()).get();
+		
+		Measurement measurement = measurementRepository.findById(measurementId)
+				.orElseThrow(() -> new ResourceNotFoundException(Measurement.class, measurementId));
+		
+		CourseClass courseClass = courseClassRepository.findWithStudentIdAndExperimentId(
+				student.getId(),
+				measurement.getExperiment().getId()
+				).stream().findAny()
+					.orElseThrow(() -> new ResourceNotFoundException(
+							CourseClass.class,
+							"student " + student.getId() + " and experiment " + measurement.getExperiment().getId()));
+
+		Amount<?> measurementAmount = new Amount<>(
+				Double.parseDouble(request.getParameter("measurementValue")),
+				Double.parseDouble(request.getParameter("measurementUncertainty")),
+				SI.getInstance().getUnitFor(measurement, measurement.getQuantityTypeId()
+						.getQuantityClass().getQuantityType()));
+			
+		Map<Parameter, Amount<?>> parameterAmounts = measurement.getParameters().stream()
+				.collect(Collectors.toMap(Function.identity(), 
+						p -> new Amount<>(
+								Double.parseDouble(request.getParameter("parameterValue" + p.getId())),
+								Double.parseDouble(request.getParameter("parameterUncertainty" + p.getId())),
+								SI.getInstance().getUnitFor(p, p.getQuantityTypeId().getQuantityClass()
+										.getQuantityType())))
+								);
+		
+		MeasurementValue measurementValue = measurement.addValue(student, courseClass, measurementAmount, LocalDateTime.now());
+			
+		measurement.getParameters().stream()
+			.forEach(p -> measurementValue.addParameterValue(p, parameterAmounts.get(p)));
+		
+		measurementValueRepository.save(measurementValue);
+		
+		return "redirect:" + MvcUriComponentsBuilder.fromMethodName(
+				StudentController.class,
+				"getExperiment",
+				measurement.getExperiment().getId(), new Object(), new Object()
+				).toUriString();
+	}
+	
 	// --- REPORT PAGES ---
 	
 	@GetMapping("/student/reports")
