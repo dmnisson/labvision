@@ -2,8 +2,9 @@
 <%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"
-    import="labvision.entities.ReportDocumentType, labvision.entities.FileType" %>
+    pageEncoding="UTF-8" %>
+<%@ page import = "io.github.dmnisson.labvision.entities.ReportDocumentType" %>
+<%@ page import = "io.github.dmnisson.labvision.entities.FileType" %>
 <t:userpage title="${empty name ? 'New Report' : 'Editing '}${name} - ${experiment.name} - ${experiment.courseName}">
 
 <div class="container-fluid p-lg-5 userpage-container">
