@@ -20,6 +20,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private DriverManagerDataSource dataSource;
 	
+	// TODO authorize based on role and domain model
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
