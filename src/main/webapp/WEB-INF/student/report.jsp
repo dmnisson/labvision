@@ -1,4 +1,5 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri = "http://www.springframework.org/tags" prefix = "s" %>
 <%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ page
@@ -13,7 +14,7 @@
     <div class="col">
       <h1>${report.name} - ${experiment.name} <a
         class="btn btn-primary"
-        href="${editPath}"
+        href="${s:mvcUrl('SC#editReport').arg(0, report.id).build()}"
       >Edit</a></h1>
     </div>
   </div>
