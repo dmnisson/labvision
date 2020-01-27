@@ -8,7 +8,7 @@ import io.github.dmnisson.labvision.entities.Student;
 
 public interface StudentRepository extends BaseLabVisionUserRepository<Student> {
 
-	@EntityGraph( attributePaths = { "activeExperiments" } )
+	@EntityGraph( attributePaths = { "activeExperiments", "courseClasses" } )
 	@Override
 	public Optional<Student> findByUsername(String username);
 	
