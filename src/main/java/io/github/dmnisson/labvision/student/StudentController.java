@@ -1,10 +1,18 @@
 package io.github.dmnisson.labvision.student;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,12 +21,19 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import io.github.dmnisson.labvision.ResourceNotFoundException;
+import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementForExperimentView;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementValueForExperimentView;
 import io.github.dmnisson.labvision.dto.experiment.ParameterForExperimentView;
 import io.github.dmnisson.labvision.dto.experiment.ParameterValueForExperimentView;
+import io.github.dmnisson.labvision.dto.reportedresult.ReportForReportView;
+import io.github.dmnisson.labvision.dto.result.ResultInfo;
 import io.github.dmnisson.labvision.dto.student.course.RecentCourseForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
@@ -26,9 +41,24 @@ import io.github.dmnisson.labvision.dto.student.experiment.PastExperimentForStud
 import io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import io.github.dmnisson.labvision.dto.student.reports.ReportForStudentReportsTable;
+import io.github.dmnisson.labvision.entities.CourseClass;
 import io.github.dmnisson.labvision.entities.Experiment;
+import io.github.dmnisson.labvision.entities.ExternalReportDocument;
+import io.github.dmnisson.labvision.entities.FileType;
+import io.github.dmnisson.labvision.entities.FilesystemReportDocument;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
+import io.github.dmnisson.labvision.entities.Measurement;
+import io.github.dmnisson.labvision.entities.MeasurementValue;
+import io.github.dmnisson.labvision.entities.Parameter;
+import io.github.dmnisson.labvision.entities.ReportDocument;
+import io.github.dmnisson.labvision.entities.ReportDocumentType;
+import io.github.dmnisson.labvision.entities.ReportedResult;
+import io.github.dmnisson.labvision.entities.Student;
+import io.github.dmnisson.labvision.measure.Amount;
+import io.github.dmnisson.labvision.measure.SI;
 import io.github.dmnisson.labvision.models.NavbarModel;
+import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
+import io.github.dmnisson.labvision.repositories.CourseClassRepository;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
 import io.github.dmnisson.labvision.repositories.MeasurementRepository;
@@ -36,6 +66,8 @@ import io.github.dmnisson.labvision.repositories.MeasurementValueRepository;
 import io.github.dmnisson.labvision.repositories.ParameterRepository;
 import io.github.dmnisson.labvision.repositories.ParameterValueRepository;
 import io.github.dmnisson.labvision.repositories.ReportedResultRepository;
+import io.github.dmnisson.labvision.repositories.StudentRepository;
+import io.github.dmnisson.labvision.utils.URLUtils;
 
 @Controller
 public class StudentController {
@@ -50,6 +82,9 @@ public class StudentController {
 	private ReportedResultRepository reportedResultRepository;
 	
 	@Autowired
+	private ReportDocumentService reportDocumentService;
+	
+	@Autowired
 	private MeasurementRepository measurementRepository;
 
 	@Autowired
@@ -60,7 +95,13 @@ public class StudentController {
 	
 	@Autowired
 	private ParameterValueRepository parameterValueRepository;
+
+	@Autowired
+	private CourseClassRepository courseClassRepository;
 	
+	@Autowired
+	private StudentRepository studentRepository;
+
 	@ModelAttribute
 	public void populateModel(Model model) {
 		NavbarModel navbarModel = buildStudentNavbar();
@@ -90,6 +131,8 @@ public class StudentController {
 		
 		return "student/dashboard";
 	}
+	
+	// --- EXPERIMENT PAGES ---
 	
 	@GetMapping("/student/experiments")
 	public String experiments(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
@@ -157,6 +200,8 @@ public class StudentController {
 		return "student/experiment";
 	}
 	
+	// --- REPORT PAGES ---
+	
 	@GetMapping("/student/reports")
 	public String reports(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 		Integer studentId = user.getId();
@@ -167,10 +212,182 @@ public class StudentController {
 		return "student/reports";
 	}
 	
+	// Helper functions for report documents
+	private String getReportUrl(ReportedResult reportedResult) {
+		return MvcUriComponentsBuilder.fromMethodName(
+				StudentController.class, "getReport", reportedResult.getId(), new Object(), new Object()
+				).toUriString();
+	}
+	
+	@GetMapping("student/report/{reportId}")
+	public String getReport(@PathVariable Integer reportId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException {
+		ReportForReportView report = reportedResultRepository.findForReportView(reportId)
+				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, reportId));
+		model.addAttribute("report", report);
+		
+		ExperimentInfo experiment = experimentRepository.findExperimentInfo(report.getExperimentId()).get();
+		model.addAttribute("experiment", experiment);
+		
+		List<ResultInfo> acceptedResults = experimentRepository.getAcceptedResultInfoFor(report.getExperimentId());
+		model.addAttribute("acceptedResults", acceptedResults);
+		
+		String reportDocumentUrl = reportDocumentService.buildReportDocumentUrl(reportId);
+		model.addAttribute("reportDocumentUrl", reportDocumentUrl);
+		
+		return "student/report";
+	}
+	
 	@GetMapping("student/report/new/{experimentId}")
 	public String newReport(@PathVariable Integer experimentId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
-		// TODO
+		ExperimentInfo experiment = experimentRepository.findExperimentInfo(experimentId).get();
+		model.addAttribute("experiment", experiment);
+		
+		List<ResultInfo> acceptedResults = experimentRepository.getAcceptedResultInfoFor(experimentId);
+		model.addAttribute("acceptedResults", acceptedResults);
+		
+		String actionUrl = MvcUriComponentsBuilder.fromMethodName(
+				StudentController.class,
+				"createReport",
+				experimentId, null, null, null, null, null, null
+				).replaceQuery(null)
+				.build()
+				.toUriString();
+		model.addAttribute("actionUrl", actionUrl);
+		
 		return "student/editreport";
+	}
+	
+	@PostMapping("student/report/new/{experimentId}")
+	public String createReport(@PathVariable Integer experimentId,
+			String reportName, @RequestParam(name="documentType", required=false) ReportDocumentType documentType,
+			@RequestParam(name="externalDocumentURL", required=false) URL externalDocumentURL,
+			@RequestParam(name="filesystemDocumentFile", required=false) MultipartFile filesystemDocumentFile,
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws IOException {
+		
+		Experiment experiment = experimentRepository.findById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		
+		// need to initialize reportedResults
+		Student student = studentRepository.findById(user.getId()).get();
+		
+		ReportedResult reportedResult = experiment.addReportedResult(student);
+		reportedResult.setName(reportName);
+		
+		ReportDocument reportDocument = null;
+		
+		switch (documentType) {
+		case EXTERNAL:
+			if (Objects.nonNull(externalDocumentURL)) {
+				ExternalReportDocument externalReportDocument = new ExternalReportDocument();
+				
+				String filename = URLUtils.getFilenameFromURL(externalDocumentURL);
+				externalReportDocument.setFilename(filename);
+				externalReportDocument.setFileType(FileType.fromFilename(filename));
+				externalReportDocument.setReportDocumentURLString(externalDocumentURL.toString());
+				
+				reportDocument = externalReportDocument;
+			}
+			break;
+		case FILESYSTEM:
+			if (Objects.nonNull(filesystemDocumentFile)) {
+				// create the report filesystem document
+				FilesystemReportDocument filesystemReportDocument = new FilesystemReportDocument();
+				
+				reportDocumentService.updateFilesystemReportDocumentEntity(experimentId, filesystemDocumentFile, student,
+						filesystemReportDocument);
+				
+				reportDocument = filesystemReportDocument;
+			}
+			break;
+		}
+		
+		if (Objects.nonNull(reportDocument)) reportedResult.setReportDocument(reportDocument);
+		
+		reportedResult = reportedResultRepository.save(reportedResult);
+		
+		return "redirect:" + getReportUrl(reportedResult);
+	}
+	
+	@GetMapping("student/report/edit/{reportId}")
+	public String editReport(@PathVariable Integer reportId, @RequestParam(name="uploadfile", defaultValue="false") boolean uploadfile, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException {
+		ReportForReportView report = reportedResultRepository.findForReportView(reportId)
+				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, reportId));
+		model.addAttribute("report", report);
+		
+		String reportDocumentUrl = reportDocumentService.buildReportDocumentUrl(reportId);
+		model.addAttribute("reportDocumentUrl", reportDocumentUrl);
+		
+		ExperimentInfo experiment = experimentRepository.findExperimentInfo(report.getExperimentId()).get();
+		model.addAttribute("experiment", experiment);
+		
+		List<ResultInfo> acceptedResults = experimentRepository.getAcceptedResultInfoFor(report.getExperimentId());
+		model.addAttribute("acceptedResults", acceptedResults);
+		
+		String actionUrl = MvcUriComponentsBuilder.fromMethodName(StudentController.class, "updateReport", reportId, new Object(), new Object())
+				.toUriString();
+		model.addAttribute("actionUrl", actionUrl);
+		
+		return "student/editreport";
+	}
+	
+	@PostMapping("/student/report/edit/{reportId}")
+	public String updateReport(@PathVariable Integer reportId,
+			String reportName, @RequestParam(name="documentType", required=false) ReportDocumentType documentType,
+			@RequestParam(name="externalDocumentURL", required=false) URL externalDocumentURL,
+			@RequestParam(name="filesystemDocumentFile", required=false) MultipartFile filesystemDocumentFile,
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws IOException {
+		ReportedResult reportedResult = reportedResultRepository.findById(reportId)
+				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, reportId));
+		
+		Student student = (Student) user;
+		
+		Experiment experiment = reportedResult.getExperiment();
+		
+		reportedResult.setName(reportName);
+		
+		ReportDocument reportDocument = null;
+		
+		switch (documentType) {
+		case EXTERNAL:
+			if (Objects.nonNull(externalDocumentURL)) {
+				reportDocument = reportedResult.getReportDocument();
+				
+				ExternalReportDocument externalReportDocument;
+				if (!reportDocument.getDocumentType().equals(ReportDocumentType.EXTERNAL)) {
+					externalReportDocument = new ExternalReportDocument();
+				} else {
+					externalReportDocument = (ExternalReportDocument) reportDocument;
+				}
+				
+				externalReportDocument.setReportDocumentURLString(externalDocumentURL.toString());
+				
+				String filename = URLUtils.getFilenameFromURL(externalDocumentURL);
+				externalReportDocument.setFilename(filename);
+				
+				externalReportDocument.setFileType(FileType.fromFilename(filename));
+			}
+			break;
+		case FILESYSTEM:
+			if (Objects.nonNull(filesystemDocumentFile)) {
+				reportDocument = reportedResult.getReportDocument();
+				
+				FilesystemReportDocument filesystemReportDocument;
+				if (!reportDocument.getDocumentType().equals(ReportDocumentType.FILESYSTEM)) {
+					filesystemReportDocument = new FilesystemReportDocument();
+				} else {
+					filesystemReportDocument = (FilesystemReportDocument) reportDocument;
+				}
+				
+				reportDocumentService.updateFilesystemReportDocumentEntity(experiment.getId(), filesystemDocumentFile, 
+						student, filesystemReportDocument);
+			}
+		}
+		
+		if (Objects.nonNull(reportDocument)) reportedResult.setReportDocument(reportDocument);
+		
+		reportedResult = reportedResultRepository.save(reportedResult);
+		
+		return "redirect:" + getReportUrl(reportedResult);
 	}
 	
 	@GetMapping("/student/errors")
