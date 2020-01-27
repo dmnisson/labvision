@@ -37,7 +37,7 @@
       <div class="tab-content">
         <c:forEach var="measurement" items="${measurements}">
         <div class="tab-pane" id="measurement-${measurement.id}" role="tabpanel" aria-labelledby="measurement-${measurement.id}-tab">
-          <form method="POST" action="${s:mvcUrl('SC#newMeasurementValue').arg(0, measurement.id).build()}">
+          <form method="POST" action="${s:mvcUrl('SC#createMeasurementValue').arg(0, measurement.id).build()}">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
 	          <t:measurementvaluestable
 	            measurement="${measurement}"
