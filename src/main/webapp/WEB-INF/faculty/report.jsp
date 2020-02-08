@@ -59,10 +59,11 @@
 		  
 		  <c:otherwise>
 		  <form method="POST" action="${scorePath}">
-		    <t:csrfsalt value="${csrfSalt}" />
+		    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+		  
 		    <div class="form-group">
 		      <label for="score">Score</label>
-		      <input type="number" id="score" name="score" value="${score}" step="0.01" />
+		      <input type="number" id="score" name="score" value="${report.score}" step="0.01" />
 		    </div>
 		    <button type="submit" class="btn btn-primary">Submit Score</button>
 		  </form>

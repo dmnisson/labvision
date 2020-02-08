@@ -3,7 +3,7 @@
 <%@ tag
   language="java"
   pageEncoding="UTF-8" 
-  import="labvision.entities.ReportDocumentType, labvision.entities.FileType"
+  import="io.github.dmnisson.labvision.entities.ReportDocumentType, io.github.dmnisson.labvision.entities.FileType"
 %>
 <%@ attribute name="documentType" type="ReportDocumentType" %>
 <%@ attribute name="documentFileType" type="FileType" %>

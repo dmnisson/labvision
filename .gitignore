@@ -7,13 +7,9 @@ labvision_data.data
 labvision_data.backup
 labvision_data.lobs
 /labvision_data.tmp/
-/jetty-ssl-keystore.xml
-/jetty.crt
-/jetty.key
-/jetty.pkcs12
-/devauth.p12
-/keystore
+/src/main/resources/keystore
 /labvision_data.lck
 /.dbeaver/
 /reports/
 /.apt_generated_tests/
+/.apt_generated/

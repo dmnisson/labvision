@@ -34,7 +34,8 @@
       </c:if>
       </c:forEach>
     </ul>
-    <form class="form-inline ml-auto my-0" method="POST" action="${navbarModel.logoutLink}">
+    <form method="POST" class="form-inline ml-auto my-0" action="${navbarModel.logoutLink}">
+      <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
       <button class="btn btn-outline-info my-2" type="submit">Log Out</button>
     </form>
   </div>

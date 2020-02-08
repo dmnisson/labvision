@@ -2,7 +2,7 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ tag language="java" pageEncoding="UTF-8"%>
-<%@ attribute name="measurement" type="labvision.dto.experiment.MeasurementForExperimentView" %>
+<%@ attribute name="measurement" type="io.github.dmnisson.labvision.dto.experiment.MeasurementForExperimentView" %>
 <%@ attribute name="measurementvalues" type="java.util.List" %>
 <%@ attribute name="parameters" type="java.util.List" %>
 <%@ attribute name="parametervalues" type="java.util.Map" %>

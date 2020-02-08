@@ -1,5 +1,6 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
-<%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
+<%@ taglib uri = "http://sargue.net/jsptags/time" prefix = "javatime" %>
+<%@ taglib uri = "http://www.springframework.org/tags" prefix = "s" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
@@ -33,10 +34,10 @@
               <c:forEach var="experiment" items="${currentExperiments}">
               <tr>
                 <td>
-                  <a href="${experimentPaths[experiment.id]}">${experiment.name}</a>
+                  <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}">${experiment.name}</a>
                 </td>
                 <td>
-                  <a href="${coursePaths[experiment.courseId]}">${experiment.courseName}</a>
+                  <a href="${s:mvcUrl('SC#getCourse').arg(0, experiment.courseId).build()}">${experiment.courseName}</a>
                 </td>
                 <td>
                   <javatime:format value="${experiment.reportDueDate}" style="S-" />
@@ -69,7 +70,7 @@
         <ul class="list-group list-group-flush">
           <c:forEach var="experiment" items="${recentExperiments}">
           <li class="list-group-item">
-            <a href="${experimentPaths[experiment.id]}">${experiment.name}</a>
+            <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}">${experiment.name}</a>
           </li>
           </c:forEach>
         </ul>
@@ -90,7 +91,7 @@
         <ul class="list-group list-group-flush">
           <c:forEach var="course" items="${recentCourses}">
             <li class="list-group-item">
-              <a href="${coursePaths[course.id]}">${course.name}</a>
+              <a href="${s:mvcUrl('SC#getCourse').arg(0, experiment.id).build()}">${course.name}</a>
             </li>
           </c:forEach>
         </ul>

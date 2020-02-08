@@ -1,4 +1,5 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri = "http://www.springframework.org/tags" prefix = "s" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/fmt" prefix = "fmt" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
@@ -12,7 +13,7 @@
       <h1>${experiment.name}</h1>
     </div>
     <div class="col-sm-3">
-      <a class="btn btn-primary" href="${editExperimentPath}">Edit Experiment</a>
+      <a class="btn btn-primary" href="${s:mvcUrl('FC#editExperiment').arg(0, experiment.id).build()}">Edit Experiment</a>
     </div>
   </div>
   <div class="row">
@@ -118,8 +119,6 @@
       <t:reportstable
         id="reportsTable${studentId}"
         reports="${reports[studentId]}"
-        reportPaths="${reportPaths}"
-        reportScorePaths="${reportScorePaths}"
       />
       </div>
       </c:forEach>

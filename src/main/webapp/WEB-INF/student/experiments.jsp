@@ -1,7 +1,7 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri = "http://www.springframework.org/tags" prefix = "s" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
-<%@ taglib uri = "http://java.sun.com/jsp/jstl/fmt" prefix = "fmt" %>
 <%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
@@ -43,19 +43,19 @@
 	              <c:forEach var="experiment" items="${currentExperiments}">
 	              <tr>
 	                <td class="col-3">
-	                  <a href="${experimentPaths[experiment.id]}">${experiment.name}</a>
+	                  <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}">${experiment.name}</a>
 	                </td>
 	                <td class="col-3">
 	                  <javatime:format value="${experiment.reportDueDate}" style="S-" />
 	                </td>
 	                <td class="col-3">
 	                  <c:if test="${not empty experiment.lastReportUpdated}">
-	                    <a href="${experimentPaths[experiment.id]}#reports">
+	                    <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}#reports">
 	                      Last updated <javatime:format value="${experiment.lastReportUpdated}" style="S-" />
 	                    </a>
 	                  </c:if>
 	                  <c:if test="${empty experiment.lastReportUpdated}">
-	                    <a href="${newReportPaths[experiment.id]}" class="btn btn-primary">Submit</a>
+	                    <a href="${s:mvcUrl('SC#newReport').arg(0, experiment.id).build()}" class="btn btn-primary">Submit</a>
 	                  </c:if>
 	                </td>
 	                <td class="col-3">
@@ -92,10 +92,10 @@
                 <c:forEach var="experiment" items="${pastExperiments}">
                 <tr>
                   <td class="col-3">
-                    <a href="${experimentPaths[experiment.id]}">${experiment.name}</a>
+                    <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}">${experiment.name}</a>
                   </td>
                   <td class="col-3">
-                    <a href="${experimentPaths[experiment.id]}#reports">
+                    <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}#reports">
                       ${experiment.reportCount}
                     </a>
                   </td>
@@ -105,8 +105,7 @@
                     –
                     </c:when>
                     <c:otherwise>
-                    <fmt:formatDate value="${experiment.lastReportUpdated}"
-                      dateStyle="short" />
+                    <javatime:format value="${experiment.lastReportUpdated}" style="S-" />
                     </c:otherwise>
                     </c:choose>
                   </td>
