@@ -1,0 +1,41 @@
+@charset "UTF-8";
+
+.signin-page-div {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	height: 100%;
+}
+
+.signin-form {
+	max-width: 450px;
+}
+
+.logout-link {
+	font-family: Helvetica;
+	font-size: 24px;
+	color: #000000;
+	text-align: left;
+}
+
+.userpage-container {
+	margin-top: 75px;
+}
+
+.tree-table-cell {
+	line-height: 1.5;
+}
+
+.course-class.collapsed::before {
+  content: "+"
+}
+
+.course-class::before {
+  content: "-"
+}
+
+.student:not(.collapsed) {
+	text-decoration: none;
+	color: #000;
+	font-weight: 600;
+}
