@@ -30,7 +30,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http
 		.authenticationProvider(daoAuthenticationProvider())
 		.authorizeRequests()
-			.antMatchers("/", "/welcome", "/css/**").permitAll()
+			.antMatchers("/", "/welcome", "/css/**", "/webfonts/**").permitAll()
 			.anyRequest().authenticated()
 			.and()
 		.rememberMe()
