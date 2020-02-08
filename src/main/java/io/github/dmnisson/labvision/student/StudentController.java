@@ -463,8 +463,37 @@ public class StudentController {
 	
 	@GetMapping("/profile")
 	public String profile(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
-		// TODO
+		Student student = (Student) user;
+		model.addAttribute("student", student);
 		return "student/profile";
+	}
+	
+	@GetMapping("/profile/edit")
+	public String editProfile(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+		Student student = (Student) user;
+		model.addAttribute("student", student);
+		
+		model.addAttribute("actionUrl", MvcUriComponentsBuilder.fromMethodName(
+				StudentController.class, 
+				"updateProfile", null, null, null
+				).replaceQuery(null)
+				.build()
+				.toUriString()
+				);
+		
+		return "student/editprofile";
+	}
+	
+	@PostMapping("/profile/edit")
+	public String updateProfile(String studentName,
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+		Student student = (Student) user;
+		student.setName(studentName);
+		
+		student = studentRepository.save(student);
+		
+		return "redirect:" + MvcUriComponentsBuilder.fromMethodName(StudentController.class, "profile", null, null)
+			.toUriString();
 	}
 	
 	@GetMapping("/courses")
