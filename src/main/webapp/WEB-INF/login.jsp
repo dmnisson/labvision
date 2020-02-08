@@ -8,7 +8,7 @@
 	    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
 	    <c:if test="${ param.error ne null }">
 	      <div class="alert alert-warning">
-	        Your email or password was incorrect, please try again.
+	        Your username or password was incorrect, please try again.
 	      </div>
 	    </c:if>
 	    <c:if test="${ param.logout ne null }">
