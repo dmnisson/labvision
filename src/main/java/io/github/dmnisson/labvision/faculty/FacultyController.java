@@ -466,8 +466,8 @@ public class FacultyController {
 	private NavbarModel buildFacultyNavbar() {
 		NavbarModel navbarModel = new NavbarModel();
 		
-		navbarModel.addNavLink("Dashboard", "/faculty/dashboard");
-		navbarModel.addNavLink("Experiments", "/faculty/experiments");
+		navbarModel.addNavLink("Dashboard", FacultyController.class, "dashboard", new Object(), new Object());
+		navbarModel.addNavLink("Experiments", FacultyController.class, "experiments", new Object(), new Object());
 		
 		navbarModel.setLogoutLink("/logout");
 		
