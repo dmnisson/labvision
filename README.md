@@ -17,36 +17,23 @@ Instructors will be able to:
 * Retrieve submitted lab reports and score them using either a numeric system of points or a letter grade
 
 # Setup
-# TODO update to instruct on how to run the Spring Boot app
 Although many of the pages in this project have not been completed, developers are welcome to test the current state on their system and contribute ideas for what has not yet been implemented. If you would like to do so, then all you need is Apache Maven 3.6.2 and JDK 1.8 or later.
 
-The quickest way to set up LabVision on your local system is to clone the repository, and change to the directory where your clone is located. LabVision is configured to accept connections only on HTTPS, so you will need to generate a public and private key and put it into a keystore that you can install for testing purposes. The easiest way to do this is using the JDK keytool:
+The quickest way to set up LabVision on your local system is to clone the repository, and change to the directory where your clone is located. LabVision is configured to accept connections only on HTTPS, so you will need to generate a self-signed certficate so the server can be used for testing purposes. The easiest way to do this is using the JDK keytool. Change to the directory `src/main/resources/keystore` and then run:
 
 ```
-keytool -keystore keystore -alias jetty -genkey -keyalg RSA -sigalg SHA256withRSA
+keytool -genkeypair -alias labvision -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore labvision.p12 -validity 3650
 ```
 
-You will also need to generate a PKCS12 keystore for device-based authentication to work properly:
-
-```
-keytool -genkey -alias devauth -keystore devauth.p12 -storetype PKCS12 -keyalg RSA -storepass Password123
-```
-
-The keystore password will then need to be configured in the file jetty-ssl-keystore.xml, a [sample](https://github.com/dmnisson/labvision/blob/master/jetty-ssl-keystore.example.xml) of which is provided in the repository. 
+Follow the on-screen directions. After the certificate is created, the password needs to be set in the application configuration using the `server.ssl.key-store-password` property in the `src/main/resources/application.properties` file.
 
 Once you have the certificate and keys, you can run the command
 
 ```
-mvn jetty:run
+mvn spring-boot:run
 ```
 
-and then visit https://localhost:8443 in your browser to reach the home page. However, this isn't very useful if you want to test the user pages. To do so, you must create the users by running the Java executable class `labvision.utils.InitDatabase`. The easiest way to run this class is to simply run the command:
-
-```
-mvn exec:exec
-```
-
-This command reads all of the necessary information to run a Java class from the `pom.xml` file, which for this project is already configured to run the `labvision.utils.InitDatabase` class for the `exec` goal.
+and then visit https://localhost:8443 in your browser to reach the home page. The first time you do this, the `DevInitializingBean` will automatically create a seed database with some default users that can allow you to test the system on your local machine.
 
 The default user accounts are:
 
