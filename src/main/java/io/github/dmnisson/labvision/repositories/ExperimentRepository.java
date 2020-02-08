@@ -209,5 +209,48 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			+ "LEFT JOIN cc.students ccs "
 			+ "WHERE acs.id=:studentid OR ccs.id=:studentid")
 	public List<ExperimentInfo> findExperimentInfoForStudent(@Param("studentid") Integer studentId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable(" +
+			"	e.id," +
+			"	e.name," +
+			EXPERIMENT_LAST_UPDATED_FUNCTION + " AS lu," +
+			"	e.reportDueDate," +
+			"	MAX(rr.added)," +
+			"	CASE WHEN COUNT(rr.score) > 0 THEN SUM(rr.score) ELSE 0 END" +
+			") " +
+			"FROM Student s " +
+			"JOIN s.activeExperiments e " +
+			"JOIN e.course c " +
+			"LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid " +
+			"LEFT JOIN e.measurements m " +
+			"LEFT JOIN m.values mv ON mv.student.id=:studentid " +
+			"WHERE s.id=:studentid AND c.id=:courseid " +
+			"GROUP BY e " +
+			"ORDER BY lu DESC NULLS FIRST, e.reportDueDate ASC")
+	public List<CurrentExperimentForStudentExperimentTable> findCurrentExperimentsForStudentCourseExperimentTable(
+			@Param("studentid") Integer studentId,
+			@Param("courseid") Integer courseId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.PastExperimentForStudentExperimentTable(" +
+			"	e.id," +
+			"	e.name," +
+			EXPERIMENT_LAST_UPDATED_FUNCTION + " AS lu," +
+			"	COUNT(rr.added)," +
+			"	MAX(rr.added)," +
+			"	CASE WHEN COUNT(rr.score) > 0 THEN SUM(rr.score) ELSE 0 END" +
+			") " +
+			"FROM Experiment e " +
+			"JOIN e.course c " +
+			"JOIN c.courseClasses cc " +
+			"JOIN cc.students s " +
+			"LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid " +
+			"LEFT JOIN e.measurements m " +
+			"LEFT JOIN m.values mv ON mv.student.id=:studentid " +
+			"WHERE s.id=:studentid AND c.id=:courseid " +
+			"GROUP BY e " +
+			"ORDER BY lu DESC NULLS FIRST")
+	public List<PastExperimentForStudentExperimentTable> findPastExperimentsForStudentCourseExperimentTable(
+			@Param("studentid") Integer studentId,
+			@Param("courseid") Integer courseId);
 		
 }

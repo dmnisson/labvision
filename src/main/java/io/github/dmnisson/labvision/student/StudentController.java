@@ -28,6 +28,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import io.github.dmnisson.labvision.ResourceNotFoundException;
+import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseTable;
+import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseView;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementForErrorsView;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementInfo;
@@ -43,6 +45,7 @@ import io.github.dmnisson.labvision.dto.student.experiment.PastExperimentForStud
 import io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import io.github.dmnisson.labvision.dto.student.reports.ReportForStudentReportsTable;
+import io.github.dmnisson.labvision.entities.Course;
 import io.github.dmnisson.labvision.entities.CourseClass;
 import io.github.dmnisson.labvision.entities.Experiment;
 import io.github.dmnisson.labvision.entities.ExternalReportDocument;
@@ -498,13 +501,30 @@ public class StudentController {
 	
 	@GetMapping("/courses")
 	public String courses(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
-		// TODO
+		Student student = (Student) user;
+		
+		List<CourseForStudentCourseTable> courses = courseRepository.findForStudentCourseTable(student.getId());
+		model.addAttribute("courses", courses);
+		
 		return "student/courses";
 	}
 	
 	@GetMapping("/course/{courseId}")
 	public String getCourse(@PathVariable Integer courseId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
-		// TODO
+		Student student = (Student) user;
+		
+		CourseForStudentCourseView course = courseRepository.findForStudentCourseView(student.getId(), courseId)
+				.orElseThrow(() -> new ResourceNotFoundException(Course.class, courseId));
+		model.addAttribute("course", course);
+		
+		List<CurrentExperimentForStudentExperimentTable> currentExperiments = experimentRepository
+				.findCurrentExperimentsForStudentCourseExperimentTable(student.getId(), courseId);
+		model.addAttribute("currentExperiments", currentExperiments);
+		
+		List<PastExperimentForStudentExperimentTable> pastExperiments = experimentRepository
+				.findPastExperimentsForStudentCourseExperimentTable(student.getId(), courseId);
+		model.addAttribute("currentExperiments", currentExperiments);
+		
 		return "student/course";
 	}
 	
