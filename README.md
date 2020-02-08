@@ -40,4 +40,4 @@ The default user accounts are:
 | Username      | Password      |
 |---------------|---------------|
 | `student1`    | `Password123` |
-| `instructor1` | `Password123` |
+| `instructor1` | `Password1234` |
