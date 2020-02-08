@@ -6,7 +6,7 @@
   language="java"
   contentType="text/html; charset=UTF-8"
   pageEncoding="UTF-8"
-  import="labvision.DatabaseAction"
+  import="io.github.dmnisson.labvision.DatabaseAction"
 %>
     
 <c:set var="CREATE" value="<%= DatabaseAction.CREATE %>" />
@@ -262,7 +262,8 @@ $(function() {
 <jsp:body>
 <div class="container-fluid p-lg-5 userpage-container">
   <form id="editExperimentForm" method="POST" action="${actionURL}">
-    <t:csrfsalt value="${csrfSalt}" />
+    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+  
     <input class="form-control form-control-lg" type="text" name="experimentName" id="experimentName" value="${name}" placeholder="Name of experiment" />
     
     <div class="form-group">

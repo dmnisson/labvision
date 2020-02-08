@@ -1,5 +1,7 @@
 package io.github.dmnisson.labvision.repositories;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,6 +22,17 @@ public interface ParameterValueRepository extends JpaRepository<ParameterValue, 
 	public ParameterValueForExperimentView getForExperimentView(
 			@Param("measurementvalueid") Integer measurementValueId, 
 			@Param("parameterid") Integer parameterId
+			);
+	
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.experiment.ParameterValueForExperimentView("
+			+ "	pv.id,"
+			+ "	pv.variable.id,"
+			+ " pv.value.value,"
+			+ "	pv.value.uncertainty) "
+			+ "FROM ParameterValue pv "
+			+ "WHERE pv.measurementValue.id=:measurementvalueid")
+	public List<ParameterValueForExperimentView> findForExperimentView(
+			@Param("measurementvalueid") Integer measurementValueId
 			);
 
 }

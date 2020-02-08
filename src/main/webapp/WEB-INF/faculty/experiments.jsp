@@ -1,4 +1,5 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri = "http://www.springframework.org/tags" prefix = "s" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/fmt" prefix = "fmt" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
@@ -31,7 +32,7 @@
             <c:forEach var="experiment" items="${experiments}">
             <tr>
               <td>
-                <a href="${experimentPaths[experiment.id]}">${experiment.name}</a>
+                <a href="${s:mvcUrl('FC#getExperiment').arg(0, experiment.id).build()}">${experiment.name}</a>
               </td>
               <td>
                 ${experiment.reportedResultsCount}

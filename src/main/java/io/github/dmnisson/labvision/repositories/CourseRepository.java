@@ -1,11 +1,13 @@
 package io.github.dmnisson.labvision.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import io.github.dmnisson.labvision.dto.course.CourseInfo;
 import io.github.dmnisson.labvision.dto.student.course.RecentCourseForStudentDashboard;
 import io.github.dmnisson.labvision.entities.Course;
 
@@ -29,4 +31,13 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 			"GROUP BY c " +
 			"ORDER BY lu DESC")
 	public List<RecentCourseForStudentDashboard> findRecentCoursesForStudentDashboard(@Param("studentid") Integer studentid);
+
+	@Query( "SELECT new io.github.dmnisson.labvision.dto.course.CourseInfo("
+			+ "	e.course.id,"
+			+ "	e.course.name"
+			+ ") FROM Experiment e "
+			+ "WHERE e.id=:experimentid")
+	public Optional<CourseInfo> findCourseInfoForExperiment(@Param("experimentid") Integer experimentId);
+	
+	
 }

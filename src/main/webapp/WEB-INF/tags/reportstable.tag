@@ -1,11 +1,10 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri = "http://www.springframework.org/tags" prefix = "s" %>
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ tag language="java" pageEncoding="UTF-8"%>
 <%@ attribute name="id" %>
 <%@ attribute name="reports" type="java.util.List" %>
-<%@ attribute name="reportPaths" type="java.util.Map" %>
-<%@ attribute name="reportScorePaths" type="java.util.Map" %>
 
 <div class="table-responsive" id="${id}">
   <table class="table table-fixed w-auto">
@@ -21,7 +20,7 @@
       <c:forEach var="report" items="${reports}">
       <tr>
         <td>
-          <a href="${reportPaths[report.id]}">${report.name}</a>
+          <a href="${s:mvcUrl('FC#getReport').arg(0, report.id).build()}">${report.name}</a>
         </td>
         <td>
           <javatime:format value="${report.added}" style="SS" />
@@ -30,7 +29,7 @@
           ${report.score}
         </td>
         <td>
-          <a class="btn btn-primary" href="${reportScorePaths[report.id]}">View and Score</a>
+          <a class="btn btn-primary" href="${s:mvcUrl('FC#editReportScore').arg(0, report.id).build()}">View and Score</a>
         </td>
       </tr>
       </c:forEach>

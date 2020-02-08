@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
+import io.github.dmnisson.labvision.dto.faculty.ExperimentForFacultyExperimentTable;
 import io.github.dmnisson.labvision.dto.result.ResultInfo;
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
@@ -181,5 +182,20 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"JOIN e.acceptedResults ar " +
 			"WHERE e.id=:experimentid")
 	public List<ResultInfo> getAcceptedResultInfoFor(@Param("experimentid") Integer experimentId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.faculty.ExperimentForFacultyExperimentTable(" +
+			"	e.id," +
+			"	e.name," +
+			"	COUNT(rr)," +
+			"	SUM(rr.score)/COUNT(DISTINCT s)" +
+			") " +
+			"FROM Experiment e " +
+			"JOIN e.instructors i " +
+			"LEFT JOIN e.reportedResults rr " +
+			"LEFT JOIN rr.student s " +
+			"WHERE i.id=:instructorid " +
+			"GROUP BY e")
+	public List<ExperimentForFacultyExperimentTable> findExperimentsForFacultyExperimentTable(
+			@Param("instructorid") Integer instructorId);
 		
 }
