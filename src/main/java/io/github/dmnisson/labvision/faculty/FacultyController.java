@@ -30,7 +30,7 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 
 import io.github.dmnisson.labvision.DatabaseAction;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
-import io.github.dmnisson.labvision.dto.experiment.MeasurementForExperimentView;
+import io.github.dmnisson.labvision.dto.experiment.MeasurementInfo;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementValueForExperimentView;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementValueForFacultyExperimentView;
 import io.github.dmnisson.labvision.dto.experiment.ParameterValueForExperimentView;
@@ -110,7 +110,7 @@ public class FacultyController {
 	
 	// Helper to build attributes common to both experiment view and edit pages
 	private Experiment buildExperimentModelAttributes(Integer experimentId, int instructorId, Model model) {
-		List<MeasurementForExperimentView> measurements;
+		List<MeasurementInfo> measurements;
 		Map<Integer, Map<Integer, Map<Integer, List<MeasurementValueForFacultyExperimentView>>>> measurementValues;
 		
 		Experiment experiment = experimentRepository.findById(experimentId)
@@ -130,13 +130,13 @@ public class FacultyController {
 		
 		model.addAttribute("measurements", measurements);
 		model.addAttribute("parameters", measurements.stream()
-				.map(MeasurementForExperimentView::getId)
+				.map(MeasurementInfo::getId)
 				.collect(Collectors.toMap(
 						Function.identity(),
 						id -> parameterRepository.findForExperimentView(id))));
 		model.addAttribute("measurementValues", measurementValues);
 		model.addAttribute("parameterValues", measurements.stream()
-				.map(MeasurementForExperimentView::getId)
+				.map(MeasurementInfo::getId)
 				.filter(id -> !Objects.isNull(measurementValues.get(id)))
 				.collect(Collectors.toMap(
 						Function.identity(),

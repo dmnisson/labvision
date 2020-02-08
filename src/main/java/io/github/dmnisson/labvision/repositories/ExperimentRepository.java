@@ -197,5 +197,17 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"GROUP BY e")
 	public List<ExperimentForFacultyExperimentTable> findExperimentsForFacultyExperimentTable(
 			@Param("instructorid") Integer instructorId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.experiment.ExperimentInfo("
+			+ "	e.id,"
+			+ "	e.name,"
+			+ "	c.name"
+			+ ") FROM Experiment e "
+			+ "JOIN e.course c "
+			+ "LEFT JOIN c.courseClasses cc "
+			+ "LEFT JOIN e.activeStudents acs "
+			+ "LEFT JOIN cc.students ccs "
+			+ "WHERE acs.id=:studentid OR ccs.id=:studentid")
+	public List<ExperimentInfo> findExperimentInfoForStudent(@Param("studentid") Integer studentId);
 		
 }

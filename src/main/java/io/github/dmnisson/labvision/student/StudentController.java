@@ -29,7 +29,8 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 
 import io.github.dmnisson.labvision.ResourceNotFoundException;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
-import io.github.dmnisson.labvision.dto.experiment.MeasurementForExperimentView;
+import io.github.dmnisson.labvision.dto.experiment.MeasurementForErrorsView;
+import io.github.dmnisson.labvision.dto.experiment.MeasurementInfo;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementValueForExperimentView;
 import io.github.dmnisson.labvision.dto.experiment.ParameterForExperimentView;
 import io.github.dmnisson.labvision.dto.experiment.ParameterValueForExperimentView;
@@ -159,12 +160,12 @@ public class StudentController {
 				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
 		model.addAttribute("experiment", experiment);
 		
-		List<MeasurementForExperimentView> measurements = measurementRepository.findForExperimentView(experimentId);
+		List<MeasurementInfo> measurements = measurementRepository.findForExperimentView(experimentId);
 		model.addAttribute("measurements", measurements);
 		
 		Map<Integer, List<MeasurementValueForExperimentView>> measurementValues =
 				measurements.stream()
-					.map(MeasurementForExperimentView::getId)
+					.map(MeasurementInfo::getId)
 					.collect(Collectors.toMap(
 							Function.identity(),
 							mid -> measurementValueRepository.findForStudentExperimentView(mid, studentId)
@@ -173,7 +174,7 @@ public class StudentController {
 		
 		Map<Integer, List<ParameterForExperimentView>> parameters =
 				measurements.stream()
-					.map(MeasurementForExperimentView::getId)
+					.map(MeasurementInfo::getId)
 					.collect(Collectors.toMap(
 							Function.identity(),
 							mid -> parameterRepository.findForExperimentView(mid)
@@ -444,7 +445,19 @@ public class StudentController {
 	
 	@GetMapping("/errors")
 	public String errors(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
-		// TODO
+		Student student = (Student) user;
+		Integer studentId = student.getId();
+		
+		List<ExperimentInfo> experiments = experimentRepository.findExperimentInfoForStudent(studentId);
+		Map<Integer, List<MeasurementForErrorsView>> measurements = experiments.stream()
+				.map(ExperimentInfo::getId)
+				.collect(Collectors.toMap(
+						Function.identity(),
+						eid -> measurementRepository.findMeasurementsForErrorsView(eid)));
+		
+		model.addAttribute("experiments", experiments);
+		model.addAttribute("measurements", measurements);
+		
 		return "student/errors";
 	}
 	

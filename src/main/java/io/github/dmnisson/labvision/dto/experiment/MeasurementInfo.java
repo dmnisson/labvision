@@ -2,12 +2,12 @@ package io.github.dmnisson.labvision.dto.experiment;
 
 import io.github.dmnisson.labvision.entities.QuantityTypeId;
 
-public class MeasurementForExperimentView {
+public class MeasurementInfo {
 	private final int id;
 	private final String name;
 	private final QuantityTypeId quantityTypeId;
 	
-	public MeasurementForExperimentView(int id, String name, QuantityTypeId quantityTypeId) {
+	public MeasurementInfo(int id, String name, QuantityTypeId quantityTypeId) {
 		this.id = id;
 		this.name = name;
 		this.quantityTypeId = quantityTypeId;
