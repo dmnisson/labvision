@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
@@ -70,6 +71,7 @@ import io.github.dmnisson.labvision.repositories.StudentRepository;
 import io.github.dmnisson.labvision.utils.URLUtils;
 
 @Controller
+@RequestMapping("/student")
 public class StudentController {
 	
 	@Autowired
@@ -108,7 +110,7 @@ public class StudentController {
 		model.addAttribute("navbarModel", navbarModel);
 	}
 	
-	@GetMapping("/student/dashboard")
+	@GetMapping("/dashboard")
 	public String dashboard(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 		model.addAttribute("student", user);
 		
@@ -134,7 +136,7 @@ public class StudentController {
 	
 	// --- EXPERIMENT PAGES ---
 	
-	@GetMapping("/student/experiments")
+	@GetMapping("/experiments")
 	public String experiments(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 		Integer studentId = user.getId();
 		
@@ -147,7 +149,7 @@ public class StudentController {
 		return "student/experiments";
 	}
 	
-	@GetMapping("/student/experiment/{experimentId}")
+	@GetMapping("/experiment/{experimentId}")
 	public String getExperiment(@PathVariable Integer experimentId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 		model.addAttribute("student", user);
 		
@@ -200,7 +202,7 @@ public class StudentController {
 		return "student/experiment";
 	}
 	
-	@PostMapping("/student/measurementvalue/new/{measurementId}")
+	@PostMapping("/measurementvalue/new/{measurementId}")
 	public String createMeasurementValue(@PathVariable Integer measurementId, HttpServletRequest request,
 			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 		// need to initialize the measurementValues collection
@@ -248,7 +250,7 @@ public class StudentController {
 	
 	// --- REPORT PAGES ---
 	
-	@GetMapping("/student/reports")
+	@GetMapping("/reports")
 	public String reports(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 		Integer studentId = user.getId();
 		
@@ -378,7 +380,7 @@ public class StudentController {
 		return "student/editreport";
 	}
 	
-	@PostMapping("/student/report/edit/{reportId}")
+	@PostMapping("/report/edit/{reportId}")
 	public String updateReport(@PathVariable Integer reportId,
 			String reportName, @RequestParam(name="documentType", required=false) ReportDocumentType documentType,
 			@RequestParam(name="externalDocumentURL", required=false) URL externalDocumentURL,
@@ -438,25 +440,25 @@ public class StudentController {
 		return "redirect:" + getReportUrl(reportedResult);
 	}
 	
-	@GetMapping("/student/errors")
+	@GetMapping("/errors")
 	public String errors(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 		// TODO
 		return "student/errors";
 	}
 	
-	@GetMapping("/student/profile")
+	@GetMapping("/profile")
 	public String profile(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 		// TODO
 		return "student/profile";
 	}
 	
-	@GetMapping("/student/courses")
+	@GetMapping("/courses")
 	public String courses(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 		// TODO
 		return "student/courses";
 	}
 	
-	@GetMapping("/student/course/{courseId}")
+	@GetMapping("/course/{courseId}")
 	public String getCourse(@PathVariable Integer courseId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 		// TODO
 		return "student/course";
