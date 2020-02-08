@@ -13,9 +13,11 @@ import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
 import io.github.dmnisson.labvision.entities.Course;
 import io.github.dmnisson.labvision.entities.CourseClass;
 import io.github.dmnisson.labvision.entities.Experiment;
+import io.github.dmnisson.labvision.entities.Instructor;
 import io.github.dmnisson.labvision.entities.Student;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
+import io.github.dmnisson.labvision.repositories.InstructorRepository;
 import io.github.dmnisson.labvision.repositories.StudentRepository;
 
 import org.springframework.security.core.userdetails.User;
@@ -32,6 +34,9 @@ public class DevInitializingBean implements InitializingBean {
 	private StudentRepository studentRepository;
 	
 	@Autowired
+	private InstructorRepository instructorRepository;
+	
+	@Autowired
 	private CourseRepository courseRepository;
 	
 	@Autowired
@@ -41,7 +46,8 @@ public class DevInitializingBean implements InitializingBean {
 	public void afterPropertiesSet() throws Exception {
 		// seed users
 		String[][] seedUsers = {
-				{ "student1", "Password123", "STUDENT", "Student One" }
+				{ "student1", "Password123", "STUDENT", "Student One" },
+				{ "instructor1", "Password1234", "FACULTY", "Instructor One" }
 		};
 		
 		for (String[] seed : seedUsers) {
@@ -62,6 +68,9 @@ public class DevInitializingBean implements InitializingBean {
 			switch (authority) {
 			case "STUDENT":
 				userDetailsManager.createStudent(user, seed[3]);
+				break;
+			case "FACULTY":
+				userDetailsManager.createInstructor(user, seed[3]);
 			}
 		}
 		
@@ -74,6 +83,7 @@ public class DevInitializingBean implements InitializingBean {
 					LocalDateTime.of(2100, 1, 1, 0, 0, 0));
 			CourseClass seedCourseClass = seedCourse.addCourseClass("Course 101 Online");
 			Student student1 = studentRepository.findByUsername("student1").get();
+			Instructor instructor1 = instructorRepository.findByUsername("instructor1").get();
 			
 			seedCourse = courseRepository.save(seedCourse);
 			seedCourseClass = seedCourse.getCourseClasses().stream()
@@ -82,11 +92,16 @@ public class DevInitializingBean implements InitializingBean {
 			
 			student1.addCourseClass(seedCourseClass);
 			student1.addActiveExperiment(seedExperiment);
+			
+			instructor1.addCourseClass(seedCourseClass);
+			instructor1.addExperiment(seedExperiment);
+			
 			seedExperiment.addMeasurement("Length", Length.class);
 			
 			courseRepository.save(seedCourse);
 			experimentRepository.save(seedExperiment);
 			studentRepository.save(student1);
+			instructorRepository.save(instructor1);
 		}
 	}
 
