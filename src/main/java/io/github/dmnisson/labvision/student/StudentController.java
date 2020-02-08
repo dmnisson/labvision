@@ -377,6 +377,8 @@ public class StudentController {
 				.toUriString();
 		model.addAttribute("actionUrl", actionUrl);
 		
+		model.addAttribute("uploadfile", uploadfile);
+		
 		return "student/editreport";
 	}
 	
