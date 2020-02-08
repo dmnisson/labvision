@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import javax.measure.quantity.Length;
 
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
