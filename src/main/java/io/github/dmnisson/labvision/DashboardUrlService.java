@@ -11,6 +11,7 @@ public class DashboardUrlService {
 	
 	{
 		dashboardUrls.put("ROLE_STUDENT", "/student/dashboard");
+		dashboardUrls.put("ROLE_FACULTY", "/faculty/dashboard");
 	}
 	
 	public String getDashboardUrl(String role) {
