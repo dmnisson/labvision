@@ -264,7 +264,7 @@ $(function() {
   <form id="editExperimentForm" method="POST" action="${actionURL}">
     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
   
-    <input class="form-control form-control-lg" type="text" name="experimentName" id="experimentName" value="${name}" placeholder="Name of experiment" />
+    <input class="form-control form-control-lg" type="text" name="experimentName" id="experimentName" value="${fn:escapeXml(name)}" placeholder="Name of experiment" />
     
     <div class="form-group">
      <label for="description">Description</label>
@@ -291,7 +291,7 @@ $(function() {
 			            <input class="form-control measurement-select" type="checkbox" id="select-measurement-${measurement.id}" data-select-id="${measurement.id}" />
 			          </td>
 			          <td>
-			            <input class="form-control" type="text" name="measurementName${measurement.id}" value="${measurement.name}" />
+			            <input class="form-control" type="text" name="measurementName${measurement.id}" value="${fn:escapeXml(measurement.name)}" />
 			          </td>
 			          <td>
 			            <span id="measurementQuantityType${measurement.id}">${measurement.quantityTypeId.displayName}</span>
@@ -369,7 +369,7 @@ $(function() {
                     <input class="form-control parameter-select" id="select-parameter-${parameter.id}" type="checkbox" data-select-id="${parameter.id}" />
                   </td>
                   <td>
-                    <input class="form-control" id="parameterName${parameter.id}" type="text" placeholder="Name of parameter" value="${parameter.name}" />
+                    <input class="form-control" id="parameterName${parameter.id}" type="text" placeholder="Name of parameter" value="${fn:escapeXml(parameter.name)}" />
                   </td>
                   <td>
                     <span id="parameterQuantityType${parameter.id}">${parameter.quantityTypeId.displayName}</span>

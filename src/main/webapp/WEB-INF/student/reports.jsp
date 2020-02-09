@@ -38,13 +38,13 @@
       <c:forEach var="report" items="${reports}">
         <tr>
           <td class="col-2">
-            <a href="${s:mvcUrl('SC#getReport').arg(0, report.id).build()}">${report.name}</a>
+            <a href="${s:mvcUrl('SC#getReport').arg(0, report.id).build()}"><c:out value="${report.name}" /></a>
           </td>
           <td class="col-2">
-            <a href="${s:mvcUrl('SC#getExperiment').arg(0, report.experimentId).build()}">${report.experimentName}</a>
+            <a href="${s:mvcUrl('SC#getExperiment').arg(0, report.experimentId).build()}"><c:out value="${report.experimentName}" /></a>
           </td>
           <td class="col-2">
-            <a href="${s:mvcUrl('SC#getCourse').arg(0, report.courseId).build()}">${report.courseName}</a>
+            <a href="${s:mvcUrl('SC#getCourse').arg(0, report.courseId).build()}"><c:out value="${report.courseName}" /></a>
           </td>
           <td class="col-2">
             <c:if test="${empty report.score}">—</c:if>

@@ -37,11 +37,11 @@
 						</form>
 						</c:if>
 						<c:if test="${not empty user}">
-						  <h3 class="card-title">Welcome back, ${user.displayName}!</h3>
+						  <h3 class="card-title">Welcome back, <c:out value="${user.displayName}" />!</h3>
 						  <a class="btn btn-primary" href="${dashboardUrl}">Go To Dashboard</a>
 						  <form method="POST" action="/logout">
 						    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-						    Not ${user.displayName}? <button type="submit" class="btn btn-link">Log Out</button>
+						    Not <c:out value="${user.displayName}" />? <button type="submit" class="btn btn-link">Log Out</button>
 						  </form>
 						</c:if>
 					</div>

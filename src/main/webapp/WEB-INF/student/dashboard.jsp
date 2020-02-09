@@ -9,7 +9,7 @@
 <div class="container-fluid p-lg-5 userpage-container">
   <div class="row">
     <div class="col">
-      <h1>Welcome, ${student.displayName}!</h1>
+      <h1>Welcome, <c:out value="${student.displayName}" />!</h1>
     </div>
   </div>
   <div class="row py-2">
@@ -34,10 +34,10 @@
               <c:forEach var="experiment" items="${currentExperiments}">
               <tr>
                 <td>
-                  <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}">${experiment.name}</a>
+                  <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}"><c:out value="${experiment.name}" /></a>
                 </td>
                 <td>
-                  <a href="${s:mvcUrl('SC#getCourse').arg(0, experiment.courseId).build()}">${experiment.courseName}</a>
+                  <a href="${s:mvcUrl('SC#getCourse').arg(0, experiment.courseId).build()}"><c:out value="${experiment.courseName}" /></a>
                 </td>
                 <td>
                   <javatime:format value="${experiment.reportDueDate}" style="S-" />
@@ -70,7 +70,7 @@
         <ul class="list-group list-group-flush">
           <c:forEach var="experiment" items="${recentExperiments}">
           <li class="list-group-item">
-            <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}">${experiment.name}</a>
+            <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}"><c:out value="${experiment.name}" /></a>
           </li>
           </c:forEach>
         </ul>
@@ -91,7 +91,7 @@
         <ul class="list-group list-group-flush">
           <c:forEach var="course" items="${recentCourses}">
             <li class="list-group-item">
-              <a href="${s:mvcUrl('SC#getCourse').arg(0, experiment.id).build()}">${course.name}</a>
+              <a href="${s:mvcUrl('SC#getCourse').arg(0, experiment.id).build()}"><c:out value="${course.name}" /></a>
             </li>
           </c:forEach>
         </ul>

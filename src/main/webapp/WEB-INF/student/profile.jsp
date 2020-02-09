@@ -26,7 +26,7 @@
       <h3>Display Name</h3>
     </div>
     <div class="col">
-      ${student.displayName}
+      <c:out value="${student.displayName}" />
     </div>
   </div>
   <div class="row">

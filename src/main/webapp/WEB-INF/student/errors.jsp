@@ -18,7 +18,7 @@
             <div class="card-header" id="experimentErrorsHeading${experiment.id}">
               <h2 class="mb-0">
                 <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#experimentErrors${experiment.id}" aria-expanded="true" aria-controls="experimentErrors${experiment.id}">
-                  ${experiment.name}
+                  <c:out value="${experiment.name}" />
                 </button>
               </h2>
             </div>
@@ -36,7 +36,7 @@
                 <tbody>
                   <c:forEach var="measurement" items="${measurements[experiment.id]}">
                   <tr>
-                    <th scope="row">${measurement.name} (${measurement.quantityTypeId.unitString})</th>
+                    <th scope="row"><c:out value="${measurement.name}" /> (${measurement.quantityTypeId.unitString})</th>
                     <td>${measurement.mean}</td>
                     <td>${measurement.sampleStandardDeviation}</td>
                     <td>${measurement.sampleSize}</td>

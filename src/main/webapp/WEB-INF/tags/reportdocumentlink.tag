@@ -35,10 +35,10 @@
     </c:choose>
     <c:choose>
     <c:when test="${documentType eq EXTERNAL}">
-    <a href="${reportDocumentURL}">${filename}</a>
+    <a href="${reportDocumentURL}"><c:out value="${filename}" /></a>
     </c:when>
     <c:when test="${documentType eq FILESYSTEM}">
-    <a href="${reportDocumentURL}">${filename}</a>
+    <a href="${reportDocumentURL}"><c:out value="${filename}" /></a>
     </c:when>
     </c:choose>
   </div>

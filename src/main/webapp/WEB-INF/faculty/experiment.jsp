@@ -5,7 +5,7 @@
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<t:userpage title="${experiment.name} – ${experiment.course.name}">
+<t:userpage title="${fn:escapeXml(experiment.name)} – ${fn:escapeXml(experiment.course.name)}">
 
 <div class="container-fluid p-lg-5 userpage-container">
   <div class="row">
@@ -18,7 +18,7 @@
   </div>
   <div class="row">
     <div class="col">
-      <p class="lead">${experiment.description}</p>
+      <p class="lead">${fn:escapeXml(experiment.description)}</p>
     </div>
   </div>
   <div class="row">
@@ -42,7 +42,7 @@
             <tr id="courseClass${courseClass.id}" >
               <td colspan="3">
                 <button class="btn btn-link course-class collapsed" type="button" data-toggle="collapse" data-target=".students${courseClass.id}" role="treeitem" aria-level="1">
-                  ${courseClass.name}
+                  ${fn:escapeXml(courseClass.name)}
                 </button>
               </td>
             </tr>
@@ -52,7 +52,7 @@
               <td></td>
               <td>
                 <button class="btn btn-link p-2 student collapsed" type="button" data-toggle="collapse" data-target=".info-${student.id}, .info-unselected" role="treeitem" aria-level="2">
-                  ${student.displayName}
+                  ${fn:escapeXml(student.displayName)}
                 </button>
               </td>
               <td>
@@ -83,7 +83,7 @@
       <c:forEach var="measurement" items="${measurements}">
       <div class="row">
         <div class="col">
-          <h4>${measurement.name}</h4>
+          <h4>${fn:escapeXml(measurement.name)}</h4>
         </div>
       </div>
       <div class="row">
@@ -94,7 +94,7 @@
           <c:forEach var="courseClass" items="${experiment.course.courseClasses}">
           <c:forEach var="student" items="${courseClass.students}">
           <div class="collapse info-${student.id}" id="measurementValues-${courseClass.id}-${student.id}">
-            <h5>${student.displayName} for ${courseClass.name}</h5>
+            <h5>${fn:escapeXml(student.displayName)} for ${fn:escapeXml(courseClass.name)}</h5>
 	          <t:measurementvaluestable 
 	            measurement="${measurement}"
 	            measurementvalues="${measurementValues[measurement.id][courseClass.id][student.id]}"
@@ -114,7 +114,7 @@
         <p class="text-center">Select student to view reports</p>
       </div>
       <c:forEach var="studentId" items="${studentIds}">
-      <h5>${student.name}</h5>
+      <h5>${fn:escapeXml(student.name)}</h5>
       <div class="collapse info-${studentId}" id="reports-${studentId}">
       <t:reportstable
         id="reportsTable${studentId}"

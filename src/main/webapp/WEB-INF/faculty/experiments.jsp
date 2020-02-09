@@ -32,7 +32,7 @@
             <c:forEach var="experiment" items="${experiments}">
             <tr>
               <td>
-                <a href="${s:mvcUrl('FC#getExperiment').arg(0, experiment.id).build()}">${experiment.name}</a>
+                <a href="${s:mvcUrl('FC#getExperiment').arg(0, experiment.id).build()}">${fn:escapeXml(experiment.name)}</a>
               </td>
               <td>
                 ${experiment.reportedResultsCount}

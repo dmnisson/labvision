@@ -6,18 +6,18 @@
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<t:userpage title="${experiment.name} — ${experiment.course.name}">
+<t:userpage title="${fn:escapeXml(experiment.name)} — ${fn:escapeXml(experiment.course.name)}">
 
 <div class="container-fluid p-lg-5 userpage-container">
   <div class="row">
     <div class="col">
-      <h1>${experiment.name}</h1>
-      <h2>${experiment.course.name}</h2>
+      <h1><c:out value="${experiment.name}" /></h1>
+      <h2><c:out value="${experiment.course.name}" /></h2>
     </div>
   </div>
   <div class="row">
     <div class="col">
-      <p class="experiment-description">${experiment.description}</p>
+      <p class="experiment-description"><c:out value="${experiment.description}" /></p>
     </div>
   </div>
   <div class="row">
@@ -30,7 +30,7 @@
       <ul class="nav nav-tabs">
         <c:forEach var="measurement" items="${measurements}">
         <li class="nav-item">
-          <a class="nav-link" id="measurement-${measurement.id}-tab" data-toggle="tab" href="#measurement-${measurement.id}" role="tab" aria-controls="measurement-${measurement.id}" aria-selected="false">${measurement.name}</a>
+          <a class="nav-link" id="measurement-${measurement.id}-tab" data-toggle="tab" href="#measurement-${measurement.id}" role="tab" aria-controls="measurement-${measurement.id}" aria-selected="false"><c:out value="${measurement.name}" /></a>
         </li>
         </c:forEach>
       </ul>
@@ -77,7 +77,7 @@
             <c:forEach var="report" items="${reportedResults}">
             <tr>
               <td class="col-5">
-                <a href="${s:mvcUrl('SC#getReport').arg(0, report.id).build()}">${report.reportDisplay}</a>
+                <a href="${s:mvcUrl('SC#getReport').arg(0, report.id).build()}"><c:out value="${report.reportDisplay}" /></a>
               </td>
               <td class="col-5">
                 <javatime:format value="${report.added}" style="SS" />

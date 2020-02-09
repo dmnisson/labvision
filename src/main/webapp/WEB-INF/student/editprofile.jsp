@@ -1,4 +1,5 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "fn" %>
 <%@ taglib uri = "http://www.springframework.org/tags" prefix = "s" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
@@ -26,7 +27,7 @@
 	      <label for="studentName"><h3>Full Name</h3></label>
 	    </div>
 	    <div class="col">
-	      <input type="text" class="form-control" name="studentName" value="${student.name}" />
+	      <input type="text" class="form-control" name="studentName" value="${fn:escapeXml(student.name)}" />
 	    </div>
 	  </div>
 	  <div class="row">

@@ -20,13 +20,13 @@
 	       <div class="alert alert-warning">
 	         <c:choose>
 	         <c:when test="${fn:length(errors) eq 1}">
-	         ${errors[0]}
+	         ${fn:escapeXml(errors[0])}
 	         </c:when>
 	         <c:otherwise>
 	         <p>Please correct the following problems:</p>
 	         <ul>
 	           <c:forEach var="error" items="${errors}">
-	           <li>${error}</li>
+	           <li>${fn:escapeXml(error)}</li>
 	           </c:forEach>
 	         </ul>
 	         </c:otherwise>

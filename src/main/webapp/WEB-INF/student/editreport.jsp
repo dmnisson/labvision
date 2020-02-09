@@ -1,4 +1,5 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ taglib uri = "http://www.springframework.org/tags" prefix = "s" %>
 <%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
 <%@ taglib tagdir = "/WEB-INF/tags" prefix = "t" %>
@@ -6,15 +7,15 @@
     pageEncoding="UTF-8" %>
 <%@ page import = "io.github.dmnisson.labvision.entities.ReportDocumentType" %>
 <%@ page import = "io.github.dmnisson.labvision.entities.FileType" %>
-<t:userpage title="${empty report.name ? 'New Report' : 'Editing '}${report.name} - ${experiment.name} - ${experiment.courseName}">
+<t:userpage title="${empty report.name ? 'New Report' : 'Editing '}${fn:escapeXml(report.name)} - ${fn:escapeXml(experiment.name)} - ${fn:escapeXml(experiment.courseName)}">
 
 <div class="container-fluid p-lg-5 userpage-container">
   <div class="row">
     <div class="col">
       <h1>
         <c:choose>
-        <c:when test="${empty report.name}">New Report for ${experiment.name}</c:when>
-        <c:otherwise>Editing ${report.name}</c:otherwise>
+        <c:when test="${empty report.name}">New Report for <c:out value="${experiment.name}" /></c:when>
+        <c:otherwise>Editing <c:out value="${report.name}" /></c:otherwise>
         </c:choose>
       </h1>
     </div>
@@ -33,7 +34,7 @@
         <tbody>
           <c:forEach var="acceptedResult" items="${acceptedResults}">
           <tr>
-            <th scope="row">${acceptedResult.name}</th>
+            <th scope="row"><c:out value="${acceptedResult.name}" /></th>
             <td>${acceptedResult.value} ± ${acceptedResult.uncertainty} ${acceptedResult.quantityTypeId.unitString}</td>
           </tr>
           </c:forEach>
@@ -57,7 +58,7 @@
         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
         <div class="form-group">
           <label for="reportName">Name of report</label>
-          <input class="form-control" type="text" name="reportName" id="reportName" value="${report.name}" />
+          <input class="form-control" type="text" name="reportName" id="reportName" value="${fn:escapeXml(report.name)}" />
         </div>
 	      <div class="form-group" role="radiogroup">
 		      <div class="form-check form-check-inline">

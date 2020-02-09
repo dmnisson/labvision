@@ -20,7 +20,7 @@
       <c:forEach var="report" items="${reports}">
       <tr>
         <td>
-          <a href="${s:mvcUrl('FC#getReport').arg(0, report.id).build()}">${report.name}</a>
+          <a href="${s:mvcUrl('FC#getReport').arg(0, report.id).build()}"><c:out value="${report.name}" /></a>
         </td>
         <td>
           <javatime:format value="${report.added}" style="SS" />

@@ -27,10 +27,10 @@
           <c:forEach var="course" items="${courses}">
           <tr>
             <td>
-              <a href="${s:mvcUrl('SC#getCourse').arg(0, course.id).build()}">${course.name}</a>
+              <a href="${s:mvcUrl('SC#getCourse').arg(0, course.id).build()}"><c:out value="${course.name}" /></a>
             </td>
             <td>
-              ${course.enrolledClass}
+              <c:out value="${course.enrolledClass}" />
             </td>
             <td>
               ${course.numOfExperiments}

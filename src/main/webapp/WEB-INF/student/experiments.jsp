@@ -43,7 +43,7 @@
 	              <c:forEach var="experiment" items="${currentExperiments}">
 	              <tr>
 	                <td class="col-3">
-	                  <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}">${experiment.name}</a>
+	                  <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}"><c:out value="${experiment.name}" /></a>
 	                </td>
 	                <td class="col-3">
 	                  <javatime:format value="${experiment.reportDueDate}" style="S-" />
@@ -92,7 +92,7 @@
                 <c:forEach var="experiment" items="${pastExperiments}">
                 <tr>
                   <td class="col-3">
-                    <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}">${experiment.name}</a>
+                    <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}"><c:out value="${experiment.name}" /></a>
                   </td>
                   <td class="col-3">
                     <a href="${s:mvcUrl('SC#getExperiment').arg(0, experiment.id).build()}#reports">
