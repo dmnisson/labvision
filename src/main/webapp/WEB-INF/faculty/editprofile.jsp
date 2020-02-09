@@ -40,7 +40,7 @@
 	      <h3>Username</h3>
 	    </div>
 	    <div class="col">
-	      ${instructor.username}
+	      <c:out value="${instructor.username}" />
 	    </div>
 	  </div>
 	  <div class="row">

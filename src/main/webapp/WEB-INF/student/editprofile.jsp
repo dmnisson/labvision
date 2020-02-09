@@ -19,7 +19,7 @@
 	      <h3>Username</h3>
 	    </div>
 	    <div class="col">
-	      ${student.username}
+	      <c:out value="${student.username}" />
 	    </div>
 	  </div>
 	  <div class="row">
