@@ -107,6 +107,7 @@ public class FacultyController {
 		
 		model.addAttribute("numOfExperiments", experimentRepository.countExperimentsForInstructor(instructor.getId()));
 		model.addAttribute("numOfStudents", studentRepository.countStudentsForInstructor(instructor.getId()));
+		model.addAttribute("numOfUnscoredReports", reportedResultRepository.countUnscoredReportsForInstructor(instructor.getId()));
 		
 		return "faculty/dashboard";
 	}

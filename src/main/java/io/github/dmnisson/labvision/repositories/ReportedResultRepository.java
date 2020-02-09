@@ -104,4 +104,12 @@ public interface ReportedResultRepository extends JpaRepository<ReportedResult, 
 	@Transactional
 	@Query("UPDATE ReportedResult SET score = :score WHERE id=:reportid")
 	void updateReportScore(@Param("reportid") Integer reportId, @Param("score") BigDecimal score);
+
+	@Query(	"SELECT COUNT(rr.id) FROM ReportedResult rr "
+			+ "JOIN rr.experiment e "
+			+ "JOIN e.course c "
+			+ "JOIN c.courseClasses cc "
+			+ "JOIN cc.instructors i "
+			+ "WHERE i.id=:instructorid AND rr.score IS NULL")
+	Long countUnscoredReportsForInstructor(@Param("instructorid") Integer instructorId);
 }

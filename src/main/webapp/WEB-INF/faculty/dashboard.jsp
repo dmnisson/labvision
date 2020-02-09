@@ -29,6 +29,14 @@
         </div>
       </div>
     </div>
+    <div class="col">
+      <div class="card">
+        <div class="card-body">
+          <p class="h2 card-text">${numOfUnscoredReports}</p>
+          <p>report${numOfUnscoredReports eq 1 ? '' : 's'} ready for scoring</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
