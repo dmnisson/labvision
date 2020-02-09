@@ -252,5 +252,13 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 	public List<PastExperimentForStudentExperimentTable> findPastExperimentsForStudentCourseExperimentTable(
 			@Param("studentid") Integer studentId,
 			@Param("courseid") Integer courseId);
+
+	@Query(	"SELECT COUNT(DISTINCT e.id) FROM Instructor i "
+			+ "JOIN i.courseClasses cc "
+			+ "JOIN cc.course c "
+			+ "JOIN c.experiments e "
+			+ "WHERE i.id=:instructorid "
+			+ "GROUP BY i.id")
+	public Long countExperimentsForInstructor(@Param("instructorid") Integer instructorId);
 		
 }

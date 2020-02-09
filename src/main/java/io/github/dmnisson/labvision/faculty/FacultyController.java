@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import io.github.dmnisson.labvision.DatabaseAction;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
@@ -58,6 +57,7 @@ import io.github.dmnisson.labvision.repositories.MeasurementValueRepository;
 import io.github.dmnisson.labvision.repositories.ParameterRepository;
 import io.github.dmnisson.labvision.repositories.ParameterValueRepository;
 import io.github.dmnisson.labvision.repositories.ReportedResultRepository;
+import io.github.dmnisson.labvision.repositories.StudentRepository;
 
 @Controller
 @RequestMapping("/faculty")
@@ -71,6 +71,9 @@ public class FacultyController {
 	
 	@Autowired
 	private ExperimentRepository experimentRepository;
+	
+	@Autowired
+	private StudentRepository studentRepository;
 	
 	@Autowired
 	private MeasurementRepository measurementRepository;
@@ -101,6 +104,9 @@ public class FacultyController {
 		Instructor instructor = (Instructor) user;
 		
 		model.addAttribute("instructor", instructor);
+		
+		model.addAttribute("numOfExperiments", experimentRepository.countExperimentsForInstructor(instructor.getId()));
+		model.addAttribute("numOfStudents", studentRepository.countStudentsForInstructor(instructor.getId()));
 		
 		return "faculty/dashboard";
 	}
