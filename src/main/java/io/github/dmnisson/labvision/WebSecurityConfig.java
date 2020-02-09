@@ -31,6 +31,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		.authenticationProvider(daoAuthenticationProvider())
 		.authorizeRequests()
 			.antMatchers("/", "/welcome", "/css/**", "/webfonts/**").permitAll()
+			.antMatchers("/student/**").hasRole("STUDENT")
+			.antMatchers("/faculty/**").hasRole("FACULTY")
 			.anyRequest().authenticated()
 			.and()
 		.rememberMe()
