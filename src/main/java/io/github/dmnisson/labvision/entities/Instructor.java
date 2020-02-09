@@ -7,6 +7,7 @@ import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
+import javax.validation.constraints.Email;
 
 @Entity
 public class Instructor extends LabVisionUser {
@@ -15,6 +16,7 @@ public class Instructor extends LabVisionUser {
 	private String name;
 	
 	@Column
+	@Email(message = "Email address must be valid.")
 	private String email;
 	
 	@ManyToMany( targetEntity=CourseClass.class )
