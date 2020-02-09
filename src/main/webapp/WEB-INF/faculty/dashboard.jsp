@@ -17,7 +17,7 @@
         <div class="card-body">
           <p class="h2 card-text">${numOfExperiments}</p>
           <p>experiment${numOfExperiments eq 1 ? '' : 's'}</p>
-          <a class="btn btn-primary" href="${s:mvcUrl('FC#experiments')}">Go To Experiments List</a>
+          <a class="btn btn-primary" href="${s:mvcUrl('FC#experiments').build()}">Go To Experiments List</a>
         </div>
       </div>
     </div>
