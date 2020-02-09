@@ -12,7 +12,7 @@
 <c:set var="CREATE" value="<%= DatabaseAction.CREATE %>" />
 <c:set var="DELETE" value="<%= DatabaseAction.DELETE %>" />
  
-<t:userpage title="${empty experiment ? 'New Experiment' : 'Editing'} ${empty experiment ? '' : name} – ${course.name}">
+<t:userpage title="${empty experiment ? 'New Experiment' : 'Editing'} ${empty experiment ? '' : fn:escapeXml(name)} – ${fn:escapeXml(course.name)}">
 <jsp:attribute name="style">
 tr.selected {
   background-color: #495057;
