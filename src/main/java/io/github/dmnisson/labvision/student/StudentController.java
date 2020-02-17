@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
+import io.github.dmnisson.labvision.AccessDeniedException;
+import io.github.dmnisson.labvision.CourseService;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
 import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseTable;
 import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseView;
@@ -108,6 +110,9 @@ public class StudentController {
 	@Autowired
 	private StudentRepository studentRepository;
 
+	@Autowired
+	private CourseService courseService;
+
 	@ModelAttribute
 	public void populateModel(Model model) {
 		NavbarModel navbarModel = buildStudentNavbar();
@@ -154,13 +159,18 @@ public class StudentController {
 	}
 	
 	@GetMapping("/experiment/{experimentId}")
-	public String getExperiment(@PathVariable Integer experimentId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+	public String getExperiment(@PathVariable Integer experimentId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws AccessDeniedException {
 		model.addAttribute("student", user);
 		
 		Integer studentId = user.getId();
 		
 		Experiment experiment = experimentRepository.findById(experimentId)
 				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		
+		if (!courseService.checkStudentEnrolled(studentId, experiment.getCourse().getId())) {
+			throw new AccessDeniedException(Experiment.class, experimentId);
+		}
+		
 		model.addAttribute("experiment", experiment);
 		
 		List<MeasurementInfo> measurements = measurementRepository.findForExperimentView(experimentId);
