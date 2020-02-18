@@ -533,7 +533,7 @@ public class StudentController {
 		
 		List<PastExperimentForStudentExperimentTable> pastExperiments = experimentRepository
 				.findPastExperimentsForStudentCourseExperimentTable(student.getId(), courseId);
-		model.addAttribute("currentExperiments", currentExperiments);
+		model.addAttribute("pastExperiments", pastExperiments);
 		
 		return "student/course";
 	}
