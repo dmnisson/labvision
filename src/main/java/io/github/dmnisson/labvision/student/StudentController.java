@@ -282,9 +282,16 @@ public class StudentController {
 	}
 	
 	@GetMapping("student/report/{reportId}")
-	public String getReport(@PathVariable Integer reportId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException {
+	public String getReport(@PathVariable Integer reportId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException, AccessDeniedException {
 		ReportForReportView report = reportedResultRepository.findForReportView(reportId)
 				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, reportId));
+		
+		Integer studentId = user.getId();
+		
+		if (!reportedResultRepository.getOne(reportId).getStudent().getId().equals(studentId)) {
+			throw new AccessDeniedException(ReportedResult.class, reportId);
+		}
+		
 		model.addAttribute("report", report);
 		
 		ExperimentInfo experiment = experimentRepository.findExperimentInfo(report.getExperimentId()).get();
@@ -300,8 +307,18 @@ public class StudentController {
 	}
 	
 	@GetMapping("student/report/new/{experimentId}")
-	public String newReport(@PathVariable Integer experimentId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+	public String newReport(@PathVariable Integer experimentId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws AccessDeniedException {
 		ExperimentInfo experiment = experimentRepository.findExperimentInfo(experimentId).get();
+		
+		if (!courseService.checkStudentEnrolled(
+				user.getId(), 
+				courseRepository.findCourseInfoForExperiment(experimentId)
+					.get()
+					.getId()
+				)) {
+			throw new AccessDeniedException(Experiment.class, experimentId);
+		}
+		
 		model.addAttribute("experiment", experiment);
 		
 		List<ResultInfo> acceptedResults = experimentRepository.getAcceptedResultInfoFor(experimentId);
@@ -324,10 +341,16 @@ public class StudentController {
 			String reportName, @RequestParam(name="documentType", required=false) ReportDocumentType documentType,
 			@RequestParam(name="externalDocumentURL", required=false) URL externalDocumentURL,
 			@RequestParam(name="filesystemDocumentFile", required=false) MultipartFile filesystemDocumentFile,
-			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws IOException {
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws IOException, AccessDeniedException {
 		
 		Experiment experiment = experimentRepository.findById(experimentId)
 				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		
+		if (!courseService.checkStudentEnrolled(
+				user.getId(), 
+				experiment.getCourse().getId())) {
+			throw new AccessDeniedException(Experiment.class, experimentId);
+		}
 		
 		// need to initialize reportedResults
 		Student student = studentRepository.findById(user.getId()).get();
@@ -371,9 +394,14 @@ public class StudentController {
 	}
 	
 	@GetMapping("student/report/edit/{reportId}")
-	public String editReport(@PathVariable Integer reportId, @RequestParam(name="uploadfile", defaultValue="false") boolean uploadfile, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException {
+	public String editReport(@PathVariable Integer reportId, @RequestParam(name="uploadfile", defaultValue="false") boolean uploadfile, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException, AccessDeniedException {
 		ReportForReportView report = reportedResultRepository.findForReportView(reportId)
 				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, reportId));
+		
+		if (!reportedResultRepository.getOne(reportId).getStudent().getId().equals(user.getId())) {
+			throw new AccessDeniedException(ReportedResult.class, reportId);
+		}
+		
 		model.addAttribute("report", report);
 		
 		String reportDocumentUrl = reportDocumentService.buildReportDocumentUrl(reportId);
@@ -401,9 +429,13 @@ public class StudentController {
 			String reportName, @RequestParam(name="documentType", required=false) ReportDocumentType documentType,
 			@RequestParam(name="externalDocumentURL", required=false) URL externalDocumentURL,
 			@RequestParam(name="filesystemDocumentFile", required=false) MultipartFile filesystemDocumentFile,
-			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws IOException {
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws IOException, AccessDeniedException {
 		ReportedResult reportedResult = reportedResultRepository.findById(reportId)
 				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, reportId));
+		
+		if (!reportedResultRepository.getOne(reportId).getStudent().getId().equals(user.getId())) {
+			throw new AccessDeniedException(ReportedResult.class, reportId);
+		}
 		
 		Student student = (Student) user;
 		
