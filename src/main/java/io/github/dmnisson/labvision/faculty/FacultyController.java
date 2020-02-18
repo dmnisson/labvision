@@ -435,8 +435,17 @@ public class FacultyController {
 	
 	@GetMapping("/report/{reportId}")
 	public String getReport(@PathVariable Integer reportId, 
-			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException {
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException, AccessDeniedException {
 		getReportInfo(reportId, model);
+		
+		model.addAttribute("scorePath", MvcUriComponentsBuilder.fromMethodName(
+				FacultyController.class,
+				"scoreReport", reportId,
+				null, null, null)
+					.replaceQuery(null)
+					.build()
+					.toUriString()
+		);
 		
 		return "faculty/report";
 	}
