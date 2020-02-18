@@ -12,7 +12,6 @@ import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseView;
 import io.github.dmnisson.labvision.dto.course.CourseInfo;
 import io.github.dmnisson.labvision.dto.student.course.RecentCourseForStudentDashboard;
 import io.github.dmnisson.labvision.entities.Course;
-import io.github.dmnisson.labvision.entities.Experiment;
 import io.github.dmnisson.labvision.entities.Student;
 
 public interface CourseRepository extends JpaRepository<Course, Integer> {
@@ -73,6 +72,12 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 			+ "JOIN cc.students s "
 			+ "WHERE s.id=:studentid AND c.id=:courseid")
 	public Optional<Student> findStudentEnrolled(@Param("studentid") Integer studentId, @Param("courseid") Integer courseId);
+
+	@Query(	"SELECT c FROM Course c "
+			+ "JOIN c.courseClasses cc "
+			+ "JOIN cc.instructors i "
+			+ "WHERE c.id=:courseid AND i.id=:instructorid")
+	public Optional<Course> findByIdForInstructor(@Param("courseid") Integer courseId, @Param("instructorid") Integer instructorId);
 	
 	
 }

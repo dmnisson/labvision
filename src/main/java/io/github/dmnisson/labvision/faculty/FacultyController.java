@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
+import io.github.dmnisson.labvision.AccessDeniedException;
 import io.github.dmnisson.labvision.DatabaseAction;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementInfo;
@@ -172,14 +173,25 @@ public class FacultyController {
 		return experiment;
 	}
 	
+	private void checkExperimentAuthorizedForInstructor(int instructorId, Experiment experiment)
+			throws AccessDeniedException {
+		// make experiments accessible only to instructors who author them or teach courses with them
+		if (!experimentRepository.findByIdForInstructor(experiment.getId(), instructorId).isPresent()
+				&& !courseRepository.findByIdForInstructor(experiment.getCourse().getId(), instructorId).isPresent()) {
+			throw new AccessDeniedException(Experiment.class, experiment.getId());
+		}
+	}
+	
 	@GetMapping("/experiment/{experimentId}")
 	public String getExperiment(@PathVariable Integer experimentId, 
-			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws AccessDeniedException {
 		
 		Instructor instructor = (Instructor) user;
 		int instructorId = instructor.getId();
 		
 		Experiment experiment = buildExperimentModelAttributes(experimentId, instructorId, model);
+		
+		checkExperimentAuthorizedForInstructor(instructorId, experiment);
 		
 		List<Integer> studentIds = experiment.getStudentIds();
 		List<ReportForFacultyExperimentView> reports = 
@@ -196,12 +208,14 @@ public class FacultyController {
 	
 	@GetMapping("/experiment/edit/{experimentId}")
 	public String editExperiment(@PathVariable Integer experimentId,
-			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws AccessDeniedException {
 		
 		Instructor instructor = (Instructor) user;
 		Integer instructorId = instructor.getId();
 		
 		Experiment experiment = buildExperimentModelAttributes(experimentId, instructorId, model);
+		
+		checkExperimentAuthorizedForInstructor(instructorId, experiment);
 		
 		model.addAttribute("course", courseRepository.findCourseInfoForExperiment(experimentId).get());
 		model.addAttribute("name", experiment.getName());
@@ -228,9 +242,11 @@ public class FacultyController {
 	@PostMapping("/experiment/edit/{experimentId}")
 	public String updateExperiment(@PathVariable Integer experimentId,
 			@RequestParam Map<String, String> requestParams,
-			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws AccessDeniedException {
 		final Experiment experiment = experimentRepository.findById(experimentId)
 				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		
+		checkExperimentAuthorizedForInstructor(user.getId(), experiment);
 		
 		experiment.setName(requestParams.get("experimentName"));
 		experiment.setDescription(requestParams.get("description"));
@@ -423,10 +439,13 @@ public class FacultyController {
 	}
 	
 	// helper that retrieves report information that is needed for faculty views and adds it to model
-	private void getReportInfo(Integer reportId, Model model)
-			throws MalformedURLException, UnsupportedEncodingException {
+	private void getReportInfo(Integer reportId, LabVisionUser user, Model model)
+			throws MalformedURLException, UnsupportedEncodingException, AccessDeniedException {
 		ReportForFacultyReportView reportInfo = reportedResultRepository.findReportForFacultyReportView(reportId);
 		List<ResultInfo> acceptedResults = reportedResultRepository.findAcceptedResultsForReportedResult(reportId);
+		
+		Experiment experiment = experimentRepository.getOne(reportInfo.getExperimentId());
+		checkExperimentAuthorizedForInstructor(user.getId(), experiment);
 		
 		model.addAttribute("report", reportInfo);
 		model.addAttribute("acceptedResults", acceptedResults);
@@ -436,7 +455,7 @@ public class FacultyController {
 	@GetMapping("/report/{reportId}")
 	public String getReport(@PathVariable Integer reportId, 
 			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException, AccessDeniedException {
-		getReportInfo(reportId, model);
+		getReportInfo(reportId, user, model);
 		
 		model.addAttribute("scorePath", MvcUriComponentsBuilder.fromMethodName(
 				FacultyController.class,
@@ -452,8 +471,8 @@ public class FacultyController {
 	
 	@GetMapping("/report/score/{reportId}")
 	public String editReportScore(@PathVariable Integer reportId,
-			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException {
-		getReportInfo(reportId, model);
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws MalformedURLException, UnsupportedEncodingException, AccessDeniedException {
+		getReportInfo(reportId, user, model);
 		
 		model.addAttribute("scoring", true);
 		model.addAttribute("scorePath", MvcUriComponentsBuilder.fromMethodName(
@@ -471,7 +490,11 @@ public class FacultyController {
 	@PostMapping("/report/score/{reportId}")
 	public String scoreReport(@PathVariable Integer reportId,
 			BigDecimal score,
-			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws AccessDeniedException {
+		ReportForFacultyReportView report = reportedResultRepository.findReportForFacultyReportView(reportId);
+		Experiment experiment = experimentRepository.getOne(report.getExperimentId());
+		checkExperimentAuthorizedForInstructor(user.getId(), experiment);
+		
 		try {
 			reportedResultRepository.updateReportScore(reportId, score);
 			

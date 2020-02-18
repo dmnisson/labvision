@@ -260,5 +260,10 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			+ "WHERE i.id=:instructorid "
 			+ "GROUP BY i.id")
 	public Long countExperimentsForInstructor(@Param("instructorid") Integer instructorId);
+
+	@Query(	"SELECT e FROM Experiment e "
+			+ "JOIN e.instructors i "
+			+ "WHERE e.id=:experimentid AND i.id=:instructorid")
+	public Optional<Experiment> findByIdForInstructor(@Param("experimentid") Integer experimentId, @Param("instructorid") int instructorId);
 		
 }
