@@ -50,3 +50,8 @@
 	color: #000;
 	font-weight: 600;
 }
+
+.error-page-alert {
+	max-width: 768px;
+	margin: auto;
+}
