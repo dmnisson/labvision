@@ -190,10 +190,13 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"	SUM(rr.score)/COUNT(DISTINCT s)" +
 			") " +
 			"FROM Experiment e " +
-			"JOIN e.instructors i " +
+			"LEFT JOIN e.instructors i1 " +
+			"LEFT JOIN e.course c " +
+			"LEFT JOIN c.courseClasses cc " +
+			"LEFT JOIN cc.instructors i2 " +
 			"LEFT JOIN e.reportedResults rr " +
 			"LEFT JOIN rr.student s " +
-			"WHERE i.id=:instructorid " +
+			"WHERE i1.id=:instructorid OR i2.id=:instructorid " +
 			"GROUP BY e")
 	public List<ExperimentForFacultyExperimentTable> findExperimentsForFacultyExperimentTable(
 			@Param("instructorid") Integer instructorId);
@@ -254,9 +257,11 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			@Param("courseid") Integer courseId);
 
 	@Query(	"SELECT COUNT(DISTINCT e.id) FROM Instructor i "
-			+ "JOIN i.courseClasses cc "
-			+ "JOIN cc.course c "
-			+ "JOIN c.experiments e "
+			+ "LEFT JOIN i.courseClasses cc "
+			+ "LEFT JOIN cc.course c "
+			+ "LEFT JOIN c.experiments e1 "
+			+ "LEFT JOIN i.experiments e2 "
+			+ "JOIN Experiment e ON e.id=e1.id OR e.id=e2.id "
 			+ "WHERE i.id=:instructorid "
 			+ "GROUP BY i.id")
 	public Long countExperimentsForInstructor(@Param("instructorid") Integer instructorId);
