@@ -1,8 +1,11 @@
 package io.github.dmnisson.labvision;
 
+import java.security.SecureRandom;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -10,6 +13,7 @@ import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.token.SecureRandomFactoryBean;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,14 +28,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private DriverManagerDataSource dataSource;
 	
+	@Autowired
+	private Environment environment;
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 		.authenticationProvider(daoAuthenticationProvider())
 		.authorizeRequests()
-			.antMatchers("/", "/welcome", "/css/**", "/webfonts/**").permitAll()
+			.antMatchers("/", "/welcome", "/css/**", "/webfonts/**", "/resetpassword/**").permitAll()
 			.antMatchers("/student/**").hasRole("STUDENT")
 			.antMatchers("/faculty/**").hasRole("FACULTY")
+			.antMatchers("/admin/**").hasRole("ADMIN")
 			.anyRequest().authenticated()
 			.and()
 		.rememberMe()
@@ -86,5 +94,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+	}
+	
+	@Bean(name = "secureRandom")
+	public SecureRandomFactoryBean secureRandomFactoryBean() {
+		SecureRandomFactoryBean factoryBean = new SecureRandomFactoryBean();
+		factoryBean.setAlgorithm(environment.getProperty("app.secure-random-algorithm", "SHA1PRNG"));
+		return factoryBean;
+	}
+	
+	@Bean
+	public SecureRandom secureRandom() throws Exception {
+		return secureRandomFactoryBean().getObject();
 	}
 }
