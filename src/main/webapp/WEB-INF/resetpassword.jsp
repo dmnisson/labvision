@@ -21,6 +21,7 @@
     
     <h1 class="h3 mb3 font-weight-normal">Reset your password</h1>
     
+    <c:if test="${empty token}">
     <div class="form-group">
       <label for="username">Username</label>
       <input type="text" name="username" class="form-control" required autofocus />
@@ -30,6 +31,7 @@
       <label for="password">Current password</label>
       <input type="password" name="password" class="form-control" required />
     </div>
+    </c:if>
     
     <div class="form-group">
       <label for="newPassword">New password</label>
