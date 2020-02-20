@@ -47,7 +47,12 @@ public class NavbarModel implements Serializable {
 		addNavLink(createNavLink(pageName, url));
 	}
 
-	private NavLink createNavLink(String pageName, String url) {
+	/**
+	 * Create a new NavLink for a given URL
+	 * @param pageName the page name
+	 * @param url new URL
+	 */
+	public NavLink createNavLink(String pageName, String url) {
 		return new NavLink(pageName, url);
 	}
 	
