@@ -21,7 +21,6 @@ import javax.validation.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.TransactionSystemException;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -34,6 +33,8 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 import io.github.dmnisson.labvision.AccessDeniedException;
 import io.github.dmnisson.labvision.DatabaseAction;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
+import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
+import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementInfo;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementValueForExperimentView;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementValueForFacultyExperimentView;
@@ -52,7 +53,6 @@ import io.github.dmnisson.labvision.models.NavbarModel;
 import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
-import io.github.dmnisson.labvision.repositories.InstructorRepository;
 import io.github.dmnisson.labvision.repositories.MeasurementRepository;
 import io.github.dmnisson.labvision.repositories.MeasurementValueRepository;
 import io.github.dmnisson.labvision.repositories.ParameterRepository;
@@ -63,9 +63,6 @@ import io.github.dmnisson.labvision.repositories.StudentRepository;
 @Controller
 @RequestMapping("/faculty")
 public class FacultyController {
-	
-	@Autowired
-	private InstructorRepository instructorRepository;
 	
 	@Autowired
 	private CourseRepository courseRepository;
@@ -93,6 +90,9 @@ public class FacultyController {
 	
 	@Autowired
 	private ReportDocumentService reportDocumentService;
+	
+	@Autowired
+	private LabVisionUserDetailsManager userDetailsManager;
 	
 	@ModelAttribute
 	public void populateModel(Model model) {
@@ -540,29 +540,14 @@ public class FacultyController {
 	public String updateProfile(
 			String instructorName, String instructorEmail,
 			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
-		Instructor instructor = (Instructor) user;
-		
-		instructor.setName(instructorName);
-		instructor.setEmail(instructorEmail);
-		
-		ConstraintViolationException exception = null;
 		
 		try {
-			instructor = instructorRepository.save(instructor);
-		} catch (TransactionSystemException e) {
-			if (e.contains(ConstraintViolationException.class)) {
-				exception = (ConstraintViolationException) e.getRootCause();
-			} else {
-				throw e;
-			}
-		} catch (ConstraintViolationException e) {
-			exception = e;
+			userDetailsManager.updateInstructor(user.getId(), instructorName, instructorEmail, false);
 		}
-		
-		if (exception != null) {
+		catch (ConstraintViolationException e) {
 			return "redirect:" + MvcUriComponentsBuilder
 				.fromMethodName(FacultyController.class, "editProfile",
-						exception.getConstraintViolations().stream()
+						e.getConstraintViolations().stream()
 							.map(cv -> cv.getMessage())
 							.toArray(String[]::new),
 						new Object(), new Object())

@@ -7,6 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.validation.constraints.Pattern;
 
 @Entity
 @Inheritance( strategy = InheritanceType.JOINED )
@@ -21,7 +22,11 @@ public abstract class LabVisionUser implements LabVisionEntity {
 	 */
 	@Column( name = "username", columnDefinition = "VARCHAR_IGNORECASE(128) NOT NULL UNIQUE" )
 	protected String username;
-
+	
+	@Column
+	@Pattern(regexp = "^[a-f0-9]{96}$")
+	private String passwordResetToken;
+	
 	public LabVisionUser() {
 		super();
 	}
@@ -72,5 +77,13 @@ public abstract class LabVisionUser implements LabVisionEntity {
 		if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	public String getPasswordResetToken() {
+		return passwordResetToken;
+	}
+
+	public void setPasswordResetToken(String passwordResetToken) {
+		this.passwordResetToken = passwordResetToken;
 	}
 }

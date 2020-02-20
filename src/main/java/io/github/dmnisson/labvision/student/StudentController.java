@@ -30,6 +30,8 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 import io.github.dmnisson.labvision.AccessDeniedException;
 import io.github.dmnisson.labvision.CourseService;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
+import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
+import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
 import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseTable;
 import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseView;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
@@ -112,6 +114,9 @@ public class StudentController {
 
 	@Autowired
 	private CourseService courseService;
+	
+	@Autowired
+	private LabVisionUserDetailsManager userDetailsManager;
 
 	@ModelAttribute
 	public void populateModel(Model model) {
@@ -532,10 +537,7 @@ public class StudentController {
 	@PostMapping("/profile/edit")
 	public String updateProfile(String studentName,
 			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
-		Student student = (Student) user;
-		student.setName(studentName);
-		
-		student = studentRepository.save(student);
+		userDetailsManager.updateStudent(user.getId(), studentName, false);
 		
 		return "redirect:" + MvcUriComponentsBuilder.fromMethodName(StudentController.class, "profile", null, null)
 			.toUriString();
