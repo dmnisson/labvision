@@ -1,5 +1,6 @@
 package io.github.dmnisson.labvision.entities;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -7,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.OneToOne;
 import javax.validation.constraints.Pattern;
 
 @Entity
@@ -22,6 +24,9 @@ public abstract class LabVisionUser implements LabVisionEntity {
 	 */
 	@Column( name = "username", columnDefinition = "VARCHAR_IGNORECASE(128) NOT NULL UNIQUE" )
 	protected String username;
+	
+	@OneToOne( targetEntity = AdminInfo.class, cascade = CascadeType.ALL )
+	protected AdminInfo adminInfo;
 	
 	@Column
 	@Pattern(regexp = "^[a-f0-9]{96}$")
@@ -77,6 +82,15 @@ public abstract class LabVisionUser implements LabVisionEntity {
 		if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	public AdminInfo getAdminInfo() {
+		return adminInfo;
+	}
+
+	public void setAdminInfo(AdminInfo adminInfo) {
+		this.adminInfo = adminInfo;
+		adminInfo.setUser(this);
 	}
 
 	public String getPasswordResetToken() {
