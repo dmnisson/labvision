@@ -338,7 +338,7 @@ public class StudentController {
 				.toUriString();
 		model.addAttribute("actionUrl", actionUrl);
 		
-		return "student/editreport";
+		return "editors/editreport";
 	}
 	
 	@PostMapping("student/report/new/{experimentId}")
@@ -426,7 +426,7 @@ public class StudentController {
 		
 		model.addAttribute("uploadfile", uploadfile);
 		
-		return "student/editreport";
+		return "editors/editreport";
 	}
 	
 	@PostMapping("/report/edit/{reportId}")

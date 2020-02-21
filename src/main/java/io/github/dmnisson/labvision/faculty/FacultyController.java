@@ -236,7 +236,7 @@ public class FacultyController {
 				.collect(Collectors.toList())
 		);
 		
-		return "faculty/editexperiment";
+		return "editors/editexperiment";
 	}
 	
 	@PostMapping("/experiment/edit/{experimentId}")
