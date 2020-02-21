@@ -46,6 +46,7 @@ public class DevInitializingBean implements InitializingBean {
 	public void afterPropertiesSet() throws Exception {
 		// seed users
 		String[][] seedUsers = {
+				{ "admin1", "Password123", "ADMIN", "Administrator", "One", "admin1@example.com", null },
 				{ "student1", "Password123", "STUDENT", "Student One" },
 				{ "instructor1", "Password1234", "FACULTY", "Instructor One" }
 		};
@@ -71,6 +72,9 @@ public class DevInitializingBean implements InitializingBean {
 				break;
 			case "FACULTY":
 				userDetailsManager.createInstructor(user, seed[3]);
+				break;
+			case "ADMIN":
+				userDetailsManager.createAdminOnlyUser(user, seed[3], seed[4], seed[5], seed[6]);
 			}
 		}
 		
