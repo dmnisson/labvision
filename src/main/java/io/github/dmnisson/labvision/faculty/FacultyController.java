@@ -24,6 +24,7 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 
 import io.github.dmnisson.labvision.AccessDeniedException;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
+import io.github.dmnisson.labvision.admin.AdminController;
 import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
 import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
 import io.github.dmnisson.labvision.dto.faculty.ExperimentForFacultyExperimentTable;
@@ -77,8 +78,8 @@ public class FacultyController {
 	private LabVisionUserDetailsManager userDetailsManager;
 
 	@ModelAttribute
-	public void populateModel(Model model) {
-		NavbarModel navbarModel = buildFacultyNavbar();
+	public void populateModel(Model model, @AuthenticationPrincipal LabVisionUserDetails userDetails) {
+		NavbarModel navbarModel = buildFacultyNavbar(userDetails);
 		model.addAttribute("navbarModel", navbarModel);
 	}
 	
@@ -305,7 +306,7 @@ public class FacultyController {
 				.toUriString();
 	}
 	
-	private NavbarModel buildFacultyNavbar() {
+	private NavbarModel buildFacultyNavbar(LabVisionUserDetails userDetails) {
 		NavbarModel navbarModel = new NavbarModel();
 		
 		navbarModel.addNavLink("Dashboard", FacultyController.class, "dashboard", new Object(), new Object());
@@ -317,6 +318,10 @@ public class FacultyController {
 				navbarModel.createNavLink("Profile", FacultyController.class, "profile", new Object(), new Object())
 			}
 		));
+		
+		if (userDetailsManager.isAdmin(userDetails)) {
+			navbarModel.addNavLink("Admin", AdminController.class, "dashboard", null, null);
+		}
 		
 		navbarModel.setLogoutLink("/logout");
 		
