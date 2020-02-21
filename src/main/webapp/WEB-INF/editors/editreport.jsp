@@ -21,6 +21,7 @@
     </div>
   </div>
   
+  <c:if test="${not empty acceptedResults}">
   <div class="row">
     <div class="col">
       <h2>Accepted Results</h2>
@@ -42,6 +43,7 @@
       </table>
     </div>
   </div>
+  </c:if>
   
   <div class="row">
     <div class="col">
