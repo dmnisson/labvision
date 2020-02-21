@@ -85,7 +85,7 @@ $(function() {
           <p>Please correct the following problem${fn:length(errors) eq 1 ? '' : 's'}:</p>
           <ul>
             <c:forEach var="error" items="${errors}">
-            <li>${error}</li>
+            <li><c:out value="${error}" /></li>
             </c:forEach>
           </ul>
         </div>
