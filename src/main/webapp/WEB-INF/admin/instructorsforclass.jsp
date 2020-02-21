@@ -23,10 +23,10 @@
   </div>
   <div class="row">
     <div class="col">
-      <c:if test="${empty instructors}">
+      <c:if test="${empty instructors.content}">
         No instructors assigned yet.
       </c:if>
-      <c:if test="${not empty instructors}">
+      <c:if test="${not empty instructors.content}">
       <div class="table-responsive">
         <table class="table">
           <thead>

@@ -23,10 +23,10 @@
   </div>
   <div class="row">
     <div class="col">
-      <c:if test="${empty students}">
+      <c:if test="${empty students.content}">
         No students enrolled yet.
       </c:if>
-      <c:if test="${not empty students}">
+      <c:if test="${not empty students.content}">
       <div class="table-responsive">
         <table class="table">
           <thead>
@@ -68,7 +68,7 @@
         <label class="sr-only" for="studentUsername">Username</label>
         <input type="text" class="form-control mb-2 mr-sm-2" id="studentUsername" name="studentUsername" placeholder="Student username" />
         
-        <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Enroll</button>
+        <button type="submit" class="btn btn-primary mb-2"><i class="fas fa-plus"></i> Enroll</button>
       </form>
     </div>
   </div>

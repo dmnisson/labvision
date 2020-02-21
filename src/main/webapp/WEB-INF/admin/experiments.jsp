@@ -21,10 +21,10 @@
   </div>
   <div class="row">
     <div class="col">
-      <c:if test="${empty experiments}">
+      <c:if test="${empty experiments.content}">
         No experiments added yet.
       </c:if>
-      <c:if test="${not empty experiments}">
+      <c:if test="${not empty experiments.content}">
       <div class="table-responsive">
 	      <table class="table">
 	        <thead>
