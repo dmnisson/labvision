@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import io.github.dmnisson.labvision.dto.course.CourseForAdminTable;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentForAdmin;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentForAdminDetail;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
