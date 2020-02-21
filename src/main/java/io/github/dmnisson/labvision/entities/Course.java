@@ -77,6 +77,11 @@ public class Course implements LabVisionEntity {
 		return courseClass;
 	}
 	
+	public void removeCourseClass(CourseClass courseClass) {
+		this.courseClasses.remove(courseClass);
+		courseClass.setCourse(null);
+	}
+	
 	public List<Experiment> getExperiments() {
 		return experiments;
 	}
@@ -103,5 +108,14 @@ public class Course implements LabVisionEntity {
 		experiment.setReportDueDate(reportDueDate);
 		addExperiment(experiment);
 		return experiment;
+	}
+
+	/**
+	 * Remove an experiment from this course
+	 * @param experiment the experiment to remove
+	 */
+	public void removeExperiment(Experiment experiment) {
+		experiments.remove(experiment);
+		experiment.setCourse(null);
 	}
 }
