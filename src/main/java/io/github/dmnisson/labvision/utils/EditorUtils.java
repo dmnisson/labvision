@@ -11,6 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.util.StringUtils;
+
 import io.github.dmnisson.labvision.DatabaseAction;
 import io.github.dmnisson.labvision.entities.Measurement;
 import io.github.dmnisson.labvision.entities.Parameter;
@@ -26,10 +28,12 @@ public class EditorUtils {
 	public static ExperimentEditorData getExperimentEditorDataFromRequestParams(Map<String, String> requestParams) {
 		final String experimentName = requestParams.get("experimentName");
 		final String description = requestParams.get("description");
-		final LocalDateTime submissionDeadline = LocalDateTime.parse(
-				requestParams.get("submissionDeadline"),
-				DateTimeFormatter.ofPattern("MM/dd/yyyy h:mm a")
-			);
+		final LocalDateTime submissionDeadline = StringUtils.hasLength(requestParams.get("submissionDeadline")) ?
+				LocalDateTime.parse(
+					requestParams.get("submissionDeadline"),
+					DateTimeFormatter.ofPattern("MM/dd/yyyy h:mm a")
+				)
+				: null;
 		
 		// database actions for each measurement and parameter
 		// mapping is from client-side key to database action so as to allow new ones to be added
