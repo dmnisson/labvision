@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import io.github.dmnisson.labvision.dto.course.CourseForAdminTable;
 import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseTable;
 import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseView;
 import io.github.dmnisson.labvision.dto.course.CourseInfo;
@@ -78,6 +79,39 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 			+ "JOIN cc.instructors i "
 			+ "WHERE c.id=:courseid AND i.id=:instructorid")
 	public Optional<Course> findByIdForInstructor(@Param("courseid") Integer courseId, @Param("instructorid") Integer instructorId);
-	
-	
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.course.CourseForAdminTable("
+			+ "	c.id,"
+			+ "	c.name,"
+			+ "	COUNT(DISTINCT cc.id),"
+			+ "	COUNT(DISTINCT e.id)"
+			+ ") FROM Course c "
+			+ "LEFT JOIN c.courseClasses cc "
+			+ "LEFT JOIN c.experiments e "
+			+ "WHERE c.id=:courseid "
+			+ "GROUP BY c.id, c.name")
+	public Optional<CourseForAdminTable> findForAdminTable(@Param("courseid") Integer courseId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.course.CourseInfo("
+			+ "	c.id,"
+			+ "	c.name"
+			+ ") FROM Course c "
+			+ "WHERE c.id=:courseid")
+	public Optional<CourseInfo> findCourseInfo(@Param("courseid") Integer courseId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.course.CourseInfo("
+			+ "	c.id,"
+			+ "	c.name"
+			+ ") FROM Course c "
+			+ "JOIN c.courseClasses cc "
+			+ "WHERE cc.id=:courseclassid")
+	public Optional<CourseInfo> findCourseInfoByCourseClassId(@Param("courseclassid") Integer courseClassId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.course.CourseInfo("
+			+ "	c.id,"
+			+ "	c.name"
+			+ ") FROM Course c "
+			+ "JOIN c.experiments e "
+			+ "WHERE e.id=:experimentid")
+	public Optional<CourseInfo> findCourseInfoByExperimentId(@Param("experimentid") Integer experimentId);
 }

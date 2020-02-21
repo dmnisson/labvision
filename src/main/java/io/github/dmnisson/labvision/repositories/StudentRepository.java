@@ -2,10 +2,13 @@ package io.github.dmnisson.labvision.repositories;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import io.github.dmnisson.labvision.dto.admin.LabVisionUserInfo;
 import io.github.dmnisson.labvision.entities.Student;
 
 public interface StudentRepository extends BaseLabVisionUserRepository<Student> {
@@ -20,5 +23,14 @@ public interface StudentRepository extends BaseLabVisionUserRepository<Student> 
 			+ "WHERE i.id=:instructorid "
 			+ "GROUP BY i")
 	public Long countStudentsForInstructor(@Param("instructorid") Integer instructorId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.admin.LabVisionUserInfo("
+			+ "	s.id,"
+			+ "	s.username,"
+			+ "	s.name"
+			+ ") FROM Student s "
+			+ "JOIN s.courseClasses cc "
+			+ "WHERE cc.id=:courseclassid")
+	public Page<LabVisionUserInfo> findForAdminByCourseClassId(@Param("courseclassid") Integer courseClassId, Pageable pageable);
 	
 }

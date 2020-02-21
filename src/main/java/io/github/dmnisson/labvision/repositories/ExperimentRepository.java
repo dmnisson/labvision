@@ -3,10 +3,15 @@ package io.github.dmnisson.labvision.repositories;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import io.github.dmnisson.labvision.dto.course.CourseForAdminTable;
+import io.github.dmnisson.labvision.dto.experiment.ExperimentForAdmin;
+import io.github.dmnisson.labvision.dto.experiment.ExperimentForAdminDetail;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
 import io.github.dmnisson.labvision.dto.faculty.ExperimentForFacultyExperimentTable;
 import io.github.dmnisson.labvision.dto.result.ResultInfo;
@@ -270,5 +275,40 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			+ "JOIN e.instructors i "
 			+ "WHERE e.id=:experimentid AND i.id=:instructorid")
 	public Optional<Experiment> findByIdForInstructor(@Param("experimentid") Integer experimentId, @Param("instructorid") int instructorId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.experiment.ExperimentForAdmin("
+			+ "	e.id,"
+			+ "	e.name,"
+			+ "	COUNT(DISTINCT i.id),"
+			+ "	COUNT(DISTINCT s.id),"
+			+ "	COUNT(DISTINCT m.id),"
+			+ "	COUNT(DISTINCT rr.id)"
+			+ ") FROM Course c "
+			+ "JOIN c.experiments e "
+			+ "LEFT JOIN e.instructors i "
+			+ "LEFT JOIN e.activeStudents s "
+			+ "LEFT JOIN e.measurements m "
+			+ "LEFT JOIN e.reportedResults rr "
+			+ "WHERE c.id=:courseid "
+			+ "GROUP BY e.id, e.name")
+	public Page<ExperimentForAdmin> findForAdminByCourseId(@Param("courseid") Integer courseId, Pageable pageable);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.experiment.ExperimentForAdminDetail("
+			+ "	e.id,"
+			+ "	e.name,"
+			+ "	COUNT(DISTINCT i.id),"
+			+ "	COUNT(DISTINCT s.id),"
+			+ "	COUNT(DISTINCT m.id),"
+			+ "	COUNT(DISTINCT rr.id),"
+			+ "	e.description"
+			+ ") FROM Experiment e "
+			+ "LEFT JOIN e.instructors i "
+			+ "LEFT JOIN e.activeStudents s "
+			+ "LEFT JOIN e.measurements m "
+			+ "LEFT JOIN e.reportedResults rr "
+			+ "WHERE e.id=:experimentid "
+			+ "GROUP BY e.id, e.name")
+	public Optional<ExperimentForAdminDetail> findForAdminById(@Param("experimentid") Integer experimentId);
+	
 		
 }
