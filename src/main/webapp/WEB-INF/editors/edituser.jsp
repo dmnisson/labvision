@@ -135,7 +135,7 @@ $(function() {
 	    </div>
 	    <div class="col">
 	      <div class="form-check">
-		      <input type="checkbox" class="form-check-input" id="admin" name="admin" value="true" ${(admin) ? 'checked' : ''} />
+		      <input type="checkbox" class="form-check-input" id="admin" name="admin" value="true" ${(admin) ? 'checked' : ''} ${(user.role eq ADMIN) ? 'disabled' : ''} />
 		      <label class="form-check-label" for="admin">Grant admin privileges</label>
 	      </div>
 	    </div>
