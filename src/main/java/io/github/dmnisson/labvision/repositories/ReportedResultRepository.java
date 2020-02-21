@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import io.github.dmnisson.labvision.dto.faculty.ReportForFacultyExperimentView;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportForFacultyReportView;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportForReportView;
+import io.github.dmnisson.labvision.dto.reportedresult.ReportedResultInfo;
 import io.github.dmnisson.labvision.dto.result.ResultInfo;
 import io.github.dmnisson.labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
 import io.github.dmnisson.labvision.dto.student.reports.ReportForStudentReportsTable;
@@ -112,4 +113,13 @@ public interface ReportedResultRepository extends JpaRepository<ReportedResult, 
 			+ "JOIN cc.instructors i "
 			+ "WHERE i.id=:instructorid AND rr.score IS NULL")
 	Long countUnscoredReportsForInstructor(@Param("instructorid") Integer instructorId);
+
+	@Query( "SELECT new io.github.dmnisson.labvision.dto.reportedresult.ReportedResultInfo("
+			+ "	rr.id,"
+			+ "	rr.name,"
+			+ "	rr.added"
+			+ ") FROM Experiment e "
+			+ "JOIN e.reportedResults rr "
+			+ "WHERE e.id=:experimentid")
+	List<ReportedResultInfo> findForExperimentView(@Param("experimentid") Integer experimentId);
 }
