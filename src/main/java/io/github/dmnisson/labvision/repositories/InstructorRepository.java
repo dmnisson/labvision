@@ -24,4 +24,23 @@ public interface InstructorRepository extends BaseLabVisionUserRepository<Instru
 			+ "JOIN i.courseClasses cc "
 			+ "WHERE cc.id=:courseclassid")
 	Page<LabVisionUserInfo> findForAdminByCourseClassId(@Param("courseclassid") Integer courseClassId, Pageable pageable);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.admin.LabVisionUserInfo("
+			+ "	i.id,"
+			+ "	i.username,"
+			+ "	i.name"
+			+ ") FROM Instructor i "
+			+ "JOIN i.experiments e "
+			+ "WHERE e.id=:experimentid")
+	Page<LabVisionUserInfo> findForAdminByExperimentId(@Param("experimentid") Integer experimentId, Pageable pageable);
+
+	boolean existsByUsernameAndCourseClassesId(String username, Integer courseClassId);
+
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.admin.LabVisionUserInfo("
+			+ "	i.id,"
+			+ "	i.username,"
+			+ "	i.name"
+			+ ") FROM Instructor i "
+			+ "WHERE i.id=:instructorid")
+	Optional<LabVisionUserInfo> findInfoById(@Param("instructorid") Integer instructorId);
 }

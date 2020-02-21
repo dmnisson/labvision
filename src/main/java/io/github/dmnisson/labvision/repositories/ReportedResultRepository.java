@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import io.github.dmnisson.labvision.dto.faculty.ReportForFacultyExperimentView;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportForFacultyReportView;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportForReportView;
+import io.github.dmnisson.labvision.dto.reportedresult.ReportedResultForAdminTable;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportedResultInfo;
 import io.github.dmnisson.labvision.dto.result.ResultInfo;
 import io.github.dmnisson.labvision.dto.student.experiment.ReportedResultForStudentExperimentView;
@@ -122,4 +125,17 @@ public interface ReportedResultRepository extends JpaRepository<ReportedResult, 
 			+ "JOIN e.reportedResults rr "
 			+ "WHERE e.id=:experimentid")
 	List<ReportedResultInfo> findForExperimentView(@Param("experimentid") Integer experimentId);
+
+	@Query( "SELECT new io.github.dmnisson.labvision.dto.reportedresult.ReportedResultForAdminTable("
+			+ "	rr.id,"
+			+ "	rr.name,"
+			+ "	rr.added,"
+			+ "	s.id,"
+			+ "	s.username,"
+			+ "	rr.score"
+			+ ") FROM Experiment e "
+			+ "JOIN e.reportedResults rr "
+			+ "JOIN rr.student s "
+			+ "WHERE e.id=:experimentid")
+	Page<ReportedResultForAdminTable> findForAdminByExperimentId(@Param("experimentid") Integer experimentId, Pageable pageable);
 }
