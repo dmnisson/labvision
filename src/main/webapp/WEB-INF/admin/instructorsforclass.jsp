@@ -11,7 +11,7 @@
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="${s:mvcUrl('AC#courses').build()}">Courses</a></li>
       <li class="breadcrumb-item"><a href="${s:mvcUrl('AC#getCourse').arg(0, course.id).build()}"><c:out value="${course.name}" /></a></li>
-      <li class="breadcrumb-item"><a href="${s:mvcUrl('AC#classes').arg(0, course.id).build()}"></a><c:out value="${course.name}" /> Classes</a></li>
+      <li class="breadcrumb-item"><a href="${s:mvcUrl('AC#classes').arg(0, course.id).build()}"><c:out value="${course.name}" /> Classes</a></li>
       <li class="breadcrumb-item"><a href="${s:mvcUrl('AC#getCourseClass').arg(0, courseClass.id).build()}"><c:out value="${courseClass.name}" /></a></li>
       <li class="breadcrumb-item active" aria-current="page">Instructors of <c:out value="${courseClass.name}" /></li>
     </ol>
