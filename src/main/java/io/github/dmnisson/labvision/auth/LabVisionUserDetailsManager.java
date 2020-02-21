@@ -1,18 +1,35 @@
 package io.github.dmnisson.labvision.auth;
 
+import java.security.SecureRandom;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.sql.DataSource;
+import javax.validation.ConstraintViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.transaction.TransactionSystemException;
 
-import io.github.dmnisson.labvision.ResourceNotFoundException;;
+import io.github.dmnisson.labvision.ResourceNotFoundException;
+import io.github.dmnisson.labvision.entities.AdminInfo;
+import io.github.dmnisson.labvision.entities.AdminOnly;
 import io.github.dmnisson.labvision.entities.Instructor;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
 import io.github.dmnisson.labvision.entities.Student;
+import io.github.dmnisson.labvision.repositories.AdminOnlyRepository;
 import io.github.dmnisson.labvision.repositories.InstructorRepository;
 import io.github.dmnisson.labvision.repositories.LabVisionUserRepository;
 import io.github.dmnisson.labvision.repositories.StudentRepository;
@@ -48,6 +65,9 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 	private InstructorRepository instructorRepository;
 	
 	@Autowired
+	private AdminOnlyRepository adminOnlyRepository;
+	
+	@Autowired
 	private SecureRandom secureRandom;
 
 	public void createStudent(UserDetails userDetails, String name) {
@@ -73,6 +93,44 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 				throw e;
 			}
 		}
+	}
+	
+	public void createAdminOnlyUser(UserDetails userDetails, String firstName, String lastName, String email, String phone) {
+		createUser(userDetails);
+		
+		AdminOnly adminOnly = new AdminOnly();
+		adminOnly.setUsername(userDetails.getUsername());
+		
+		AdminInfo adminInfo = new AdminInfo();
+		adminInfo.setFirstName(firstName);
+		adminInfo.setLastName(lastName);
+		adminInfo.setEmail(email);
+		adminInfo.setPhone(phone);
+		
+		adminOnly.setAdminInfo(adminInfo);
+		
+		try {
+			adminOnlyRepository.save(adminOnly);
+		} catch (TransactionSystemException e) {
+			if (e.contains(ConstraintViolationException.class)) {
+				throw (ConstraintViolationException) e.getRootCause();
+			} else {
+				throw e;
+			}
+		}
+	}
+	
+	private LabVisionUserDetails makeLabVisionUserDetails(String username, UserDetails userDetails,
+			LabVisionUser labVisionUser) {
+		LabVisionUserDetails details = new LabVisionUserDetails(
+				username,
+				userDetails.getPassword(),
+				userDetails.isEnabled(),
+				userDetails.isAccountNonExpired(),
+				userDetails.isCredentialsNonExpired(),
+				userDetails.isAccountNonLocked(),
+				userDetails.getAuthorities(), labVisionUser);
+		return details;
 	}
 	
 	@Override
@@ -205,6 +263,34 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 				);
 		
 		SecurityContextHolder.getContext().setAuthentication(authentication);
+	}
+
+	public void updateAdminInfo(Integer id, String firstName, String lastName, String adminEmail, String adminPhone, boolean adminInitiated) {
+		LabVisionUserDetails labVisionUserDetails = loadUserById(id);
+		LabVisionUser labVisionUser = labVisionUserDetails.getLabVisionUser();
+		
+		AdminInfo adminInfo = labVisionUser.getAdminInfo();
+		if (Objects.isNull(adminInfo)) {
+			adminInfo = new AdminInfo();
+		}
+		adminInfo.setFirstName(firstName);
+		adminInfo.setLastName(lastName);
+		adminInfo.setEmail(adminEmail);
+		adminInfo.setPhone(adminPhone);
+		
+		labVisionUser.setAdminInfo(adminInfo);
+		
+		try {
+			labVisionUser = labVisionUserRepository.save(labVisionUser);
+			
+			if (!adminInitiated) updateAuthentication(labVisionUserDetails, labVisionUser);
+		} catch (TransactionSystemException e) {
+			if (e.contains(ConstraintViolationException.class)) {
+				throw (ConstraintViolationException) e.getRootCause();
+			} else {
+				throw e;
+			}
+		}
 	}
 	
 	public void updateStudent(Integer id, String name, boolean adminInitiated) {
