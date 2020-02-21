@@ -63,6 +63,16 @@
   </div>
   <div class="row">
     <div class="col">
+      <c:if test="${error eq 'noinstructorfound'}">
+      <div class="alert alert-info">
+        No instructor found with that username.
+      </div>
+      </c:if>
+      <c:if test="${error eq 'instructoralreadyassigned'}">
+      <div class="alert alert-info">
+        That instructor is already assigned.
+      </div>
+      </c:if>
       <form class="form-inline" method="POST" action="${assignInstructorActionUrl}">
         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
         <label class="sr-only" for="instructorUsername">Username</label>

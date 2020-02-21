@@ -522,7 +522,7 @@ public class AdminController {
 	}
 	
 	@GetMapping("/class/{courseClassId}/instructors")
-	public String instructorsForCourseClass(@PathVariable Integer courseClassId, Model model, Pageable pageable) {
+	public String instructorsForCourseClass(@PathVariable Integer courseClassId, String error, Model model, Pageable pageable) {
 		
 		CourseInfo course = courseRepository.findCourseInfoByCourseClassId(courseClassId)
 				.orElseThrow(() -> new ResourceNotFoundException(CourseClass.class, courseClassId));
@@ -535,7 +535,7 @@ public class AdminController {
 		Page<LabVisionUserInfo> instructors = instructorRepository.findForAdminByCourseClassId(courseClassId, pageable);
 		model.addAttribute("instructors", instructors);
 		
-		addPageModelAttributes(model, instructors, "instructorsForCourseClass", courseClassId);
+		addPageModelAttributes(model, instructors, "instructorsForCourseClass", courseClassId, null);
 		
 		model.addAttribute("assignInstructorActionUrl", MvcUriComponentsBuilder
 				.fromMethodName(AdminController.class, "assignInstructor", courseClassId, null)
@@ -544,22 +544,66 @@ public class AdminController {
 				.toUriString()
 				);
 		
+		model.addAttribute("error", error);
+		
 		return "admin/instructorsforclass";
 	}
 	
 	@PostMapping("/class/{courseClassId}/assign")
 	public String assignInstructor(@PathVariable Integer courseClassId, String instructorUsername) {
-		// TODO
+		String error = null;
+		
+		CourseClass courseClass = courseClassRepository.findById(courseClassId)
+				.orElseThrow(() -> new ResourceNotFoundException(CourseClass.class, courseClassId));
+		
+		Optional<Instructor> instructor = instructorRepository.findByUsername(instructorUsername);
+		
+		if (!instructor.isPresent()) {
+			error = "noinstructorfound";
+		} else if (instructorRepository.existsByUsernameAndCourseClassesId(instructorUsername, courseClassId)) {
+			error = "instructoralreadyassigned";
+		} else {
+			courseClass.addInstructor(instructor.get());
+			courseClass = courseClassRepository.save(courseClass);
+			instructorRepository.save(instructor.get());
+		}
+		
 		return "redirect:" + MvcUriComponentsBuilder
-				.fromMethodName(AdminController.class, "instructorsForClass", courseClassId, null, null)
+				.fromMethodName(AdminController.class, "instructorsForCourseClass", courseClass.getId(), error, null, null)
 				.build()
 				.toUriString();
 	}
 	
 	@GetMapping("/class/{courseClassId}/unassign/{instructorId}")
 	public String unassignInstructor(@PathVariable Integer courseClassId, @PathVariable Integer instructorId, Model model) {
-		// TODO
+		CourseClassForAdminTable courseClass = courseClassRepository.findForAdminById(courseClassId)
+				.orElseThrow(() -> new ResourceNotFoundException(CourseClass.class, courseClassId));
+		model.addAttribute("courseClass", courseClass);
+		
+		LabVisionUserInfo instructor = instructorRepository.findInfoById(instructorId)
+				.orElseThrow(() -> new ResourceNotFoundException(Instructor.class, instructorId));
+		model.addAttribute("instructor", instructor);
+		
 		return "admin/unassigninstructor";
+	}
+	
+	@PostMapping("/class/{courseClassId}/unassign/{instructorId}")
+	public String confirmUnassignInstructor(@PathVariable Integer courseClassId, @PathVariable Integer instructorId) {
+		CourseClass courseClass = courseClassRepository.findById(courseClassId)
+				.orElseThrow(() -> new ResourceNotFoundException(CourseClass.class, courseClassId));
+		
+		Instructor instructor = instructorRepository.findById(instructorId)
+				.orElseThrow(() -> new ResourceNotFoundException(Instructor.class, instructorId));
+		
+		courseClass.removeInstructor(instructor);
+		
+		courseClass = courseClassRepository.save(courseClass);
+		instructorRepository.save(instructor);
+		
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "instructorsForCourseClass", courseClass.getId(), null, null, null)
+				.build()
+				.toUriString();
 	}
 	
 	@GetMapping("/course/{courseId}/experiments")
