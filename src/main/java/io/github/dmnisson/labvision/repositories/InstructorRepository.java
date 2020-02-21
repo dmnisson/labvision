@@ -43,4 +43,6 @@ public interface InstructorRepository extends BaseLabVisionUserRepository<Instru
 			+ ") FROM Instructor i "
 			+ "WHERE i.id=:instructorid")
 	Optional<LabVisionUserInfo> findInfoById(@Param("instructorid") Integer instructorId);
+
+	boolean existsByUsernameAndExperimentsId(String username, Integer experimentId);
 }

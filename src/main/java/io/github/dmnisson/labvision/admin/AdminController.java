@@ -50,6 +50,7 @@ import io.github.dmnisson.labvision.dto.experiment.ExperimentForAdmin;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentForAdminDetail;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementInfo;
+import io.github.dmnisson.labvision.dto.reportedresult.ReportedResultForAdminTable;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportedResultInfo;
 import io.github.dmnisson.labvision.entities.AdminInfo;
 import io.github.dmnisson.labvision.entities.Course;
@@ -737,21 +738,169 @@ public class AdminController {
 	}
 	
 	@GetMapping("/experiment/{experimentId}/instructors")
-	public String instructorsForExperiment(@PathVariable Integer experimentId, Model model) {
-		// TODO
+	public String instructorsForExperiment(@PathVariable Integer experimentId, String error, Model model, Pageable pageable) {
+		CourseInfo course = courseRepository.findCourseInfoByExperimentId(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		model.addAttribute("course", course);
+		
+		ExperimentForAdminDetail experiment = experimentRepository.findForAdminById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		model.addAttribute("experiment", experiment);
+		
+		Page<LabVisionUserInfo> instructors = instructorRepository.findForAdminByExperimentId(experimentId, pageable);
+		model.addAttribute("instructors", instructors);
+		
+		addPageModelAttributes(model, instructors, "instructorsForExperiment", experimentId, null);
+		
+		model.addAttribute("error", error);
+		
+		model.addAttribute("assignInstructorActionUrl", MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "assignInstructorToExperiment", experimentId, null)
+				.replaceQuery(null)
+				.build()
+				.toUriString()
+				);
+		
 		return "admin/instructorsforexperiment";
 	}
 	
+	@PostMapping("/experiment/{experimentId}/assign")
+	public String assignInstructorToExperiment(@PathVariable Integer experimentId, String instructorUsername) {
+		String error = null;
+		
+		Experiment experiment = experimentRepository.findById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		
+		Optional<Instructor> instructor = instructorRepository.findByUsername(instructorUsername);
+		
+		if (!instructor.isPresent()) {
+			error = "noinstructorfound";
+		} else if (instructorRepository.existsByUsernameAndExperimentsId(instructorUsername, experimentId)) {
+			error = "instructoralreadyassigned";
+		} else {
+			experiment.addInstructor(instructor.get());
+			experiment = experimentRepository.save(experiment);
+			instructorRepository.save(instructor.get());
+		}
+		
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "instructorsForExperiment", experiment.getId(), error, null, null)
+				.build()
+				.toUriString();
+	}
+	
+	@GetMapping("/experiment/{experimentId}/unassign/{instructorId}")
+	public String unassignInstructorFromExperiment(@PathVariable Integer experimentId, @PathVariable Integer instructorId, Model model) {
+		ExperimentForAdminDetail experiment = experimentRepository.findForAdminById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		model.addAttribute("experiment", experiment);
+		
+		LabVisionUserInfo instructor = instructorRepository.findInfoById(instructorId)
+				.orElseThrow(() -> new ResourceNotFoundException(Instructor.class, instructorId));
+		model.addAttribute("instructor", instructor);
+		
+		return "admin/unassigninstructorfromexperiment";
+	}
+	
+	@PostMapping("/experiment/{experimentId}/unassign/{instructorId}")
+	public String confirmUnassignInstructorFromExperiment(@PathVariable Integer experimentId, @PathVariable Integer instructorId) {
+		Experiment experiment = experimentRepository.findById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		
+		Instructor instructor = instructorRepository.findById(instructorId)
+				.orElseThrow(() -> new ResourceNotFoundException(Instructor.class, instructorId));
+		
+		experiment.removeInstructor(instructor);
+		
+		experiment = experimentRepository.save(experiment);
+		instructorRepository.save(instructor);
+		
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "instructorsForExperiment", experiment.getId(), null, null, null)
+				.build()
+				.toUriString();
+	}
+	
 	@GetMapping("/experiment/{experimentId}/activestudents")
-	public String activeStudentsForExperiment(@PathVariable Integer experimentId, Model model) {
-		// TODO
+	public String activeStudentsForExperiment(@PathVariable Integer experimentId, Model model, Pageable pageable) {
+		CourseInfo course = courseRepository.findCourseInfoByExperimentId(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		model.addAttribute("course", course);
+		
+		ExperimentForAdminDetail experiment = experimentRepository.findForAdminById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		model.addAttribute("experiment", experiment);
+		
+		Page<LabVisionUserInfo> students = studentRepository.findForAdminByActiveExperimentId(experimentId, pageable);
+		model.addAttribute("students", students);
+		
+		addPageModelAttributes(model, students, "activeStudentsForExperiment", experimentId);
+		
+		model.addAttribute("activateStudentActionUrl", MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "activateStudent", experimentId, null)
+				.replaceQuery(null)
+				.build()
+				.toUriString()
+				);
+		
 		return "admin/activestudentsforexperiment";
 	}
 	
-	@GetMapping("/experiment/{experimentId}/reports")
-	public String reportedResultsForExperiment(@PathVariable Integer experimentId, Model model) {
+	@PostMapping("/experiment/{experimentId}/activate")
+	public String activateStudent(@PathVariable Integer experimentId, String studentUsername) {
 		// TODO
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "activeStudentsForExperiment", experimentId, null, null)
+				.build()
+				.toUriString();
+	}
+	
+	@GetMapping("/experiment/{experimentId}/deactivate/{studentId}")
+	public String deactivateStudent(@PathVariable Integer experimentId, @PathVariable Integer studentId, Model model) {
+		// TODO
+		return "admin/deactivatestudent";
+	}
+	
+	@GetMapping("/experiment/{experimentId}/reports")
+	public String reportedResultsForExperiment(@PathVariable Integer experimentId, Model model, Pageable pageable) {
+		ExperimentInfo experiment = experimentRepository.findExperimentInfo(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		model.addAttribute("experiment", experiment);
+		
+		CourseInfo course = courseRepository.findCourseInfoByExperimentId(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		model.addAttribute("course", course);
+		
+		Page<ReportedResultForAdminTable> reports = reportedResultRepository.findForAdminByExperimentId(experimentId, pageable);
+		model.addAttribute("reports", reports);
+		
+		addPageModelAttributes(model, reports, "reportedResultsForExperiment", experimentId);
+		
 		return "admin/reportedresultsforexperiment";
+	}
+	
+	@GetMapping("/report/{id}")
+	public String getReportedResult(@PathVariable Integer id, Model model) {
+		// TODO
+		return "admin/report";
+	}
+	
+	@GetMapping("/report/new/for/experiment/{experimentId}")
+	public String newReportedResult(@PathVariable Integer experimentId, Model model) {
+		// TODO
+		return "editors/editreport";
+	}
+	
+	@GetMapping("/report/edit/{id}")
+	public String editReportedResult(@PathVariable Integer id, Model model) {
+		// TODO
+		return "editors/editreport";
+	}
+	
+	@GetMapping("/report/delete/{id}")
+	public String deleteReportedResult(@PathVariable Integer id, Model model) {
+		// TODO
+		return "admin/deletereport";
 	}
 	
 	@GetMapping("/users")
