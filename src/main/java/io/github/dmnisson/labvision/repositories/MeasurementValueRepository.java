@@ -48,4 +48,19 @@ public interface MeasurementValueRepository extends JpaRepository<MeasurementVal
 	List<MeasurementValueForFacultyExperimentView> findForInstructor(
 			@Param("experimentid") Integer experimentId, @Param("instructorid") Integer instructorId);
 
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.experiment.MeasurementValueForExperimentView(" +
+			"	mv.id," +
+			"	m.id," +
+			"	m.name," +
+			"	mv.value.value," +
+			"	mv.value.uncertainty," +
+			"	mv.taken," +
+			"	m.dimension," +
+			"	m.quantityTypeId) " +
+			"FROM MeasurementValue mv " +
+			"JOIN mv.variable m " +
+			"JOIN m.experiment e " +
+			"WHERE e.id=:experimentid")
+	List<MeasurementValueForExperimentView> findForExperiment(@Param("experimentid") Integer experimentId);
+
 }
