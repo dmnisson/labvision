@@ -10,10 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -83,6 +80,7 @@ import io.github.dmnisson.labvision.repositories.ReportedResultRepository;
 import io.github.dmnisson.labvision.repositories.StudentRepository;
 import io.github.dmnisson.labvision.utils.EditorUtils;
 import io.github.dmnisson.labvision.utils.ExperimentEditorData;
+import io.github.dmnisson.labvision.utils.PaginationUtils;
 import io.github.dmnisson.labvision.utils.ViewModelUtils;
 
 @Controller
@@ -146,80 +144,6 @@ public class AdminController {
 		return "admin/dashboard";
 	}
 	
-	// adds model attributes for pagination
-	private <T> void addPageModelAttributes(Model model, Page<T> page, String methodName, Object... pathArgs) {
-		List<Integer> pages = IntStream.range(1, page.getTotalPages() + 1)
-				.mapToObj(Integer::valueOf)
-				.collect(Collectors.toList());
-		
-		model.addAttribute("pages", pages);
-		model.addAttribute("currentPage", page.getNumber() + 1);
-		if (page.getNumber() > 0) {
-			Object[] args = Stream.concat(
-								Stream.of(pathArgs),
-								Stream.of(
-										new Object(), 
-										new Object()
-								)
-							).toArray();
-			model.addAttribute("prevPageUrl", 
-					MvcUriComponentsBuilder.fromMethodName(
-							AdminController.class,
-							methodName,
-							args
-							)
-					.queryParam("page", page.getNumber() - 1)
-					.queryParam("size", page.getSize())
-					.build()
-					.toUriString()
-					);
-		}
-		if (page.getNumber() < page.getTotalPages() - 1) {
-			Object[] args = Stream.concat(
-					Stream.of(pathArgs),
-					Stream.of(
-							new Object(), 
-							new Object()
-					)
-				).toArray();
-			model.addAttribute("nextPageUrl", 
-					MvcUriComponentsBuilder.fromMethodName(
-							AdminController.class,
-							methodName, 
-							args
-							)
-					.queryParam("page", page.getNumber() + 1)
-					.queryParam("size", page.getSize())
-					.build()
-					.toUriString()
-					);
-		}
-		
-		Map<Integer, String> pageUrls = pages.stream()
-				.collect(Collectors.toMap(
-						Function.identity(), 
-						p -> {
-							Object[] args = Stream.concat(
-									Stream.of(pathArgs),
-									Stream.of(
-											new Object(), 
-											new Object()
-									)
-								).toArray();
-							return MvcUriComponentsBuilder.fromMethodName(
-									AdminController.class,
-									methodName,
-									args
-									)
-							.queryParam("page", p - 1)
-							.queryParam("size", page.getSize())
-							.build()
-							.toUriString();
-						}
-						));
-		model.addAttribute("pageUrls", pageUrls);
-	}
-	
 	@GetMapping("/courses")
 	public String courses(Model model, Pageable pageable) {
 		Page<Course> coursePage = courseRepository.findAll(pageable);
@@ -239,7 +163,7 @@ public class AdminController {
 		
 		model.addAttribute("courses", courses);
 		
-		addPageModelAttributes(model, courses, "courses");
+		PaginationUtils.addPageModelAttributes(model, courses, "courses");
 		
 		return "admin/courses";
 	}
@@ -341,7 +265,7 @@ public class AdminController {
 		Page<CourseClassForAdminTable> classes = courseClassRepository.findForAdminByCourseId(courseId, pageable);
 		model.addAttribute("classes", classes);
 		
-		addPageModelAttributes(model, classes, "classes", courseId);
+		PaginationUtils.addPageModelAttributes(model, classes, "classes", courseId);
 		
 		return "admin/classes";
 	}
@@ -475,7 +399,7 @@ public class AdminController {
 		Page<LabVisionUserInfo> students = studentRepository.findForAdminByCourseClassId(courseClassId, pageable);
 		model.addAttribute("students", students);
 		
-		addPageModelAttributes(model, students, "studentsForCourseClass", courseClassId, null);
+		PaginationUtils.addPageModelAttributes(model, students, "studentsForCourseClass", courseClassId, null);
 		
 		model.addAttribute("enrollStudentActionUrl", MvcUriComponentsBuilder
 				.fromMethodName(AdminController.class, "enrollStudent", courseClassId, null)
@@ -560,7 +484,7 @@ public class AdminController {
 		Page<LabVisionUserInfo> instructors = instructorRepository.findForAdminByCourseClassId(courseClassId, pageable);
 		model.addAttribute("instructors", instructors);
 		
-		addPageModelAttributes(model, instructors, "instructorsForCourseClass", courseClassId, null);
+		PaginationUtils.addPageModelAttributes(model, instructors, "instructorsForCourseClass", courseClassId, null);
 		
 		model.addAttribute("assignInstructorActionUrl", MvcUriComponentsBuilder
 				.fromMethodName(AdminController.class, "assignInstructor", courseClassId, null)
@@ -640,7 +564,7 @@ public class AdminController {
 		Page<ExperimentForAdmin> experiments = experimentRepository.findForAdminByCourseId(courseId, pageable);
 		model.addAttribute("experiments", experiments);
 		
-		addPageModelAttributes(model, experiments, "experiments", courseId);
+		PaginationUtils.addPageModelAttributes(model, experiments, "experiments", courseId);
 		
 		return "admin/experiments";
 	}
@@ -774,7 +698,7 @@ public class AdminController {
 		Page<LabVisionUserInfo> instructors = instructorRepository.findForAdminByExperimentId(experimentId, pageable);
 		model.addAttribute("instructors", instructors);
 		
-		addPageModelAttributes(model, instructors, "instructorsForExperiment", experimentId, null);
+		PaginationUtils.addPageModelAttributes(model, instructors, "instructorsForExperiment", experimentId, null);
 		
 		model.addAttribute("error", error);
 		
@@ -858,7 +782,7 @@ public class AdminController {
 		Page<LabVisionUserInfo> students = studentRepository.findForAdminByActiveExperimentId(experimentId, pageable);
 		model.addAttribute("students", students);
 		
-		addPageModelAttributes(model, students, "activeStudentsForExperiment", experimentId, error);
+		PaginationUtils.addPageModelAttributes(model, students, "activeStudentsForExperiment", experimentId, error);
 		
 		model.addAttribute("activateStudentActionUrl", MvcUriComponentsBuilder
 				.fromMethodName(AdminController.class, "activateStudent", experimentId, null)
@@ -942,7 +866,7 @@ public class AdminController {
 		Page<ReportedResultForAdminTable> reports = reportedResultRepository.findForAdminByExperimentId(experimentId, pageable);
 		model.addAttribute("reports", reports);
 		
-		addPageModelAttributes(model, reports, "reportedResultsForExperiment", experimentId);
+		PaginationUtils.addPageModelAttributes(model, reports, "reportedResultsForExperiment", experimentId);
 		
 		return "admin/reportedresultsforexperiment";
 	}
@@ -1140,7 +1064,7 @@ public class AdminController {
 				);
 		model.addAttribute("users", users.getContent());
 		
-		addPageModelAttributes(model, users, "users");
+		PaginationUtils.addPageModelAttributes(model, users, "users");
 		
 		return "admin/users";
 	}
