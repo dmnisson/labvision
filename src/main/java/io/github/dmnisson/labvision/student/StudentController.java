@@ -448,19 +448,29 @@ public class StudentController {
 	}
 
 	@GetMapping("/errors")
-	public String errors(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+	public String errors(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model, Pageable pageable) {
 		Student student = (Student) user;
 		Integer studentId = student.getId();
 		
-		List<ExperimentInfo> experiments = experimentRepository.findExperimentInfoForStudent(studentId);
+		Page<ExperimentInfo> experiments = experimentRepository.findExperimentInfoForStudent(studentId, pageable);
+		
+		System.out.println(experiments.stream().map(e -> e.getId()).collect(Collectors.toList()));
+		
 		Map<Integer, List<MeasurementForErrorsView>> measurements = experiments.stream()
 				.map(ExperimentInfo::getId)
 				.collect(Collectors.toMap(
 						Function.identity(),
-						eid -> measurementRepository.findMeasurementsForErrorsView(eid)));
+						eid -> {
+							System.out.println(eid);
+							
+							return measurementRepository.findMeasurementsForErrorsView(eid);
+						}));
 		
-		model.addAttribute("experiments", experiments);
+		model.addAttribute("experiments", experiments.getContent());
 		model.addAttribute("measurements", measurements);
+		
+		PaginationUtils.addPageModelAttributes(model, experiments, null, 
+				StudentController.class, "errors", null, null, null);
 		
 		return "student/errors";
 	}
@@ -564,7 +574,7 @@ public class StudentController {
 		navbarModel.addNavLink("Dashboard", StudentController.class, "dashboard", new Object(), new Object());
 		navbarModel.addNavLink("Experiments", StudentController.class, "experiments", new Object(), new Object());
 		navbarModel.addNavLink("Reports",	StudentController.class, "reports", new Object(), new Object());
-		navbarModel.addNavLink("Errors", StudentController.class, "errors", new Object(), new Object());
+		navbarModel.addNavLink("Errors", StudentController.class, "errors", new Object(), new Object(), new Object());
 		navbarModel.addNavLink(navbarModel.new NavLink(
 				"Account", 
 				"#", 
