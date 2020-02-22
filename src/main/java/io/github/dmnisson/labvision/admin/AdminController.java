@@ -21,7 +21,6 @@ import javax.validation.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -160,7 +159,7 @@ public class AdminController {
 								Stream.of(pathArgs),
 								Stream.of(
 										new Object(), 
-										PageRequest.of(page.getNumber() - 1, page.getSize())
+										new Object()
 								)
 							).toArray();
 			model.addAttribute("prevPageUrl", 
@@ -169,6 +168,8 @@ public class AdminController {
 							methodName,
 							args
 							)
+					.queryParam("page", page.getNumber() - 1)
+					.queryParam("size", page.getSize())
 					.build()
 					.toUriString()
 					);
@@ -178,7 +179,7 @@ public class AdminController {
 					Stream.of(pathArgs),
 					Stream.of(
 							new Object(), 
-							PageRequest.of(page.getNumber() + 1, page.getSize())
+							new Object()
 					)
 				).toArray();
 			model.addAttribute("nextPageUrl", 
@@ -187,6 +188,8 @@ public class AdminController {
 							methodName, 
 							args
 							)
+					.queryParam("page", page.getNumber() + 1)
+					.queryParam("size", page.getSize())
 					.build()
 					.toUriString()
 					);
@@ -200,7 +203,7 @@ public class AdminController {
 									Stream.of(pathArgs),
 									Stream.of(
 											new Object(), 
-											PageRequest.of(p, page.getSize())
+											new Object()
 									)
 								).toArray();
 							return MvcUriComponentsBuilder.fromMethodName(
@@ -208,6 +211,8 @@ public class AdminController {
 									methodName,
 									args
 									)
+							.queryParam("page", p - 1)
+							.queryParam("size", page.getSize())
 							.build()
 							.toUriString();
 						}
