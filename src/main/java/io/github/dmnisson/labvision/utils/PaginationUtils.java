@@ -5,86 +5,95 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.springframework.data.domain.Page;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public class PaginationUtils {
 
-	// adds model attributes for pagination
-	public static <T> void addPageModelAttributes(Model model, Page<T> page, Class<?> controllerClass, String methodName, Object... pathArgs) {
+	/**
+	 * Adds model attributes for pagination of tables
+	 * @param <T> the type of object to paginate
+	 * @param model the model to which to add attributes
+	 * @param page the page result from the database query
+	 * @param qualifier the qualifier for the table
+	 * @param controllerClass the controller class
+	 * @param methodName the name of the controller method
+	 * @param args the controller method arguments; may be null if not needed for URL
+	 * generation
+	 */
+	public static <T> void addPageModelAttributes(Model model, Page<T> page, String qualifier, Class<?> controllerClass, String methodName, Object... args) {
 		List<Integer> pages = IntStream.range(1, page.getTotalPages() + 1)
 				.mapToObj(Integer::valueOf)
 				.collect(Collectors.toList());
 		
-		model.addAttribute("pages", pages);
-		model.addAttribute("currentPage", page.getNumber() + 1);
+		String qualifierPrefix = StringUtils.isEmpty(qualifier) ? "" : qualifier + "_";
+		
+		model.addAttribute(qualifierPrefix + "pages", pages);
+		model.addAttribute(qualifierPrefix + "currentPage", page.getNumber() + 1);
 		if (page.getNumber() > 0) {
-			Object[] args = Stream.concat(
-								Stream.of(pathArgs),
-								Stream.of(
-										new Object(), 
-										new Object()
-								)
-							).toArray();
-			model.addAttribute("prevPageUrl", 
-					MvcUriComponentsBuilder.fromMethodName(
-							controllerClass,
+			model.addAttribute(
+					qualifierPrefix + "prevPageUrl", 
+					buildPageUrl(
+							page,
+							page.getNumber() - 1,
+							qualifier,
+							qualifierPrefix,
+							controllerClass, 
 							methodName,
 							args
 							)
-					.queryParam("page", page.getNumber() - 1)
-					.queryParam("size", page.getSize())
-					.build()
-					.toUriString()
 					);
 		}
 		if (page.getNumber() < page.getTotalPages() - 1) {
-			Object[] args = Stream.concat(
-					Stream.of(pathArgs),
-					Stream.of(
-							new Object(), 
-							new Object()
-					)
-				).toArray();
-			model.addAttribute("nextPageUrl", 
-					MvcUriComponentsBuilder.fromMethodName(
-							controllerClass,
-							methodName, 
+			model.addAttribute(
+					qualifierPrefix + "nextPageUrl", 
+					buildPageUrl(
+							page,
+							page.getNumber() + 1,
+							qualifier,
+							qualifierPrefix,
+							controllerClass, 
+							methodName,
 							args
 							)
-					.queryParam("page", page.getNumber() + 1)
-					.queryParam("size", page.getSize())
-					.build()
-					.toUriString()
 					);
 		}
 		
 		Map<Integer, String> pageUrls = pages.stream()
 				.collect(Collectors.toMap(
 						Function.identity(), 
-						p -> {
-							Object[] args = Stream.concat(
-									Stream.of(pathArgs),
-									Stream.of(
-											new Object(), 
-											new Object()
-									)
-								).toArray();
-							return MvcUriComponentsBuilder.fromMethodName(
-									controllerClass,
-									methodName,
-									args
-									)
-							.queryParam("page", p - 1)
-							.queryParam("size", page.getSize())
-							.build()
-							.toUriString();
-						}
+						p -> buildPageUrl(
+								page,
+								p - 1,
+								qualifier,
+								qualifierPrefix,
+								controllerClass, 
+								methodName,
+								args
+								)
 						));
-		model.addAttribute("pageUrls", pageUrls);
+		model.addAttribute(qualifierPrefix + "pageUrls", pageUrls);
+	}
+
+	// Helper function that builds the appropriate URL for the page
+	private static <T> String buildPageUrl(Page<T> page, final int pageNumber, String qualifier,
+			String qualifierPrefix, Class<?> controllerClass, String methodName, Object... args) {
+		final UriComponentsBuilder uriComponentsBuilder = MvcUriComponentsBuilder.fromMethodName(
+				controllerClass,
+				methodName,
+				args
+				)
+		.queryParam(qualifierPrefix + "page", pageNumber)
+		.queryParam(qualifierPrefix + "size", page.getSize());
+		
+		if (StringUtils.hasLength(qualifier)) {
+			uriComponentsBuilder.queryParam("activePane", qualifier);
+		}
+		return uriComponentsBuilder.build().toUriString();
 	}
 
 }

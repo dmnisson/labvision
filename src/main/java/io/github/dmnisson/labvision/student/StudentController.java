@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -237,9 +238,10 @@ public class StudentController {
 			PaginationUtils.addPageModelAttributes(
 					model,
 					measurementValuePage.get(),
+					null,
 					StudentController.class,
 					"getExperiment",
-					experimentId, new Object()
+					experimentId, null, null, null
 					);
 		}
 		
