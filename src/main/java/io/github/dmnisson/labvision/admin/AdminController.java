@@ -822,7 +822,7 @@ public class AdminController {
 	}
 	
 	@GetMapping("/experiment/{experimentId}/activestudents")
-	public String activeStudentsForExperiment(@PathVariable Integer experimentId, Model model, Pageable pageable) {
+	public String activeStudentsForExperiment(@PathVariable Integer experimentId, String error, Model model, Pageable pageable) {
 		CourseInfo course = courseRepository.findCourseInfoByExperimentId(experimentId)
 				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
 		model.addAttribute("course", course);
@@ -834,7 +834,7 @@ public class AdminController {
 		Page<LabVisionUserInfo> students = studentRepository.findForAdminByActiveExperimentId(experimentId, pageable);
 		model.addAttribute("students", students);
 		
-		addPageModelAttributes(model, students, "activeStudentsForExperiment", experimentId);
+		addPageModelAttributes(model, students, "activeStudentsForExperiment", experimentId, error);
 		
 		model.addAttribute("activateStudentActionUrl", MvcUriComponentsBuilder
 				.fromMethodName(AdminController.class, "activateStudent", experimentId, null)
@@ -843,22 +843,66 @@ public class AdminController {
 				.toUriString()
 				);
 		
+		model.addAttribute("error", error);
+		
 		return "admin/activestudentsforexperiment";
 	}
 	
 	@PostMapping("/experiment/{experimentId}/activate")
 	public String activateStudent(@PathVariable Integer experimentId, String studentUsername) {
-		// TODO
+		String error = null;
+		
+		Experiment experiment = experimentRepository.findById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		
+		Optional<Student> student = studentRepository.findByUsername(studentUsername);
+		
+		if (!student.isPresent()) {
+			error = "nostudentfound";
+		} else if (studentRepository.existsByUsernameAndActiveExperimentsId(studentUsername, experimentId)) {
+			error = "studentalreadyactive";
+		} else {
+		    student.get().addActiveExperiment(experiment);
+		    experiment = experimentRepository.save(experiment);
+		    studentRepository.save(student.get());
+		}
+		
 		return "redirect:" + MvcUriComponentsBuilder
-				.fromMethodName(AdminController.class, "activeStudentsForExperiment", experimentId, null, null)
+				.fromMethodName(AdminController.class, "activeStudentsForExperiment", experiment.getId(), error, null, null)
 				.build()
 				.toUriString();
 	}
 	
 	@GetMapping("/experiment/{experimentId}/deactivate/{studentId}")
 	public String deactivateStudent(@PathVariable Integer experimentId, @PathVariable Integer studentId, Model model) {
-		// TODO
+		ExperimentForAdminDetail experiment = experimentRepository.findForAdminById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		model.addAttribute("experiment", experiment);
+		
+		LabVisionUserInfo student = studentRepository.findInfoById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Student.class, studentId));
+		model.addAttribute("student", student);
+		
 		return "admin/deactivatestudent";
+	}
+	
+	@PostMapping("/experiment/{experimentId}/deactivate/{studentId}")
+	public String confirmDeactivateStudent(@PathVariable Integer experimentId, @PathVariable Integer studentId) {
+		Experiment experiment = experimentRepository.findById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Student.class, studentId));
+		
+		student.removeActiveExperiment(experiment);
+		
+		experiment = experimentRepository.save(experiment);
+		studentRepository.save(student);
+		
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "activeStudentsForExperiment", experimentId, null, null, null)
+				.build()
+				.toUriString();
 	}
 	
 	@GetMapping("/experiment/{experimentId}/reports")

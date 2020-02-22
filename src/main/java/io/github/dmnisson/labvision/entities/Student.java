@@ -103,6 +103,7 @@ public class Student extends LabVisionUser {
 
 	public void addActiveExperiment(Experiment activeExperiment) {
 		this.activeExperiments.add(activeExperiment);
+		activeExperiment.getActiveStudents().add(this);
 	}
 	
 	public void removeActiveExperiment(Experiment activeExperiment) {

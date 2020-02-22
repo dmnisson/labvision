@@ -51,5 +51,7 @@ public interface StudentRepository extends BaseLabVisionUserRepository<Student> 
 			+ ") FROM Student s "
 			+ "WHERE s.id=:studentid")
 	public Optional<LabVisionUserInfo> findInfoById(@Param("studentid") Integer studentId);
+
+	public boolean existsByUsernameAndActiveExperimentsId(String username, Integer experimentId);
 	
 }

@@ -63,6 +63,16 @@
   </div>
   <div class="row">
     <div class="col">
+      <c:if test="${error eq 'nostudentfound'}">
+      <div class="alert alert-info">
+        No student found with that username.
+      </div>
+      </c:if>
+      <c:if test="${error eq 'studentalreadyactive'}">
+      <div class="alert alert-info">
+        That student is already active in this experiment.
+      </div>
+      </c:if>
       <form class="form-inline" method="POST" action="${activateStudentActionUrl}">
         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
         <label class="sr-only" for="studentUsername">Username</label>

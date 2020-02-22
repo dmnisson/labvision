@@ -282,4 +282,8 @@ public class Experiment implements LabVisionEntity {
 				.map(s -> s.getId())
 				.collect(Collectors.toList());
 	}
+
+	public Set<Student> getActiveStudents() {
+		return activeStudents;
+	}
 }
