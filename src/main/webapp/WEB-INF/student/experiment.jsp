@@ -47,6 +47,13 @@
 	            id="measurement-values-table"
 	            addnewform="true"
 	          />
+		        <t:pagenav 
+			        pages="${pages}"
+			        currentpage="${currentPage}"
+			        prevpageurl="${prevPageUrl}"
+			        nextpageurl="${nextPageUrl}"
+			        pageurls="${pageUrls}"
+			      />
           </form>
         </div>
         </c:forEach>

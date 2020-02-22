@@ -7,6 +7,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -14,6 +15,8 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -73,6 +76,7 @@ import io.github.dmnisson.labvision.repositories.ParameterRepository;
 import io.github.dmnisson.labvision.repositories.ParameterValueRepository;
 import io.github.dmnisson.labvision.repositories.ReportedResultRepository;
 import io.github.dmnisson.labvision.repositories.StudentRepository;
+import io.github.dmnisson.labvision.utils.PaginationUtils;
 
 @Controller
 @RequestMapping("/student")
@@ -163,7 +167,7 @@ public class StudentController {
 	}
 	
 	@GetMapping("/experiment/{experimentId}")
-	public String getExperiment(@PathVariable Integer experimentId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws AccessDeniedException {
+	public String getExperiment(@PathVariable Integer experimentId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model, Pageable pageable) throws AccessDeniedException {
 		model.addAttribute("student", user);
 		
 		Integer studentId = user.getId();
@@ -180,12 +184,23 @@ public class StudentController {
 		List<MeasurementInfo> measurements = measurementRepository.findForExperimentView(experimentId);
 		model.addAttribute("measurements", measurements);
 		
+		Map<Integer, Page<MeasurementValueForExperimentView>> measurementValuePages =
+				measurements.stream()
+					.map(MeasurementInfo::getId)
+					.collect(Collectors.toMap(
+							Function.identity(),
+							mid -> measurementValueRepository
+									.findForStudentExperimentView(mid, studentId, pageable)
+							));
+		
 		Map<Integer, List<MeasurementValueForExperimentView>> measurementValues =
 				measurements.stream()
 					.map(MeasurementInfo::getId)
 					.collect(Collectors.toMap(
 							Function.identity(),
-							mid -> measurementValueRepository.findForStudentExperimentView(mid, studentId)
+							mid -> measurementValueRepository
+									.findForStudentExperimentView(mid, studentId, pageable)
+									.getContent()
 							));
 		model.addAttribute("measurementValues", measurementValues);
 		
@@ -216,6 +231,17 @@ public class StudentController {
 		List<ReportedResultForStudentExperimentView> reportedResults =
 				reportedResultRepository.findReportsForStudentExperimentView(experimentId, studentId);
 		model.addAttribute("reportedResults", reportedResults);
+		
+		final Optional<Page<MeasurementValueForExperimentView>> measurementValuePage = measurementValuePages.values().stream().findAny();
+		if (measurementValuePage.isPresent()) {
+			PaginationUtils.addPageModelAttributes(
+					model,
+					measurementValuePage.get(),
+					StudentController.class,
+					"getExperiment",
+					experimentId, new Object()
+					);
+		}
 		
 		return "student/experiment";
 	}
@@ -262,7 +288,7 @@ public class StudentController {
 		return "redirect:" + MvcUriComponentsBuilder.fromMethodName(
 				StudentController.class,
 				"getExperiment",
-				measurement.getExperiment().getId(), new Object(), new Object()
+				measurement.getExperiment().getId(), null, null, null
 				).toUriString();
 	}
 	
