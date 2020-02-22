@@ -214,8 +214,9 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			+ "LEFT JOIN c.courseClasses cc "
 			+ "LEFT JOIN e.activeStudents acs "
 			+ "LEFT JOIN cc.students ccs "
-			+ "WHERE acs.id=:studentid OR ccs.id=:studentid")
-	public List<ExperimentInfo> findExperimentInfoForStudent(@Param("studentid") Integer studentId);
+			+ "WHERE acs.id=:studentid OR ccs.id=:studentid "
+			+ "GROUP BY e.id, e.name, c.name")
+	public Page<ExperimentInfo> findExperimentInfoForStudent(@Param("studentid") Integer studentId, Pageable pageable);
 
 	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable(" +
 			"	e.id," +
