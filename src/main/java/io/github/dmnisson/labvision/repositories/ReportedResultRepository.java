@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.dmnisson.labvision.dto.faculty.ReportForFacultyExperimentView;
+import io.github.dmnisson.labvision.dto.reportedresult.ReportForAdminReportView;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportForFacultyReportView;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportForReportView;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportedResultForAdminTable;
@@ -138,4 +139,19 @@ public interface ReportedResultRepository extends JpaRepository<ReportedResult, 
 			+ "JOIN rr.student s "
 			+ "WHERE e.id=:experimentid")
 	Page<ReportedResultForAdminTable> findForAdminByExperimentId(@Param("experimentid") Integer experimentId, Pageable pageable);
+	
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.reportedresult.ReportForAdminReportView("
+			+ "	rr.id,"
+			+ "	rr.experiment.id,"
+			+ "	rr.name,"
+			+ "	rd.fileType,"
+			+ "	rd.documentType,"
+			+ "	rd.filename,"
+			+ "	rd.lastUpdated," 
+			+ "	rr.score,"
+			+ "	rr.student.username"
+			+ ") FROM ReportedResult rr "
+			+ "LEFT JOIN rr.reportDocument rd "
+			+ "WHERE rr.id=:reportid")
+	Optional<ReportForAdminReportView> findForAdminById(@Param("reportid") Integer reportId);
 }

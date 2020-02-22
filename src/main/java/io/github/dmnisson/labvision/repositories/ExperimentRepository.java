@@ -308,6 +308,15 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			+ "WHERE e.id=:experimentid "
 			+ "GROUP BY e.id, e.name")
 	public Optional<ExperimentForAdminDetail> findForAdminById(@Param("experimentid") Integer experimentId);
+
+	@Query("SELECT new io.github.dmnisson.labvision.dto.experiment.ExperimentInfo("
+			+ "	e.id,"
+			+ "	e.name,"
+			+ "	c.name"
+			+ ") FROM Experiment e "
+			+ "JOIN e.course c "
+			+ "WHERE e.id=:experimentid")
+	public Optional<ExperimentInfo> findInfoById(@Param("experimentid") Integer experimentId);
 	
 		
 }
