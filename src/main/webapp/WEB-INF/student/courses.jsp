@@ -45,6 +45,13 @@
           </c:forEach>
         </tbody>
       </table>
+      <t:pagenav 
+			  pages="${pages}"
+			  currentpage="${currentPage}"
+			  prevpageurl="${prevPageUrl}"
+			  nextpageurl="${nextPageUrl}"
+			  pageurls="${pageUrls}"
+			/>
     </div>
   </div>
 </div>

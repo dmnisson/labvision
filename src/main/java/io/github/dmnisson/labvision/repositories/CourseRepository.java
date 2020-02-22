@@ -3,6 +3,8 @@ package io.github.dmnisson.labvision.repositories;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -56,7 +58,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 			+ "WHERE s.id=:studentid "
 			+ "GROUP BY c.id, c.name, cc.name "
 			+ "ORDER BY nrd ASC NULLS LAST")
-	public List<CourseForStudentCourseTable> findForStudentCourseTable(@Param("studentid") Integer studentId);
+	public Page<CourseForStudentCourseTable> findForStudentCourseTable(@Param("studentid") Integer studentId, Pageable pageable);
 
 	@Query(	"SELECT new io.github.dmnisson.labvision.dto.course.CourseForStudentCourseView("
 			+ "	c.id,"
