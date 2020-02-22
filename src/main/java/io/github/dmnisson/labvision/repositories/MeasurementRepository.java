@@ -27,7 +27,7 @@ public interface MeasurementRepository extends JpaRepository<Measurement, Intege
 			+ "	m.quantityTypeId,"
 			+ "	m.mean.value,"
 			+ "	m.sampleStandardDeviation.value,"
-			+ " COUNT(m.id)"
+			+ " COUNT(mv.id)"
 			+ ") "
 			+ "FROM Measurement m "
 			+ "LEFT JOIN m.values mv "
