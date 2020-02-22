@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 
 import io.github.dmnisson.labvision.entities.FileType;
 import io.github.dmnisson.labvision.entities.FilesystemReportDocument;
+import io.github.dmnisson.labvision.entities.ReportDocument;
 import io.github.dmnisson.labvision.entities.Student;
 import io.github.dmnisson.labvision.repositories.ReportedResultRepository;
 
@@ -30,8 +31,14 @@ public class ReportDocumentService {
 	ReportedResultRepository reportedResultRepository;
 	
 	public String buildReportDocumentUrl(Integer reportId) throws MalformedURLException, UnsupportedEncodingException {
-		return reportedResultRepository.findById(reportId).get()
-				.getReportDocument()
+		final ReportDocument reportDocument = reportedResultRepository.findById(reportId).get()
+				.getReportDocument();
+		
+		if (Objects.isNull(reportDocument)) {
+			return null;
+		}
+			
+		return reportDocument
 				.getReportDocumentURL(MvcUriComponentsBuilder.fromController(ReportDocumentController.class)
 						.build().toUri().toURL()).toString();
 	}
