@@ -1,5 +1,9 @@
 package io.github.dmnisson.labvision.admin;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +30,7 @@ import org.springframework.security.core.userdetails.User.UserBuilder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,9 +39,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import io.github.dmnisson.labvision.DashboardUrlService;
+import io.github.dmnisson.labvision.ReportedResultService;
 import io.github.dmnisson.labvision.ResetPasswordController;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
 import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
@@ -50,18 +57,24 @@ import io.github.dmnisson.labvision.dto.experiment.ExperimentForAdmin;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentForAdminDetail;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
 import io.github.dmnisson.labvision.dto.experiment.MeasurementInfo;
+import io.github.dmnisson.labvision.dto.reportedresult.ReportForAdminReportView;
+import io.github.dmnisson.labvision.dto.reportedresult.ReportForReportView;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportedResultForAdminTable;
 import io.github.dmnisson.labvision.dto.reportedresult.ReportedResultInfo;
+import io.github.dmnisson.labvision.dto.result.ResultInfo;
 import io.github.dmnisson.labvision.entities.AdminInfo;
 import io.github.dmnisson.labvision.entities.Course;
 import io.github.dmnisson.labvision.entities.CourseClass;
 import io.github.dmnisson.labvision.entities.Experiment;
 import io.github.dmnisson.labvision.entities.Instructor;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
+import io.github.dmnisson.labvision.entities.ReportDocumentType;
+import io.github.dmnisson.labvision.entities.ReportedResult;
 import io.github.dmnisson.labvision.entities.Student;
 import io.github.dmnisson.labvision.entities.UserRole;
 import io.github.dmnisson.labvision.experiment.ExperimentService;
 import io.github.dmnisson.labvision.models.NavbarModel;
+import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
 import io.github.dmnisson.labvision.repositories.CourseClassRepository;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
@@ -110,6 +123,12 @@ public class AdminController {
 	@Autowired
 	private ExperimentService experimentService;
 
+	@Autowired
+	private ReportDocumentService reportDocumentService;
+	
+	@Autowired
+	private ReportedResultService reportedResultService;
+	
 	@ModelAttribute
 	public void populateModel(Model model, @AuthenticationPrincipal LabVisionUserDetails userDetails) {
 		NavbarModel navbarModel = buildAdminNavbar(userDetails);
@@ -924,27 +943,177 @@ public class AdminController {
 	}
 	
 	@GetMapping("/report/{id}")
-	public String getReportedResult(@PathVariable Integer id, Model model) {
-		// TODO
+	public String getReportedResult(@PathVariable Integer id, Model model) throws MalformedURLException, UnsupportedEncodingException {
+		ReportedResult report = reportedResultRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, id));
+		model.addAttribute("report", report);
+		
+		model.addAttribute("reportDocumentUrl", reportDocumentService.buildReportDocumentUrl(id));
+		
 		return "admin/report";
 	}
 	
 	@GetMapping("/report/new/for/experiment/{experimentId}")
-	public String newReportedResult(@PathVariable Integer experimentId, Model model) {
-		// TODO
+	public String newReportedResult(@PathVariable Integer experimentId, @RequestParam Boolean uploadfile, @RequestParam String[] errors, Model model) {
+		ExperimentInfo experiment = experimentRepository.findInfoById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		model.addAttribute("experiment", experiment);
+		
+		model.addAttribute("admin", true);
+		
+		List<ResultInfo> acceptedResults = experimentRepository.getAcceptedResultInfoFor(experimentId);
+		model.addAttribute("acceptedResults", acceptedResults);
+		
+		String actionUrl = MvcUriComponentsBuilder.fromMethodName(
+				AdminController.class,
+				"createReport",
+				experimentId, null, null, null, null, null
+				).replaceQuery(null)
+				.build()
+				.toUriString();
+		model.addAttribute("actionUrl", actionUrl);
+		
+		model.addAttribute("uploadfile", uploadfile);
+		
+		model.addAttribute("errors", errors);
+		
 		return "editors/editreport";
 	}
 	
+	@PostMapping("/report/new/for/experiment/{experimentId}")
+	public String createReport(@PathVariable Integer experimentId,
+			String reportName, String studentUsername,
+			@RequestParam(name="documentType", required=false) ReportDocumentType documentType,
+			@RequestParam(name="externalDocumentURL", required=false) URL externalDocumentURL,
+			@RequestParam(name="filesystemDocumentFile", required=false) MultipartFile filesystemDocumentFile) throws IOException {
+		ArrayList<String> errors = new ArrayList<>();
+		
+		Experiment experiment = experimentRepository.findById(experimentId)
+				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
+		
+		Optional<Student> student = studentRepository.findByUsername(studentUsername);
+		
+		ReportedResult reportedResult = null;
+		
+		if (!student.isPresent()) {
+			errors.add("$nostudentfound");
+		} else {
+			try {
+				reportedResult = reportedResultService.createReportedResult(
+							experimentId, reportName, documentType, externalDocumentURL, filesystemDocumentFile, student.get(), experiment);
+			} catch (TransactionSystemException e) {
+				if (e.contains(ConstraintViolationException.class)) {
+					throw (ConstraintViolationException) e.getRootCause();
+				} else {
+					throw e;
+				}
+			} catch (ConstraintViolationException e) {
+				errors.addAll(e.getConstraintViolations().stream()
+						.map(ConstraintViolation::getMessage)
+						.collect(Collectors.toList())
+						);
+			}
+		}
+		
+		if (errors.size() > 0) {
+			return "redirect:" + MvcUriComponentsBuilder
+					.fromMethodName(
+							AdminController.class,
+							"newReportedResult",
+							experiment.getId(),
+							false,
+							errors.toArray(new String[errors.size()]),
+							null
+							).build()
+							.toUriString();
+		}
+		
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "getReportedResult", reportedResult.getId(), null)
+				.build()
+				.toUriString();
+	}
+	
 	@GetMapping("/report/edit/{id}")
-	public String editReportedResult(@PathVariable Integer id, Model model) {
-		// TODO
+	public String editReportedResult(@PathVariable Integer id, Boolean uploadfile, String[] errors, Model model) throws MalformedURLException, UnsupportedEncodingException {
+		ReportForAdminReportView report = reportedResultRepository.findForAdminById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, id));
+		model.addAttribute("report", report);
+		
+		String reportDocumentUrl = reportDocumentService.buildReportDocumentUrl(id);
+		model.addAttribute("reportDocumentUrl", reportDocumentUrl);
+		
+		ExperimentInfo experiment = experimentRepository.findExperimentInfo(report.getExperimentId()).get();
+		model.addAttribute("experiment", experiment);
+		
+		List<ResultInfo> acceptedResults = experimentRepository.getAcceptedResultInfoFor(report.getExperimentId());
+		model.addAttribute("acceptedResults", acceptedResults);
+		
+		String actionUrl = MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "updateReportedResult", id,
+						null, null, null, null)
+				.replaceQuery(null)
+				.build()
+				.toUriString();
+		model.addAttribute("actionUrl", actionUrl);
+		
+		model.addAttribute("uploadfile", uploadfile);
+		
+		String changeReportDocumentUrl = MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "editReportedResult", id, true, null, null)
+				.build()
+				.toUriString();
+		model.addAttribute("changeReportDocumentUrl", changeReportDocumentUrl);
+		
 		return "editors/editreport";
+	}
+	
+	@PostMapping("/report/edit/{id}")
+	public String updateReportedResult(@PathVariable Integer id,
+			String reportName, @RequestParam(name="documentType", required=false) ReportDocumentType documentType,
+			@RequestParam(name="externalDocumentURL", required=false) URL externalDocumentURL,
+			@RequestParam(name="filesystemDocumentFile", required=false) MultipartFile filesystemDocumentFile) throws IOException {
+		ReportedResult reportedResult = reportedResultRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, id));
+		
+		Student student = reportedResult.getStudent();
+		
+		reportedResult = reportedResultService.updateReportedResult(
+				reportName, documentType, externalDocumentURL, filesystemDocumentFile, reportedResult, student);
+		
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "getReportedResult", reportedResult.getId(), null)
+				.build()
+				.toUriString();
 	}
 	
 	@GetMapping("/report/delete/{id}")
 	public String deleteReportedResult(@PathVariable Integer id, Model model) {
-		// TODO
+		ReportForReportView report = reportedResultRepository.findForReportView(id)
+				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, id));
+		model.addAttribute("report", report);
+		
+		ExperimentInfo experiment = experimentRepository.findInfoById(report.getExperimentId()).get();
+		model.addAttribute("experiment", experiment);
+		
 		return "admin/deletereport";
+	}
+	
+	@PostMapping("/report/delete/{id}")
+	public String confirmDeleteReportedResult(@PathVariable Integer id) {
+		ReportForReportView report = reportedResultRepository.findForReportView(id)
+				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, id));
+		
+		reportedResultRepository.deleteById(id);
+		
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(
+						AdminController.class, 
+						"reportedResultsForExperiment", 
+						report.getExperimentId(), null, null
+						)
+				.build()
+				.toUriString();
 	}
 	
 	@GetMapping("/users")

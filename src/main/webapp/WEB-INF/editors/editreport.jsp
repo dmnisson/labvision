@@ -10,6 +10,7 @@
 <t:userpage title="${empty report.name ? 'New Report' : 'Editing '}${fn:escapeXml(report.name)} - ${fn:escapeXml(experiment.name)} - ${fn:escapeXml(experiment.courseName)}">
 
 <div class="container-fluid p-lg-5 userpage-container">
+
   <div class="row">
     <div class="col">
       <h1>
@@ -47,7 +48,35 @@
   
   <div class="row">
     <div class="col">
-      <h2>Report Document</h2>
+      <c:if test="${not empty errors}">
+      <div class="alert alert-warning">
+        <c:if test="${fn:length(errors) eq 1}">
+        <c:choose>
+          <c:when test="${errors[0] eq '$nostudentfound'}">
+          No student found with that username.
+          </c:when>
+          <c:otherwise>
+          <c:out value="${errors[0]}" />
+          </c:otherwise>
+        </c:choose>
+        </c:if>
+        <c:if test="${fn:length(errors) ne 1}">
+        <p>Please correct the following problems:</p>
+        <ul>
+          <c:forEach var="error" items="${errors}">
+          <c:choose>
+          <c:when test="${error eq '$nostudentfound'}">
+          <li>No student found with that username.</li>
+          </c:when>
+          <c:otherwise>
+          <li><c:out value="${error}" /></li>
+          </c:otherwise>
+          </c:choose>
+          </c:forEach>
+        </ul>
+        </c:if>
+      </div>
+      </c:if>
       
       <c:set var="EXTERNAL" value="<%= ReportDocumentType.EXTERNAL %>" />
       <c:set var="FILESYSTEM" value="<%= ReportDocumentType.FILESYSTEM %>" />
@@ -58,10 +87,27 @@
       
       <form method="POST" action="${actionUrl}" enctype="multipart/form-data">
         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+        <c:if test="${admin}">
+				<div class="row">
+				  <div class="col">
+				    <label for="studentUsername" class="h2">Student</label>
+				    <input
+				      type="text"
+				      class="form-control"
+				      id="studentUsername"
+				      name="studentUsername"
+				      placeholder="Username of student who authored this report"
+				      value="${fn:escapeXml(report.studentUsername)}"
+				      required
+				    />
+				  </div>
+				</div>
+				</c:if>
         <div class="form-group">
           <label for="reportName">Name of report</label>
           <input class="form-control" type="text" name="reportName" id="reportName" value="${fn:escapeXml(report.name)}" />
         </div>
+        <h2>Report Document</h2>
 	      <div class="form-group" role="radiogroup">
 		      <div class="form-check form-check-inline">
 		        <input
@@ -109,7 +155,8 @@
 		        documentFileType="${report.documentFileType}"
 		        reportDocumentURL="${reportDocumentUrl}"
 		        filename="${report.filename}"
-            changeButtonPath="${s:mvcUrl('SC#editReport').arg(0, report.id).arg(1, true).build()}"
+            changeButtonPath="${changeReportDocumentUrl}"
+            documentLastUpdated="${report.documentLastUpdated}"
           />
 	        </c:otherwise>
           </c:choose>
