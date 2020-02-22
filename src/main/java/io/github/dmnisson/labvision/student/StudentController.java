@@ -508,20 +508,49 @@ public class StudentController {
 	}
 	
 	@GetMapping("/course/{courseId}")
-	public String getCourse(@PathVariable Integer courseId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+	public String getCourse(@PathVariable Integer courseId,
+			@RequestParam(defaultValue="currentExperiments") String activePane,
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user,
+			Model model,
+			@Qualifier("currentExperiments") Pageable currentExperimentsPageable,
+			@Qualifier("pastExperiments") Pageable pastExperimentsPageable) {
 		Student student = (Student) user;
 		
 		CourseForStudentCourseView course = courseRepository.findForStudentCourseView(student.getId(), courseId)
 				.orElseThrow(() -> new ResourceNotFoundException(Course.class, courseId));
 		model.addAttribute("course", course);
 		
-		List<CurrentExperimentForStudentExperimentTable> currentExperiments = experimentRepository
-				.findCurrentExperimentsForStudentCourseExperimentTable(student.getId(), courseId);
-		model.addAttribute("currentExperiments", currentExperiments);
+		model.addAttribute("activePane", activePane);
 		
-		List<PastExperimentForStudentExperimentTable> pastExperiments = experimentRepository
-				.findPastExperimentsForStudentCourseExperimentTable(student.getId(), courseId);
-		model.addAttribute("pastExperiments", pastExperiments);
+		Page<CurrentExperimentForStudentExperimentTable> currentExperiments = experimentRepository
+				.findCurrentExperimentsForStudentCourseExperimentTable(
+						student.getId(),
+						courseId,
+						currentExperimentsPageable
+						);
+		model.addAttribute("currentExperiments", currentExperiments.getContent());
+		PaginationUtils.addPageModelAttributes(
+				model, 
+				currentExperiments, 
+				"currentExperiments", 
+				StudentController.class, 
+				"getCourse",
+				courseId, null, null, null, null, null);
+		
+		Page<PastExperimentForStudentExperimentTable> pastExperiments = experimentRepository
+				.findPastExperimentsForStudentCourseExperimentTable(
+						student.getId(),
+						courseId, 
+						pastExperimentsPageable
+						);
+		model.addAttribute("pastExperiments", pastExperiments.getContent());
+		PaginationUtils.addPageModelAttributes(
+				model, 
+				pastExperiments, 
+				"pastExperiments", 
+				StudentController.class, 
+				"getCourse",
+				courseId, null, null, null, null, null);
 		
 		return "student/course";
 	}

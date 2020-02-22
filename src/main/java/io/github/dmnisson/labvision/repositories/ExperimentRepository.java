@@ -234,9 +234,9 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"WHERE s.id=:studentid AND c.id=:courseid " +
 			"GROUP BY e " +
 			"ORDER BY lu DESC NULLS FIRST, e.reportDueDate ASC")
-	public List<CurrentExperimentForStudentExperimentTable> findCurrentExperimentsForStudentCourseExperimentTable(
+	public Page<CurrentExperimentForStudentExperimentTable> findCurrentExperimentsForStudentCourseExperimentTable(
 			@Param("studentid") Integer studentId,
-			@Param("courseid") Integer courseId);
+			@Param("courseid") Integer courseId, Pageable pageable);
 
 	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.PastExperimentForStudentExperimentTable(" +
 			"	e.id," +
@@ -256,9 +256,9 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"WHERE s.id=:studentid AND c.id=:courseid " +
 			"GROUP BY e " +
 			"ORDER BY lu DESC NULLS FIRST")
-	public List<PastExperimentForStudentExperimentTable> findPastExperimentsForStudentCourseExperimentTable(
+	public Page<PastExperimentForStudentExperimentTable> findPastExperimentsForStudentCourseExperimentTable(
 			@Param("studentid") Integer studentId,
-			@Param("courseid") Integer courseId);
+			@Param("courseid") Integer courseId, Pageable pageable);
 
 	@Query(	"SELECT COUNT(DISTINCT e.id) FROM Instructor i "
 			+ "LEFT JOIN i.courseClasses cc "
