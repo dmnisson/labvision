@@ -74,7 +74,7 @@
   <div class="row">
     <div class="col">
       <a class="btn btn-primary" href="${s:mvcUrl('AC#newReportedResult').arg(0, experiment.id).build()}">
-        <i class="fas fa-plus"></i>New Report
+        <i class="fas fa-plus"></i> New Report
       </a>
     </div>
   </div>
