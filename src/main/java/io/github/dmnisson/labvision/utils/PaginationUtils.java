@@ -11,12 +11,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
-import io.github.dmnisson.labvision.admin.AdminController;
-
 public class PaginationUtils {
 
 	// adds model attributes for pagination
-	public static <T> void addPageModelAttributes(Model model, Page<T> page, String methodName, Object... pathArgs) {
+	public static <T> void addPageModelAttributes(Model model, Page<T> page, Class<?> controllerClass, String methodName, Object... pathArgs) {
 		List<Integer> pages = IntStream.range(1, page.getTotalPages() + 1)
 				.mapToObj(Integer::valueOf)
 				.collect(Collectors.toList());
@@ -33,7 +31,7 @@ public class PaginationUtils {
 							).toArray();
 			model.addAttribute("prevPageUrl", 
 					MvcUriComponentsBuilder.fromMethodName(
-							AdminController.class,
+							controllerClass,
 							methodName,
 							args
 							)
@@ -53,7 +51,7 @@ public class PaginationUtils {
 				).toArray();
 			model.addAttribute("nextPageUrl", 
 					MvcUriComponentsBuilder.fromMethodName(
-							AdminController.class,
+							controllerClass,
 							methodName, 
 							args
 							)
@@ -76,7 +74,7 @@ public class PaginationUtils {
 									)
 								).toArray();
 							return MvcUriComponentsBuilder.fromMethodName(
-									AdminController.class,
+									controllerClass,
 									methodName,
 									args
 									)
