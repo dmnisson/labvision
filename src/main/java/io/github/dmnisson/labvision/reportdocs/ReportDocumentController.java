@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import io.github.dmnisson.labvision.AccessDeniedException;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
+import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
+import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
 import io.github.dmnisson.labvision.entities.Experiment;
 import io.github.dmnisson.labvision.entities.FilesystemReportDocument;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
@@ -41,10 +43,14 @@ public class ReportDocumentController {
 	@Autowired
 	private ReportDocumentService reportDocumentService;
 	
+	@Autowired
+	private LabVisionUserDetailsManager userDetailsManager;
+	
 	@GetMapping("/{studentId}/{experimentId}/{filename}")
 	public void getReportDocument(
 			@PathVariable Integer studentId, @PathVariable Integer experimentId, @PathVariable String filename, 
-			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, HttpServletResponse response) throws IOException, AccessDeniedException {
+			@AuthenticationPrincipal LabVisionUserDetails userDetails, HttpServletResponse response) throws IOException, AccessDeniedException {
+		LabVisionUser user = userDetails.getLabVisionUser();
 		
 		Path filesystemPath = reportDocumentService.buildFilesystemPath(experimentId, studentId, filename);
 		
@@ -52,21 +58,26 @@ public class ReportDocumentController {
 				filesystemReportDocumentRepository.findByFilesystemPath(filesystemPath.normalize().toString())
 				.orElseThrow(() -> new ResourceNotFoundException(FilesystemReportDocument.class, filename));
 		
-		// check if the user is either the student who submitted the report or an instructor who owns or
+		// check if the user is either an admin, the student who submitted the report or an instructor who owns or
 		// teaches the course for the experiment
 		boolean authorized;
+		
+		if (userDetailsManager.isAdmin(userDetails)) {
+			authorized = true;
+		} else {
 		switch (user.getRole()) {
-		case STUDENT:
-			authorized = filesystemReportDocument.getReportedResult().getStudent().getId().equals(user.getId());
-			break;
-		case FACULTY:
-			Experiment experiment = experimentRepository.getOne(
-					filesystemReportDocument.getReportedResult().getExperiment().getId());
-			authorized = experimentRepository.findByIdForInstructor(experiment.getId(), user.getId()).isPresent()
-					|| courseRepository.findByIdForInstructor(experiment.getCourse().getId(), user.getId()).isPresent();
-			break;
-		default:
-			authorized = false;
+			case STUDENT:
+				authorized = filesystemReportDocument.getReportedResult().getStudent().getId().equals(user.getId());
+				break;
+			case FACULTY:
+				Experiment experiment = experimentRepository.getOne(
+						filesystemReportDocument.getReportedResult().getExperiment().getId());
+				authorized = experimentRepository.findByIdForInstructor(experiment.getId(), user.getId()).isPresent()
+						|| courseRepository.findByIdForInstructor(experiment.getCourse().getId(), user.getId()).isPresent();
+				break;
+			default:
+				authorized = false;
+			}
 		}
 		
 		if (!authorized) {
