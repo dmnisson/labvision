@@ -37,8 +37,8 @@
                   <c:forEach var="measurement" items="${measurements[experiment.id]}">
                   <tr>
                     <th scope="row"><c:out value="${measurement.name}" /> (${measurement.quantityTypeId.unitString})</th>
-                    <td>${measurement.mean}</td>
-                    <td>${measurement.sampleStandardDeviation}</td>
+                    <td>${(empty measurement.mean) ? '—' : measurement.mean}</td>
+                    <td>${(empty measurement.sampleStandardDeviation) ? '—' : measurement.sampleStandardDeviation}</td>
                     <td>${measurement.sampleSize}</td>
                   </tr>
                   </c:forEach>
