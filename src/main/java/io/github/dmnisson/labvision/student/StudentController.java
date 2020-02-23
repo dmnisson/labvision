@@ -171,7 +171,7 @@ public class StudentController {
 	public String getExperiment(@PathVariable Integer experimentId, 
 			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model,
 			@Qualifier("measurementValues") Map<Integer, Pageable> measurementValuesPageables,
-			String activePane) throws AccessDeniedException {
+			@RequestParam(required=false) String activePane) throws AccessDeniedException {
 		
 		model.addAttribute("student", user);
 		
