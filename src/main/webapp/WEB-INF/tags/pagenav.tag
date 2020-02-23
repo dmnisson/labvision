@@ -1,4 +1,5 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ tag language="java" pageEncoding="UTF-8"%>
 <%@ attribute name="arialabel" %>
 <%@ attribute name="pages" type="java.util.List" %>
@@ -6,6 +7,8 @@
 <%@ attribute name="prevpageurl" %>
 <%@ attribute name="nextpageurl" %>
 <%@ attribute name="pageurls" type="java.util.Map" %>
+
+<c:if test="${fn:length(pages) gt 1}">
 
 <c:set var="arialabel" value="${(empty arialabel) ? 'Page Navigation' : arialabel}" />
 
@@ -24,3 +27,5 @@
     </li>
   </ul>
 </nav>
+
+</c:if>
