@@ -1238,7 +1238,10 @@ public class AdminController {
 		}
 		
 		try {
-			if (admin != null && admin) {
+			// ensure admin-only user info is updated even if admin parameter isn't sent
+			if ((admin != null && admin) 
+					|| userDetails.getLabVisionUser().getRole().equals(UserRole.ADMIN)) {
+				
 				if (!userDetailsManager.isAdmin(userDetails)) {
 					userDetailsManager.grantAdminAuthority(userDetails.getUsername());
 				}
