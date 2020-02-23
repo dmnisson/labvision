@@ -155,15 +155,27 @@ public class StudentController {
 	// --- EXPERIMENT PAGES ---
 	
 	@GetMapping("/experiments")
-	public String experiments(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+	public String experiments(@RequestParam(defaultValue="currentExperiments") String activePane,
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model,
+			@Qualifier("currentExperiments") Pageable currentExperimentsPageable,
+			@Qualifier("pastExperiments") Pageable pastExperimentsPageable) {
+		
 		Integer studentId = user.getId();
 		
-		List<CurrentExperimentForStudentExperimentTable> currentExperiments = experimentRepository.findCurrentExperimentsForStudentExperimentTable(studentId);
-		model.addAttribute("currentExperiments", currentExperiments);
+		Page<CurrentExperimentForStudentExperimentTable> currentExperiments = experimentRepository.findCurrentExperimentsForStudentExperimentTable(studentId, currentExperimentsPageable);
+		model.addAttribute("currentExperiments", currentExperiments.getContent());
 		
-		List<PastExperimentForStudentExperimentTable> pastExperiments = experimentRepository.findPastExperimentsForStudentExperimentTable(studentId);
-		model.addAttribute("pastExperiments", pastExperiments);
+		PaginationUtils.addPageModelAttributes(model, currentExperiments, "currentExperiments", 
+				StudentController.class, "experiments", null, null, null, null, null);
+		
+		Page<PastExperimentForStudentExperimentTable> pastExperiments = experimentRepository.findPastExperimentsForStudentExperimentTable(studentId, pastExperimentsPageable);
+		model.addAttribute("pastExperiments", pastExperiments.getContent());
+		
+		PaginationUtils.addPageModelAttributes(model, pastExperiments, "pastExperiments", 
+				StudentController.class, "experiments", null, null, null, null, null);
 
+		model.addAttribute("activePane", activePane);
+		
 		return "student/experiments";
 	}
 	
@@ -578,7 +590,7 @@ public class StudentController {
 		NavbarModel navbarModel = new NavbarModel();
 		
 		navbarModel.addNavLink("Dashboard", StudentController.class, "dashboard", new Object(), new Object());
-		navbarModel.addNavLink("Experiments", StudentController.class, "experiments", new Object(), new Object());
+		navbarModel.addNavLink("Experiments", StudentController.class, "experiments", null, null, null, null, null);
 		navbarModel.addNavLink("Reports",	StudentController.class, "reports", new Object(), new Object());
 		navbarModel.addNavLink("Errors", StudentController.class, "errors", new Object(), new Object(), new Object());
 		navbarModel.addNavLink(navbarModel.new NavLink(

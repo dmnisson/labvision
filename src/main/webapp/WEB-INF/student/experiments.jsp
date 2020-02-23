@@ -17,14 +17,14 @@
     <div class="col">
       <ul class="nav nav-tabs" id="experimentsTabs" role="tablist">
         <li class="nav-item">
-          <a class="nav-link active" id="current-tab" data-toggle="tab" href="#current" role="tab" aria-controls="current" aria-selected="true">Current</a>
+          <a class="nav-link${activePane eq 'currentExperiments' ? ' active' : ''}" id="current-tab" data-toggle="tab" href="#current" role="tab" aria-controls="current" aria-selected="true">Current</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="past-tab" href="#past" data-toggle="tab" role="tab" aria-controls="past" aria-selected="true">Past</a>
+          <a class="nav-link${activePane eq 'pastExperiments' ? ' active' : ''}" id="past-tab" href="#past" data-toggle="tab" role="tab" aria-controls="past" aria-selected="true">Past</a>
         </li>
       </ul>
       <div class="tab-content" id="experimentsTabContent">
-        <div class="tab-pane show active" id="current" role="tabpanel" aria-labelledby="current-tab">
+        <div class="tab-pane${activePane eq 'currentExperiments' ? ' active show' : ''}" id="current" role="tabpanel" aria-labelledby="current-tab">
           <c:if test="${empty currentExperiments}">
           <div class="text-center">No current experiments.</div>
           </c:if>
@@ -71,9 +71,16 @@
 	            </tbody>
 	          </table>
 	        </div>
+	        <t:pagenav 
+            pages="${currentExperiments_pages}"
+            currentpage="${currentExperiments_currentPage}"
+            prevpageurl="${currentExperiments_prevPageUrl}"
+            nextpageurl="${currentExperiments_nextPageUrl}"
+            pageurls="${currentExperiments_pageUrls}"
+          />
 	        </c:if>
         </div>
-        <div class="tab-pane" id="past" role="tabpanel" aria-labelledby="past-tab">
+        <div class="tab-pane${activePane eq 'pastExperiments' ? ' active show' : ''}" id="past" role="tabpanel" aria-labelledby="past-tab">
           <c:if test="${empty pastExperiments}">
           <div class="text-center">No past experiments.</div>
           </c:if>
@@ -122,6 +129,13 @@
               </tbody>
             </table>
           </div>
+          <t:pagenav 
+            pages="${pastExperiments_pages}"
+            currentpage="${pastExperiments_currentPage}"
+            prevpageurl="${pastExperiments_prevPageUrl}"
+            nextpageurl="${pastExperiments_nextPageUrl}"
+            pageurls="${pastExperiments_pageUrls}"
+          />
           </c:if>
         </div>
       </div>
