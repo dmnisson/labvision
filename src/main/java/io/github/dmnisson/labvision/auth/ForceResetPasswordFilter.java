@@ -37,7 +37,7 @@ public class ForceResetPasswordFilter extends GenericFilterBean {
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 		
 		if (user != null && user.isPasswordResetForced() 
-				&& !httpRequest.getPathInfo().equals(RESET_PASSWORD_PATH)) {
+				&& !httpRequest.getRequestURI().equals(RESET_PASSWORD_PATH)) {
 			httpResponse.sendRedirect(RESET_PASSWORD_PATH);
 		} else {
 			chain.doFilter(request, response);
