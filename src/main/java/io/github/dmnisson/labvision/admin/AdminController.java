@@ -1245,7 +1245,9 @@ public class AdminController {
 				
 				userDetailsManager.updateAdminInfo(id, firstName, lastName, adminEmail, adminPhone, true);
 			} else {
-				if (userDetailsManager.isAdmin(userDetails)) {
+				if (userDetailsManager.isAdmin(userDetails) 
+						&& userDetails.getAuthorities().size() > 1) {
+					
 					userDetailsManager.revokeAdminAuthority(userDetails.getUsername());
 				}
 			}
