@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import io.github.dmnisson.labvision.dto.course.CourseClassForAdminTable;
-import io.github.dmnisson.labvision.dto.course.CourseForAdminTable;
 import io.github.dmnisson.labvision.entities.CourseClass;
 
 public interface CourseClassRepository extends JpaRepository<CourseClass, Integer> {
