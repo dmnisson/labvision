@@ -171,7 +171,7 @@ public class StudentController {
 	public String getExperiment(@PathVariable Integer experimentId, 
 			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model,
 			@Qualifier("measurementValues") Map<Integer, Pageable> measurementValuesPageables,
-			String activepane) throws AccessDeniedException {
+			String activePane) throws AccessDeniedException {
 		
 		model.addAttribute("student", user);
 		
@@ -246,9 +246,9 @@ public class StudentController {
 				"getExperiment", experimentId, null, null, null, null
 				);
 		
-		final int activeMeasurementId = StringUtils.isEmpty(activepane) ?
+		final int activeMeasurementId = StringUtils.isEmpty(activePane) ?
 				measurements.get(0).getId() :
-				Integer.parseInt(activepane.substring(activepane.indexOf('.')));
+				Integer.parseInt(activePane.substring(activePane.indexOf('.') + 1));
 		model.addAttribute("activeMeasurementId",  activeMeasurementId);
 		
 		return "student/experiment";
