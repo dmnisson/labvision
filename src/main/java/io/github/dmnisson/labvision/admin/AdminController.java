@@ -1064,7 +1064,7 @@ public class AdminController {
 				);
 		model.addAttribute("users", users.getContent());
 		
-		PaginationUtils.addPageModelAttributes(model, users, null, AdminController.class, "users", new Object());
+		PaginationUtils.addPageModelAttributes(model, users, null, AdminController.class, "users", null, null);
 		
 		return "admin/users";
 	}
