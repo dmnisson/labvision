@@ -6,7 +6,6 @@ import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.validation.ConstraintViolationException;
 
@@ -34,16 +33,11 @@ import io.github.dmnisson.labvision.dto.result.ResultInfo;
 import io.github.dmnisson.labvision.entities.Experiment;
 import io.github.dmnisson.labvision.entities.Instructor;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
-import io.github.dmnisson.labvision.entities.QuantityTypeId;
 import io.github.dmnisson.labvision.experiment.ExperimentService;
 import io.github.dmnisson.labvision.models.NavbarModel;
 import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
-import io.github.dmnisson.labvision.repositories.MeasurementRepository;
-import io.github.dmnisson.labvision.repositories.MeasurementValueRepository;
-import io.github.dmnisson.labvision.repositories.ParameterRepository;
-import io.github.dmnisson.labvision.repositories.ParameterValueRepository;
 import io.github.dmnisson.labvision.repositories.ReportedResultRepository;
 import io.github.dmnisson.labvision.repositories.StudentRepository;
 import io.github.dmnisson.labvision.utils.EditorUtils;
@@ -60,14 +54,6 @@ public class FacultyController {
 	private ExperimentRepository experimentRepository;
 	@Autowired
 	private StudentRepository studentRepository;
-	@Autowired
-	private MeasurementRepository measurementRepository;
-	@Autowired
-	private MeasurementValueRepository measurementValueRepository;
-	@Autowired
-	private ParameterRepository parameterRepository;
-	@Autowired
-	private ParameterValueRepository parameterValueRepository;
 	@Autowired
 	private ReportedResultRepository reportedResultRepository;
 	@Autowired
