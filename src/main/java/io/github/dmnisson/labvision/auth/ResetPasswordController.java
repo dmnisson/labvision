@@ -1,4 +1,4 @@
-package io.github.dmnisson.labvision;
+package io.github.dmnisson.labvision.auth;
 
 import java.util.Objects;
 
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
-import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
+import io.github.dmnisson.labvision.DashboardUrlService;
 
 @Controller
 @RequestMapping("/resetpassword")

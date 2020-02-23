@@ -40,10 +40,10 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 
 import io.github.dmnisson.labvision.DashboardUrlService;
 import io.github.dmnisson.labvision.ReportedResultService;
-import io.github.dmnisson.labvision.ResetPasswordController;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
 import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
 import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
+import io.github.dmnisson.labvision.auth.ResetPasswordController;
 import io.github.dmnisson.labvision.dto.admin.LabVisionUserForAdminTable;
 import io.github.dmnisson.labvision.dto.admin.LabVisionUserInfo;
 import io.github.dmnisson.labvision.dto.course.CourseClassForAdminTable;
