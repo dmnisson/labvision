@@ -22,6 +22,7 @@ import io.github.dmnisson.labvision.repositories.StudentRepository;
 
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Component
 @Profile("dev")
@@ -42,6 +43,9 @@ public class DevInitializingBean implements InitializingBean {
 	@Autowired
 	private ExperimentRepository experimentRepository;
 	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// seed users
@@ -60,8 +64,8 @@ public class DevInitializingBean implements InitializingBean {
 			}
 			
 			// then seed the user in the database
-			UserDetails user = User.withDefaultPasswordEncoder()
-					.username(username)
+			UserDetails user = User.withUsername(username)
+					.passwordEncoder(pw -> passwordEncoder.encode(pw))
 					.password(password)
 					.roles(authority)
 					.build();
