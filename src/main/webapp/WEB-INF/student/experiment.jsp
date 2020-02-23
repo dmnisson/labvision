@@ -30,13 +30,13 @@
       <ul class="nav nav-tabs">
         <c:forEach var="measurement" items="${measurements}">
         <li class="nav-item">
-          <a class="nav-link" id="measurement-${measurement.id}-tab" data-toggle="tab" href="#measurement-${measurement.id}" role="tab" aria-controls="measurement-${measurement.id}" aria-selected="false"><c:out value="${measurement.name}" /></a>
+          <a class="nav-link${activeMeasurementId eq measurement.id ? ' active' : ''}" id="measurement-${measurement.id}-tab" data-toggle="tab" href="#measurement-${measurement.id}" role="tab" aria-controls="measurement-${measurement.id}" aria-selected="false"><c:out value="${measurement.name}" /></a>
         </li>
         </c:forEach>
       </ul>
       <div class="tab-content">
         <c:forEach var="measurement" items="${measurements}">
-        <div class="tab-pane" id="measurement-${measurement.id}" role="tabpanel" aria-labelledby="measurement-${measurement.id}-tab">
+        <div class="tab-pane${activeMeasurementId eq measurement.id ? ' active show' : ''}" id="measurement-${measurement.id}" role="tabpanel" aria-labelledby="measurement-${measurement.id}-tab">
           <form method="POST" action="${s:mvcUrl('SC#createMeasurementValue').arg(0, measurement.id).build()}">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
 	          <t:measurementvaluestable

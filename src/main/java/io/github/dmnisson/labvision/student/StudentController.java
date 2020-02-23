@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -169,7 +170,8 @@ public class StudentController {
 	@GetMapping("/experiment/{experimentId}")
 	public String getExperiment(@PathVariable Integer experimentId, 
 			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model,
-			@Qualifier("measurementValues") Map<Integer, Pageable> measurementValuesPageables) throws AccessDeniedException {
+			@Qualifier("measurementValues") Map<Integer, Pageable> measurementValuesPageables,
+			String activepane) throws AccessDeniedException {
 		
 		model.addAttribute("student", user);
 		
@@ -241,8 +243,13 @@ public class StudentController {
 				"measurementValues",
 				".",
 				StudentController.class,
-				"getExperiment", experimentId, null, null, null
+				"getExperiment", experimentId, null, null, null, null
 				);
+		
+		final int activeMeasurementId = StringUtils.isEmpty(activepane) ?
+				measurements.get(0).getId() :
+				Integer.parseInt(activepane.substring(activepane.indexOf('.')));
+		model.addAttribute("activeMeasurementId",  activeMeasurementId);
 		
 		return "student/experiment";
 	}
@@ -289,7 +296,7 @@ public class StudentController {
 		return "redirect:" + MvcUriComponentsBuilder.fromMethodName(
 				StudentController.class,
 				"getExperiment",
-				measurement.getExperiment().getId(), null, null, null
+				measurement.getExperiment().getId(), null, null, null, null
 				).toUriString();
 	}
 	
