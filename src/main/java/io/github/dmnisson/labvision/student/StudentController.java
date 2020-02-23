@@ -315,11 +315,14 @@ public class StudentController {
 	// --- REPORT PAGES ---
 	
 	@GetMapping("/reports")
-	public String reports(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+	public String reports(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model, Pageable pageable) {
 		Integer studentId = user.getId();
 		
-		List<ReportForStudentReportsTable> reports = reportedResultRepository.findReportsForStudentReportsTable(studentId);
-		model.addAttribute("reports", reports);
+		Page<ReportForStudentReportsTable> reports = reportedResultRepository.findReportsForStudentReportsTable(studentId, pageable);
+		model.addAttribute("reports", reports.getContent());
+		
+		PaginationUtils.addPageModelAttributes(model, reports, null, 
+				StudentController.class, "reports", null, null, null);
 		
 		return "student/reports";
 	}
@@ -591,7 +594,7 @@ public class StudentController {
 		
 		navbarModel.addNavLink("Dashboard", StudentController.class, "dashboard", new Object(), new Object());
 		navbarModel.addNavLink("Experiments", StudentController.class, "experiments", null, null, null, null, null);
-		navbarModel.addNavLink("Reports",	StudentController.class, "reports", new Object(), new Object());
+		navbarModel.addNavLink("Reports",	StudentController.class, "reports", null, null, null);
 		navbarModel.addNavLink("Errors", StudentController.class, "errors", new Object(), new Object(), new Object());
 		navbarModel.addNavLink(navbarModel.new NavLink(
 				"Account", 

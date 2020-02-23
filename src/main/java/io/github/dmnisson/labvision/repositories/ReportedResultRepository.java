@@ -38,7 +38,7 @@ public interface ReportedResultRepository extends JpaRepository<ReportedResult, 
 			+ ") FROM ReportedResult rr "
 			+ "WHERE rr.student.id=:studentid "
 			+ "ORDER BY rr.added DESC")
-	List<ReportForStudentReportsTable> findReportsForStudentReportsTable(@Param("studentid") Integer studentId);
+	Page<ReportForStudentReportsTable> findReportsForStudentReportsTable(@Param("studentid") Integer studentId, Pageable pageable);
 	
 	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.ReportedResultForStudentExperimentView(" +
 		    "	rr.id," +
