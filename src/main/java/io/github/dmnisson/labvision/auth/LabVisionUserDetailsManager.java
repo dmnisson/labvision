@@ -75,6 +75,9 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		createUser(userDetails);
 		
 		Student student = new Student(name, userDetails.getUsername());
+		
+		student.setPasswordResetForced(true);
+		
 		studentRepository.save(student);
 	}
 	
@@ -84,6 +87,8 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		Instructor instructor = new Instructor();
 		instructor.setUsername(userDetails.getUsername());
 		instructor.setName(name);
+		
+		instructor.setPasswordResetForced(true);
 		
 		try {
 			instructorRepository.save(instructor);
@@ -109,6 +114,8 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		adminInfo.setPhone(phone);
 		
 		adminOnly.setAdminInfo(adminInfo);
+		
+		adminOnly.setPasswordResetForced(true);
 		
 		try {
 			adminOnlyRepository.save(adminOnly);
