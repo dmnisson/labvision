@@ -32,6 +32,9 @@ public abstract class LabVisionUser implements LabVisionEntity {
 	@Pattern(regexp = "^[a-f0-9]{96}$")
 	private String passwordResetToken;
 	
+	@Column
+	private Boolean passwordResetForced = false;
+	
 	public LabVisionUser() {
 		super();
 	}
@@ -99,5 +102,13 @@ public abstract class LabVisionUser implements LabVisionEntity {
 
 	public void setPasswordResetToken(String passwordResetToken) {
 		this.passwordResetToken = passwordResetToken;
+	}
+
+	public boolean isPasswordResetForced() {
+		return passwordResetForced == null ? false : passwordResetForced;
+	}
+
+	public void setPasswordResetForced(boolean passwordResetForced) {
+		this.passwordResetForced = passwordResetForced;
 	}
 }

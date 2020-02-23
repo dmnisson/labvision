@@ -19,7 +19,9 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.session.SessionManagementFilter;
 
+import io.github.dmnisson.labvision.auth.ForceResetPasswordFilter;
 import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
 
 @Configuration
@@ -35,6 +37,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 		.authenticationProvider(daoAuthenticationProvider())
+		.addFilterAfter(forceResetPasswordFilter(), SessionManagementFilter.class)
 		.authorizeRequests()
 			.antMatchers("/", "/welcome", "/css/**", "/webfonts/**", "/resetpassword/**").permitAll()
 			.antMatchers("/student/**").hasRole("STUDENT")
@@ -106,5 +109,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	public SecureRandom secureRandom() throws Exception {
 		return secureRandomFactoryBean().getObject();
+	}
+	
+	@Bean
+	public ForceResetPasswordFilter forceResetPasswordFilter() {
+		return new ForceResetPasswordFilter();
 	}
 }

@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -333,6 +334,8 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 				.build();
 		
 		updateUser(userDetails);
+		
+		unforcePasswordReset();
 	}
 
 	public boolean isAdmin(LabVisionUserDetails userDetails) {
@@ -376,6 +379,21 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		UserDetails userDetails = loadUserById(id);
 		
 		deleteUser(userDetails.getUsername());
+	}
+
+	@Override
+	public void changePassword(String oldPassword, String newPassword) throws AuthenticationException {
+		super.changePassword(oldPassword, newPassword);
+		unforcePasswordReset();
+	}
+	
+	private void unforcePasswordReset() {
+		LabVisionUserDetails userDetails = (LabVisionUserDetails) 
+				SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
+		LabVisionUser user = userDetails.getLabVisionUser();
+		user.setPasswordResetForced(false);
+		labVisionUserRepository.save(user);
 	}
 	
 }
