@@ -48,11 +48,11 @@
 	            addnewform="true"
 	          />
 		        <t:pagenav 
-			        pages="${pages}"
-			        currentpage="${currentPage}"
-			        prevpageurl="${prevPageUrl}"
-			        nextpageurl="${nextPageUrl}"
-			        pageurls="${pageUrls}"
+			        pages="${measurementValues_pages[measurement.id]}"
+			        currentpage="${measurementValues_currentPage[measurement.id]}"
+			        prevpageurl="${measurementValues_prevPageUrl[measurement.id]}"
+			        nextpageurl="${measurementValues_nextPageUrl[measurement.id]}"
+			        pageurls="${measurementValues_pageUrls[measurement.id]}"
 			      />
           </form>
         </div>

@@ -7,7 +7,6 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -168,7 +167,10 @@ public class StudentController {
 	}
 	
 	@GetMapping("/experiment/{experimentId}")
-	public String getExperiment(@PathVariable Integer experimentId, @AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model, Pageable pageable) throws AccessDeniedException {
+	public String getExperiment(@PathVariable Integer experimentId, 
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model,
+			@Qualifier("measurementValues") Map<Integer, Pageable> measurementValuesPageables) throws AccessDeniedException {
+		
 		model.addAttribute("student", user);
 		
 		Integer studentId = user.getId();
@@ -191,7 +193,7 @@ public class StudentController {
 					.collect(Collectors.toMap(
 							Function.identity(),
 							mid -> measurementValueRepository
-									.findForStudentExperimentView(mid, studentId, pageable)
+									.findForStudentExperimentView(mid, studentId, measurementValuesPageables.get(mid))
 							));
 		
 		Map<Integer, List<MeasurementValueForExperimentView>> measurementValues =
@@ -200,7 +202,7 @@ public class StudentController {
 					.collect(Collectors.toMap(
 							Function.identity(),
 							mid -> measurementValueRepository
-									.findForStudentExperimentView(mid, studentId, pageable)
+									.findForStudentExperimentView(mid, studentId, measurementValuesPageables.get(mid))
 									.getContent()
 							));
 		model.addAttribute("measurementValues", measurementValues);
@@ -233,17 +235,14 @@ public class StudentController {
 				reportedResultRepository.findReportsForStudentExperimentView(experimentId, studentId);
 		model.addAttribute("reportedResults", reportedResults);
 		
-		final Optional<Page<MeasurementValueForExperimentView>> measurementValuePage = measurementValuePages.values().stream().findAny();
-		if (measurementValuePage.isPresent()) {
-			PaginationUtils.addPageModelAttributes(
-					model,
-					measurementValuePage.get(),
-					null,
-					StudentController.class,
-					"getExperiment",
-					experimentId, null, null, null
-					);
-		}
+		PaginationUtils.addMappedPageModelAttributes(
+				model,
+				measurementValuePages,
+				"measurementValues",
+				".",
+				StudentController.class,
+				"getExperiment", experimentId, null, null, null
+				);
 		
 		return "student/experiment";
 	}
