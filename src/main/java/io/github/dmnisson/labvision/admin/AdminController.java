@@ -883,7 +883,8 @@ public class AdminController {
 	}
 	
 	@GetMapping("/report/new/for/experiment/{experimentId}")
-	public String newReportedResult(@PathVariable Integer experimentId, @RequestParam Boolean uploadfile, @RequestParam String[] errors, Model model) {
+	public String newReportedResult(@PathVariable Integer experimentId, @RequestParam Boolean uploadfile, 
+			@RequestParam(required=false) String[] errors, Model model) {
 		ExperimentInfo experiment = experimentRepository.findInfoById(experimentId)
 				.orElseThrow(() -> new ResourceNotFoundException(Experiment.class, experimentId));
 		model.addAttribute("experiment", experiment);
@@ -964,7 +965,8 @@ public class AdminController {
 	}
 	
 	@GetMapping("/report/edit/{id}")
-	public String editReportedResult(@PathVariable Integer id, Boolean uploadfile, String[] errors, Model model) throws MalformedURLException, UnsupportedEncodingException {
+	public String editReportedResult(@PathVariable Integer id, Boolean uploadfile, 
+			@RequestParam(required=false) String[] errors, Model model) throws MalformedURLException, UnsupportedEncodingException {
 		ReportForAdminReportView report = reportedResultRepository.findForAdminById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(ReportedResult.class, id));
 		model.addAttribute("report", report);
@@ -1175,7 +1177,8 @@ public class AdminController {
 	}
 	
 	@GetMapping("/user/edit/{id}")
-	public String editUser(@PathVariable Integer id, String[] errors, Model model) {
+	public String editUser(@PathVariable Integer id, 
+			@RequestParam(required=false) String[] errors, Model model) {
 		final LabVisionUserDetails userDetails = userDetailsManager.loadUserById(id);
 		
 		model.addAttribute("user", userDetails.getLabVisionUser());
@@ -1321,7 +1324,8 @@ public class AdminController {
 	}
 	
 	@GetMapping("/profile/edit")
-	public String editProfile(String[] errors, @AuthenticationPrincipal LabVisionUserDetails userDetails, Model model) {
+	public String editProfile(@RequestParam(required=false) String[] errors, 
+			@AuthenticationPrincipal LabVisionUserDetails userDetails, Model model) {
 		model.addAttribute("user", userDetails.getLabVisionUser());
 		
 		model.addAttribute("errors", errors);
