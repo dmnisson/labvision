@@ -5,12 +5,23 @@
     pageEncoding="UTF-8" %>
 <t:userpage title="Reset Password">
 
-<div class="reset-password-div">
+<div class="reset-password-div m-5">
   <form class="reset-password-form" method="POST" action="${actionUrl}">
     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
     <c:if test="${ param.error eq 'unauthorized' }">
       <div class="alert alert-warning">
         Your username or password was incorrect, please try again.
+      </div>
+    </c:if>
+    <c:if test="${ param.error eq 'tooshort' }">
+      <div class="alert alert-warning">
+        Password must be at least ${minPasswordLength} characters in length.
+      </div>
+    </c:if>
+    <c:if test="${ param.error eq 'blacklisted' }">
+      <div class="alert alert-warning">
+        Password must not contain a commonly used sequence, your username,
+        your first or last name, your email address, or your phone number.
       </div>
     </c:if>
     <c:if test="${ param.error eq 'unmatched' }">

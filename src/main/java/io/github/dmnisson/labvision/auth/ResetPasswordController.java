@@ -1,12 +1,13 @@
 package io.github.dmnisson.labvision.auth;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,6 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import io.github.dmnisson.labvision.DashboardUrlService;
+import io.github.dmnisson.labvision.entities.Instructor;
+import io.github.dmnisson.labvision.entities.LabVisionUser;
+import io.github.dmnisson.labvision.entities.UserRole;
 import io.github.dmnisson.labvision.models.NavbarModel;
 
 @Controller
@@ -36,9 +40,16 @@ public class ResetPasswordController {
 	@Autowired
 	private DashboardUrlService dashboardUrlService;
 	
+	@Autowired
+	private LabVisionAuthConfig labVisionAuthConfig;
+	
+	@Autowired
+	private LabVisionPasswordBlacklist labVisionPasswordBlacklist;
+	
 	@ModelAttribute
 	public void populateModel(Model model) {
 		model.addAttribute("navbarModel", buildNavbarModel());
+		model.addAttribute("minPasswordLength", labVisionAuthConfig.getMinPasswordLength());
 	}
 	
 	@GetMapping("/begin")
@@ -70,7 +81,7 @@ public class ResetPasswordController {
 	@PostMapping("/set")
 	public String updatePassword(
 			String username, String password, String newPassword, String confirmNewPassword,
-			@AuthenticationPrincipal UserDetails user) {
+			@AuthenticationPrincipal LabVisionUserDetails user) {
 		String error = changePasswordInternal(username, password, newPassword, confirmNewPassword, user,
 				authenticationManager, null);
 		
@@ -87,7 +98,7 @@ public class ResetPasswordController {
 	@PostMapping("/set/{token}")
 	public String updatePasswordWithToken(
 			@PathVariable String token, String newPassword, String confirmNewPassword) {
-		UserDetails user = userDetailsManager.loadUserByPasswordResetToken(token);
+		LabVisionUserDetails user = (LabVisionUserDetails) userDetailsManager.loadUserByPasswordResetToken(token);
 		
 		String username = user.getUsername();
 		String error = changePasswordInternal(username, token, newPassword, confirmNewPassword,
@@ -106,11 +117,13 @@ public class ResetPasswordController {
 	}
 	
 	private String changePasswordInternal(String username, String password, String newPassword, String confirmNewPassword,
-			UserDetails user, final AuthenticationManager authenticationManagerToSet, String token) {
+			LabVisionUserDetails user, final AuthenticationManager authenticationManagerToSet, String token) {
 		String error = null;
 		
 		if (!user.getUsername().equalsIgnoreCase(username)) {
 			error = "unauthorized";
+		} else if ((error = validatePassword(user.getLabVisionUser(), newPassword)) != null) {
+			// do nothing else
 		} else if (!newPassword.equals(confirmNewPassword)) {
 			error = "unmatched";
 		} else {
@@ -129,6 +142,30 @@ public class ResetPasswordController {
 		return error;
 	}
 	
+	private String validatePassword(LabVisionUser user, String newPassword) {
+		HashSet<String> userSpecificBlacklistValues = new HashSet<>();
+		
+		userSpecificBlacklistValues.add(user.getUsername());
+		userSpecificBlacklistValues.addAll(Arrays.asList(user.getDisplayName().split("\\s+")));
+		
+		if (user.getAdminInfo() != null) {
+			userSpecificBlacklistValues.add(user.getAdminInfo().getEmail());
+			userSpecificBlacklistValues.add(user.getAdminInfo().getPhone());
+		}
+		
+		if (user.getRole().equals(UserRole.FACULTY)) {
+			userSpecificBlacklistValues.add(((Instructor) user).getEmail());
+		}
+		
+		if (newPassword.length() < labVisionAuthConfig.getMinPasswordLength()) {
+			return "tooshort";
+		} else if (labVisionPasswordBlacklist.isBlacklisted(newPassword, userSpecificBlacklistValues)) {
+			return "blacklisted";
+		}
+		
+		return null;
+	}
+
 	private NavbarModel buildNavbarModel() {
 		NavbarModel navbarModel = new NavbarModel();
 		navbarModel.setLogoutLink("/logout");
