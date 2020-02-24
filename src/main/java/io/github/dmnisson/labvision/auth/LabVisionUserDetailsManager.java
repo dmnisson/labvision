@@ -219,11 +219,11 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		LabVisionUser labVisionUser = labVisionUserRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(LabVisionUser.class, id));
 		
-		byte[] tokenBytes = new byte[48];
+		byte[] tokenBytes = new byte[21];
 		secureRandom.nextBytes(tokenBytes);
 		
 		StringBuilder tokenBuilder = new StringBuilder();
-		for (int i = 0; i < 48; i++) {
+		for (int i = 0; i < 21; i++) {
 			tokenBuilder.append(byteToHex(tokenBytes[i]));
 		}
 		

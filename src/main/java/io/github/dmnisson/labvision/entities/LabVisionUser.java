@@ -29,7 +29,7 @@ public abstract class LabVisionUser implements LabVisionEntity {
 	protected AdminInfo adminInfo;
 	
 	@Column
-	@Pattern(regexp = "^[a-f0-9]{96}$")
+	@Pattern(regexp = "^[a-f0-9]{42}$")
 	private String passwordResetToken;
 	
 	@Column
