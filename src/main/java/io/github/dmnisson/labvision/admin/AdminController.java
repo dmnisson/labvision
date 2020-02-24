@@ -1328,6 +1328,29 @@ public class AdminController {
 		return "admin/passwordresetlink";
 	}
 	
+	@GetMapping("/user/forcepasswordresest/{id}")
+	public String forcePasswordReset(@PathVariable Integer id, Model model) {
+		LabVisionUser user = userDetailsManager.loadUserById(id).getLabVisionUser();
+		model.addAttribute("user", user);
+		
+		return "admin/forcepasswordreset";
+	}
+	
+	@PostMapping("/user/forcepasswordreset/{id}")
+	public String confirmForcePasswordReset(@PathVariable Integer id, Model model) {
+		final LabVisionUserDetails userDetails = userDetailsManager.loadUserById(id);
+		model.addAttribute("user", userDetails.getLabVisionUser());
+		
+		userDetailsManager.forcePasswordReset(userDetails);
+		String token = userDetailsManager.makePasswordResetToken(id);
+		model.addAttribute("resetPasswordUrl", MvcUriComponentsBuilder
+				.fromMethodName(ResetPasswordController.class, "beginPasswordResetWithToken", token, null)
+				.build().toUriString()
+				);
+		
+		return "admin/passwordresetlink";
+	}
+	
 	@GetMapping("/profile")
 	public String profile(@AuthenticationPrincipal LabVisionUserDetails userDetails, Model model) {
 		model.addAttribute("user", userDetails.getLabVisionUser());

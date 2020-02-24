@@ -404,6 +404,12 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		unforcePasswordReset();
 	}
 	
+	public void forcePasswordReset(LabVisionUserDetails userDetails) {
+		LabVisionUser user = userDetails.getLabVisionUser();
+		user.setPasswordResetForced(true);
+		labVisionUserRepository.save(user);
+	}
+	
 	private void unforcePasswordReset() {
 		LabVisionUserDetails userDetails = (LabVisionUserDetails) 
 				SecurityContextHolder.getContext().getAuthentication().getPrincipal();

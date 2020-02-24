@@ -95,7 +95,10 @@
       <h2>Password</h2>
     </div>
     <div class="col">
-      <a class="btn btn-primary" href="${s:mvcUrl('AC#getPasswordResetLink').arg(0, user.id).build()}">Make Password Reset Link</a>
+      <div class="btn-group">
+	      <a class="btn btn-primary" href="${s:mvcUrl('AC#getPasswordResetLink').arg(0, user.id).build()}">Make Password Reset Link</a>
+	      <a class="btn btn-primary" href="${s:mvcUrl('AC#forcePasswordReset').arg(0, user.id).build()}">Force Password Reset</a>
+      </div>
     </div>
   </div>
 </div>
