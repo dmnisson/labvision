@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -341,6 +342,15 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 				.build();
 		
 		updateUser(userDetails);
+		
+		LabVisionUser labVisionUser = labVisionUserRepository.findByUsername(userDetails.getUsername()).get();
+		
+		LabVisionUserDetails labVisionUserDetails = makeLabVisionUserDetails(
+				userDetails.getUsername(), userDetails, labVisionUser);
+		
+		SecurityContextHolder.getContext().setAuthentication(
+				new UsernamePasswordAuthenticationToken(
+						labVisionUserDetails, newPassword, labVisionUserDetails.getAuthorities()));
 		
 		unforcePasswordReset();
 	}
