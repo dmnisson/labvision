@@ -11,12 +11,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import io.github.dmnisson.labvision.DashboardUrlService;
+import io.github.dmnisson.labvision.models.NavbarModel;
 
 @Controller
 @RequestMapping("/resetpassword")
@@ -33,6 +35,11 @@ public class ResetPasswordController {
 	
 	@Autowired
 	private DashboardUrlService dashboardUrlService;
+	
+	@ModelAttribute
+	public void populateModel(Model model) {
+		model.addAttribute("navbarModel", buildNavbarModel());
+	}
 	
 	@GetMapping("/begin")
 	public String beginPasswordReset(Model model) {
@@ -120,5 +127,11 @@ public class ResetPasswordController {
 			}
 		}
 		return error;
+	}
+	
+	private NavbarModel buildNavbarModel() {
+		NavbarModel navbarModel = new NavbarModel();
+		navbarModel.setLogoutLink("/logout");
+		return navbarModel;
 	}
 }
