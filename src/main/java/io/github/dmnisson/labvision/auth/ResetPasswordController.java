@@ -90,7 +90,7 @@ public class ResetPasswordController {
 		UserDetails user = userDetailsManager.loadUserByPasswordResetToken(token);
 		
 		String username = user.getUsername();
-		String error = changePasswordInternal(username, "temp_" + username, newPassword, confirmNewPassword,
+		String error = changePasswordInternal(username, token, newPassword, confirmNewPassword,
 				user, null, token);
 		
 		if (error != null) {

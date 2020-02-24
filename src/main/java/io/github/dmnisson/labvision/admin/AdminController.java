@@ -1152,6 +1152,13 @@ public class AdminController {
 		LabVisionUserDetails labVisionUserDetails = (LabVisionUserDetails) userDetailsManager.loadUserByUsername(username);
 		String passwordResetToken = userDetailsManager.makePasswordResetToken(labVisionUserDetails.getLabVisionUser().getId());
 		
+		// change user's password to token
+		UserDetails newUserDetails = User.withUserDetails(labVisionUserDetails)
+				.passwordEncoder(pw -> passwordEncoder.encode(pw))
+				.password(passwordResetToken)
+				.build();
+		userDetailsManager.updateUser(newUserDetails);
+		
 		model.addAttribute("newPasswordUrl", MvcUriComponentsBuilder
 				.fromMethodName(ResetPasswordController.class, "beginPasswordResetWithToken", passwordResetToken, null)
 				.toUriString()
