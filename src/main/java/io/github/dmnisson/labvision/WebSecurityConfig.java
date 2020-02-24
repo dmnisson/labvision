@@ -33,13 +33,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private Environment environment;
 	
+	private static final String[] PERMIT_ALL_PATTERNS = { "/", "/welcome", "/css/**", "/webfonts/**", "/resetpassword/**" };
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 		.authenticationProvider(daoAuthenticationProvider())
 		.addFilterAfter(forceResetPasswordFilter(), SessionManagementFilter.class)
 		.authorizeRequests()
-			.antMatchers("/", "/welcome", "/css/**", "/webfonts/**", "/resetpassword/**").permitAll()
+			.antMatchers(PERMIT_ALL_PATTERNS).permitAll()
 			.antMatchers("/student/**").hasRole("STUDENT")
 			.antMatchers("/faculty/**").hasRole("FACULTY")
 			.antMatchers("/admin/**").hasRole("ADMIN")
@@ -113,6 +115,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
 	@Bean
 	public ForceResetPasswordFilter forceResetPasswordFilter() {
-		return new ForceResetPasswordFilter();
+		ForceResetPasswordFilter filter = new ForceResetPasswordFilter();
+		filter.addBypassAntMatchers(PERMIT_ALL_PATTERNS);
+		filter.addBypassAntMatcher("/logout");
+		
+		return filter;
 	}
 }
