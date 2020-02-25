@@ -35,6 +35,12 @@ public abstract class LabVisionUser implements LabVisionEntity {
 	@Column
 	private Boolean passwordResetForced = false;
 	
+	@Column(nullable=false, columnDefinition = "INT DEFAULT 0")
+	private Integer failedLoginAttempts = 0;
+	
+	@Column(nullable=false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+	private Boolean accountNonLocked = true;
+	
 	public LabVisionUser() {
 		super();
 	}
@@ -110,5 +116,21 @@ public abstract class LabVisionUser implements LabVisionEntity {
 
 	public void setPasswordResetForced(boolean passwordResetForced) {
 		this.passwordResetForced = passwordResetForced;
+	}
+
+	public boolean isAccountNonLocked() {
+		return accountNonLocked;
+	}
+
+	public void setAccountNonLocked(Boolean accountNonLocked) {
+		this.accountNonLocked = accountNonLocked;
+	}
+
+	public Integer getFailedLoginAttempts() {
+		return failedLoginAttempts;
+	}
+
+	public void setFailedLoginAttempts(Integer failedLoginAttempts) {
+		this.failedLoginAttempts = failedLoginAttempts;
 	}
 }

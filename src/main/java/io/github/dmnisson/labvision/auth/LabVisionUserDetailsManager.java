@@ -37,7 +37,7 @@ import io.github.dmnisson.labvision.repositories.LabVisionUserRepository;
 import io.github.dmnisson.labvision.repositories.StudentRepository;
 
 public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
-
+	
 	public static final String DEF_PAGE_ALL_USERS_SQL = "select username from users order by username "
 			+ "offset ? fetch ? rows only";
 	public static final String DEF_COUNT_ALL_USERS_SQL = "select count(username) from users";
@@ -56,6 +56,9 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 	public LabVisionUserDetailsManager(DataSource dataSource) {
 		super(dataSource);
 	}
+	
+	@Autowired
+	private LabVisionAuthConfig labVisionAuthConfig;
 	
 	@Autowired
 	private LabVisionUserRepository labVisionUserRepository;
@@ -129,8 +132,12 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		}
 	}
 	
-	private LabVisionUserDetails makeLabVisionUserDetails(String username, UserDetails userDetails,
-			LabVisionUser labVisionUser) {
+	private LabVisionUserDetails makeLabVisionUserDetails(String username, LabVisionUser labVisionUser) {
+		
+		final UserDetails userDetails = User.withUserDetails(super.loadUserByUsername(username))
+				.accountLocked(!labVisionUser.isAccountNonLocked())
+				.build();
+		
 		LabVisionUserDetails details = new LabVisionUserDetails(
 				username,
 				userDetails.getPassword(),
@@ -139,16 +146,19 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 				userDetails.isCredentialsNonExpired(),
 				userDetails.isAccountNonLocked(),
 				userDetails.getAuthorities(), labVisionUser);
+		
 		return details;
 	}
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		UserDetails userDetails = super.loadUserByUsername(username);
 		LabVisionUser labVisionUser = labVisionUserRepository.findByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException("No user found by that name"));
 		
-		LabVisionUserDetails details = makeLabVisionUserDetails(username, userDetails, labVisionUser);
+		LabVisionUserDetails details = makeLabVisionUserDetails(
+				username,
+				labVisionUser);
+		
 		return details;
 	}
 
@@ -210,9 +220,9 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		LabVisionUser labVisionUser = labVisionUserRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(LabVisionUser.class, id));
 		
-		UserDetails userDetails = super.loadUserByUsername(labVisionUser.getUsername());
-		
-		return makeLabVisionUserDetails(labVisionUser.getUsername(), userDetails, labVisionUser);
+		return makeLabVisionUserDetails(
+				labVisionUser.getUsername(),
+				labVisionUser);
 	}
 
 	public String makePasswordResetToken(Integer id) {
@@ -247,9 +257,9 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		LabVisionUser labVisionUser = labVisionUserRepository.findByPasswordResetToken(token)
 				.orElseThrow(() -> new ResourceNotFoundException(LabVisionUser.class, token));
 		
-		UserDetails userDetails = super.loadUserByUsername(labVisionUser.getUsername());
-		
-		return makeLabVisionUserDetails(labVisionUser.getUsername(), userDetails, labVisionUser);
+		return makeLabVisionUserDetails(
+				labVisionUser.getUsername(),
+				labVisionUser);
 	}
 
 	public void clearPasswordResetToken(String username) {
@@ -263,7 +273,7 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 	
 	// Update the current authentication when the current user profile is updated
 	private void updateAuthentication(LabVisionUserDetails labVisionUserDetails, LabVisionUser labVisionUser) {
-		labVisionUserDetails = makeLabVisionUserDetails(labVisionUser.getUsername(), labVisionUserDetails, labVisionUser);
+		labVisionUserDetails = makeLabVisionUserDetails(labVisionUser.getUsername(), labVisionUser);
 		
 		Authentication authentication = new PreAuthenticatedAuthenticationToken(
 				labVisionUserDetails,
@@ -346,7 +356,7 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		LabVisionUser labVisionUser = labVisionUserRepository.findByUsername(userDetails.getUsername()).get();
 		
 		LabVisionUserDetails labVisionUserDetails = makeLabVisionUserDetails(
-				userDetails.getUsername(), userDetails, labVisionUser);
+				userDetails.getUsername(), labVisionUser);
 		
 		SecurityContextHolder.getContext().setAuthentication(
 				new UsernamePasswordAuthenticationToken(
@@ -417,6 +427,17 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 		LabVisionUser user = userDetails.getLabVisionUser();
 		user.setPasswordResetForced(false);
 		labVisionUserRepository.save(user);
+	}
+
+	public void updateFailedLogins(String username) {
+		labVisionUserRepository.incrementFailedLogins(username);
+		
+		Integer failedLogins = labVisionUserRepository
+				.findByUsername(username).get().getFailedLoginAttempts();
+		
+		if (failedLogins >= labVisionAuthConfig.getMaxFailedLogins()) {
+			labVisionUserRepository.setAccountNonLocked(username, false);
+		}
 	}
 	
 }

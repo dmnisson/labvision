@@ -6,10 +6,15 @@
   <div class="signin-page-div">
 	  <form class="signin-form" method="post">
 	    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-	    <c:if test="${ param.error ne null }">
+	    <c:if test="${ error eq 'badcredentials' }">
 	      <div class="alert alert-warning">
 	        Your username or password was incorrect, please try again.
 	      </div>
+	    </c:if>
+	    <c:if test="${ error eq 'locked' }">
+	      <div class="alert alert-warning">
+          Your account has been locked. Please contact your institution for assistance.
+        </div>
 	    </c:if>
 	    <c:if test="${ param.logout ne null }">
 	      <div class="alert alert-info">

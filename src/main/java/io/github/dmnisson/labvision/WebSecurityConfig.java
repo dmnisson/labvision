@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,6 +21,7 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 import org.springframework.security.web.session.SessionManagementFilter;
 
 import io.github.dmnisson.labvision.auth.ForceResetPasswordFilter;
+import io.github.dmnisson.labvision.auth.LabVisionAuthenticationProvider;
 import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
 
 @Configuration
@@ -38,7 +38,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
-		.authenticationProvider(daoAuthenticationProvider())
 		.addFilterAfter(forceResetPasswordFilter(), SessionManagementFilter.class)
 		.authorizeRequests()
 			.antMatchers(PERMIT_ALL_PATTERNS).permitAll()
@@ -83,9 +82,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		return (LabVisionUserDetailsManager) userDetailsService();
 	}
 	
-	@Bean
-	public DaoAuthenticationProvider daoAuthenticationProvider() {
-		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+	@Bean(name = "authenticationProvider")
+	public LabVisionAuthenticationProvider labVisionAuthenticationProvider() {
+		LabVisionAuthenticationProvider provider = new LabVisionAuthenticationProvider();
 		provider.setUserDetailsService(userDetailsService());
 		return provider;
 	}
