@@ -101,6 +101,29 @@
       </div>
     </div>
   </div>
+  
+  <div class="row">
+    <div class="col">
+      <h2>${accountStatusMessage}</h2>
+    </div>
+    <div class="col">
+      <c:if test="${accountNonLocked and enabled}">
+      <a class="btn btn-primary" href="${s:mvcUrl('AC#disableUser').arg(0, user.id).build()}">
+        <i class="fas fa-lock"></i> Disable Account
+      </a>
+      </c:if>
+      <c:if test="${not enabled}">
+      <a class="btn btn-primary" href="${s:mvcUrl('AC#enableUser').arg(0, user.id).build()}">
+        <i class="fas fa-lock-open"></i> Enable Account
+      </a>
+      </c:if>
+      <c:if test="${(not accountNonLocked) and enabled}">
+      <a class="btn btn-primary" href="${s:mvcUrl('AC#unlockUser').arg(0, user.id).build()}">
+        <i class="fas fa-lock-open"></i> Unlock Account
+      </a>
+      </c:if>
+    </div>
+  </div>
 </div>
 
 </t:userpage>

@@ -439,5 +439,24 @@ public class LabVisionUserDetailsManager extends JdbcUserDetailsManager {
 			labVisionUserRepository.setAccountNonLocked(username, false);
 		}
 	}
+
+	public void setUserEnabledById(Integer id, boolean enabled) {
+		LabVisionUserDetails userDetails = loadUserById(id);
+		
+		UserDetails newUserDetails = User.withUserDetails(userDetails)
+				.disabled(!enabled)
+				.build();
+		
+		updateUser(newUserDetails);
+	}
+
+	public void unlockUserById(Integer id) {
+		LabVisionUserDetails userDetails = loadUserById(id);
+		
+		labVisionUserRepository.setAccountNonLocked(userDetails.getUsername(), true);
+		
+		// ensure cache is cleared
+		updateUser(User.withUserDetails(userDetails).accountLocked(false).build());
+	}
 	
 }

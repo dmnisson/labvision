@@ -1080,6 +1080,16 @@ public class AdminController {
 		model.addAttribute("admin", userDetailsManager.isAdmin(userDetails)
 		);
 		
+		model.addAttribute("enabled", userDetails.isEnabled());
+		model.addAttribute("accountNonLocked", userDetails.isAccountNonLocked());
+		
+		model.addAttribute("accountStatusMessage", "Account is "
+				+ ((userDetails.isEnabled() && userDetails.isAccountNonLocked()) 
+						? "enabled"
+						: (userDetails.isEnabled() ? "locked" : "disabled")
+						)
+				);
+		
 		return "admin/user";
 	}
 	
@@ -1292,6 +1302,58 @@ public class AdminController {
 				id,
 				null
 				).build()
+				.toUriString();
+	}
+	
+	@GetMapping("/user/disable/{id}")
+	public String disableUser(@PathVariable Integer id, Model model) {
+		model.addAttribute("user", userDetailsManager.loadUserById(id).getLabVisionUser());
+		
+		return "admin/disableuser";
+	}
+	
+	@PostMapping("/user/disable/{id}")
+	public String confirmDisableUser(@PathVariable Integer id) {
+		userDetailsManager.setUserEnabledById(id, false);
+		
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "getUser", id, null)
+				.build()
+				.toUriString();
+	}
+	
+	@GetMapping("/user/enable/{id}")
+	public String enableUser(@PathVariable Integer id, Model model) {
+		model.addAttribute("user", userDetailsManager.loadUserById(id).getLabVisionUser());
+		
+		return "admin/enableuser";
+	}
+	
+	@PostMapping("/user/enable/{id}")
+	public String confirmEnableUser(@PathVariable Integer id) {
+		userDetailsManager.setUserEnabledById(id, true);
+		
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "getUser", id, null)
+				.build()
+				.toUriString();
+	}
+	
+	@GetMapping("/user/unlock/{id}")
+	public String unlockUser(@PathVariable Integer id, Model model) {
+		model.addAttribute("user", userDetailsManager.loadUserById(id).getLabVisionUser());
+		
+		return "admin/unlockuser";
+	}
+	
+	@PostMapping("/user/unlock/{id}")
+	public String confirmUnlockUser(@PathVariable Integer id) {
+		userDetailsManager.unlockUserById(id);
+		userDetailsManager.setUserEnabledById(id, true);
+		
+		return "redirect:" + MvcUriComponentsBuilder
+				.fromMethodName(AdminController.class, "getUser", id, null)
+				.build()
 				.toUriString();
 	}
 	
