@@ -11,6 +11,11 @@
 	        Your username or password was incorrect, please try again.
 	      </div>
 	    </c:if>
+	    <c:if test="${ error eq 'disabled' }">
+        <div class="alert alert-warning">
+          Your account has been disabled. Please contact your institution for assistance.
+        </div>
+      </c:if>
 	    <c:if test="${ error eq 'locked' }">
 	      <div class="alert alert-warning">
           Your account has been locked. Please contact your institution for assistance.

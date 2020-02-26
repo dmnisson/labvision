@@ -3,6 +3,7 @@ package io.github.dmnisson.labvision.auth;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -35,6 +36,8 @@ public class LoginController {
 			return "badcredentials";
 		} else if (exception instanceof LockedException) {
 			return "locked";
+		} else if (exception instanceof DisabledException) {
+			return "disabled";
 		} else {
 			return "badcredentials";
 		}
