@@ -70,6 +70,7 @@ import io.github.dmnisson.labvision.entities.Student;
 import io.github.dmnisson.labvision.entities.UserRole;
 import io.github.dmnisson.labvision.experiment.ExperimentService;
 import io.github.dmnisson.labvision.models.NavbarModel;
+import io.github.dmnisson.labvision.models.NavbarModelImpl;
 import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
 import io.github.dmnisson.labvision.repositories.CourseClassRepository;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
@@ -1468,14 +1469,14 @@ public class AdminController {
 	}
 	
 	private NavbarModel buildAdminNavbar(LabVisionUserDetails userDetails) {
-		NavbarModel navbarModel = new NavbarModel();
+		NavbarModelImpl navbarModel = new NavbarModelImpl();
 		
 		navbarModel.addNavLink("Dashboard", AdminController.class, "dashboard", new Object(), new Object());
 		navbarModel.addNavLink("Courses", AdminController.class, "courses", new Object(), new Object());
 		navbarModel.addNavLink("Users", AdminController.class, "users", new Object(), new Object());
 		
-		ArrayList<NavbarModel.NavLink> accountLinks = new ArrayList<>(
-				Arrays.asList(new NavbarModel.NavLink[] {
+		ArrayList<NavbarModelImpl.NavLink> accountLinks = new ArrayList<>(
+				Arrays.asList(new NavbarModelImpl.NavLink[] {
 						navbarModel.createNavLink("Profile", AdminController.class, "profile", new Object(), new Object())
 				})
 		);
@@ -1494,7 +1495,7 @@ public class AdminController {
 		navbarModel.addNavLink(navbarModel.new NavLink(
 				"Account",
 				"#",
-				accountLinks.toArray(new NavbarModel.NavLink[accountLinks.size()])
+				accountLinks.toArray(new NavbarModelImpl.NavLink[accountLinks.size()])
 		));
 		
 		navbarModel.setLogoutLink("/logout");

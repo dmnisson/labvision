@@ -67,6 +67,7 @@ import io.github.dmnisson.labvision.entities.Student;
 import io.github.dmnisson.labvision.measure.Amount;
 import io.github.dmnisson.labvision.measure.SI;
 import io.github.dmnisson.labvision.models.NavbarModel;
+import io.github.dmnisson.labvision.models.NavbarModelImpl;
 import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
 import io.github.dmnisson.labvision.repositories.CourseClassRepository;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
@@ -590,7 +591,7 @@ public class StudentController {
 	}
 	
 	private NavbarModel buildStudentNavbar(LabVisionUserDetails userDetails) {
-		NavbarModel navbarModel = new NavbarModel();
+		NavbarModelImpl navbarModel = new NavbarModelImpl();
 		
 		navbarModel.addNavLink("Dashboard", StudentController.class, "dashboard", new Object(), new Object());
 		navbarModel.addNavLink("Experiments", StudentController.class, "experiments", null, null, null, null, null);
@@ -599,7 +600,7 @@ public class StudentController {
 		navbarModel.addNavLink(navbarModel.new NavLink(
 				"Account", 
 				"#", 
-				new NavbarModel.NavLink[] {
+				new NavbarModelImpl.NavLink[] {
 						navbarModel.createNavLink("Profile", StudentController.class, "profile", null, null),
 						navbarModel.createNavLink("Courses", StudentController.class, "courses", null, null, null)
 				}

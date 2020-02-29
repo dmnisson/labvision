@@ -35,6 +35,7 @@ import io.github.dmnisson.labvision.entities.Instructor;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
 import io.github.dmnisson.labvision.experiment.ExperimentService;
 import io.github.dmnisson.labvision.models.NavbarModel;
+import io.github.dmnisson.labvision.models.NavbarModelImpl;
 import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
@@ -293,14 +294,14 @@ public class FacultyController {
 	}
 	
 	private NavbarModel buildFacultyNavbar(LabVisionUserDetails userDetails) {
-		NavbarModel navbarModel = new NavbarModel();
+		NavbarModelImpl navbarModel = new NavbarModelImpl();
 		
 		navbarModel.addNavLink("Dashboard", FacultyController.class, "dashboard", new Object(), new Object());
 		navbarModel.addNavLink("Experiments", FacultyController.class, "experiments", new Object(), new Object());
 		navbarModel.addNavLink(navbarModel.new NavLink(
 			"Account",
 			"#",
-			new NavbarModel.NavLink[] {
+			new NavbarModelImpl.NavLink[] {
 				navbarModel.createNavLink("Profile", FacultyController.class, "profile", new Object(), new Object())
 			}
 		));

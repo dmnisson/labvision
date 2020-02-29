@@ -23,6 +23,7 @@ import io.github.dmnisson.labvision.entities.Instructor;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
 import io.github.dmnisson.labvision.entities.UserRole;
 import io.github.dmnisson.labvision.models.NavbarModel;
+import io.github.dmnisson.labvision.models.NavbarModelImpl;
 
 @Controller
 @RequestMapping("/resetpassword")
@@ -167,7 +168,7 @@ public class ResetPasswordController {
 	}
 
 	private NavbarModel buildNavbarModel() {
-		NavbarModel navbarModel = new NavbarModel();
+		NavbarModel navbarModel = new NavbarModelImpl();
 		navbarModel.setLogoutLink("/logout");
 		return navbarModel;
 	}
