@@ -69,6 +69,7 @@ import io.github.dmnisson.labvision.entities.ReportedResult;
 import io.github.dmnisson.labvision.entities.Student;
 import io.github.dmnisson.labvision.entities.UserRole;
 import io.github.dmnisson.labvision.experiment.ExperimentService;
+import io.github.dmnisson.labvision.models.NavLink;
 import io.github.dmnisson.labvision.models.NavbarModel;
 import io.github.dmnisson.labvision.models.NavbarModelImpl;
 import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
@@ -1475,8 +1476,8 @@ public class AdminController {
 		navbarModel.addNavLink("Courses", AdminController.class, "courses", new Object(), new Object());
 		navbarModel.addNavLink("Users", AdminController.class, "users", new Object(), new Object());
 		
-		ArrayList<NavbarModelImpl.NavLink> accountLinks = new ArrayList<>(
-				Arrays.asList(new NavbarModelImpl.NavLink[] {
+		ArrayList<NavLink> accountLinks = new ArrayList<>(
+				Arrays.asList(new NavLink[] {
 						navbarModel.createNavLink("Profile", AdminController.class, "profile", new Object(), new Object())
 				})
 		);
@@ -1492,10 +1493,10 @@ public class AdminController {
 					"Exit Admin", dashboardUrlService.getDashboardUrl(nonAdminRoles)));
 		}
 		
-		navbarModel.addNavLink(navbarModel.new NavLink(
-				"Account",
+		navbarModel.addNavLink(new NavLink(
+				navbarModel, "Account",
 				"#",
-				accountLinks.toArray(new NavbarModelImpl.NavLink[accountLinks.size()])
+				accountLinks.toArray(new NavLink[accountLinks.size()])
 		));
 		
 		navbarModel.setLogoutLink("/logout");

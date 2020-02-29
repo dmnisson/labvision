@@ -2,8 +2,6 @@ package io.github.dmnisson.labvision.models;
 
 import java.util.List;
 
-import io.github.dmnisson.labvision.models.NavbarModelImpl.NavLink;
-
 public interface NavbarModel {
 
 	/**
