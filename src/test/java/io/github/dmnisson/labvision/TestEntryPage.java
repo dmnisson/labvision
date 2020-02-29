@@ -1,6 +1,7 @@
 package io.github.dmnisson.labvision;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
@@ -10,13 +11,10 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.ui.ExtendedModelMap;
 
 import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
-import io.github.dmnisson.labvision.entities.Student;
 
 public class TestEntryPage extends LabvisionApplicationTests {
 	
@@ -28,25 +26,14 @@ public class TestEntryPage extends LabvisionApplicationTests {
 	
 	@Test
 	public void welcomePage_ShouldAddUserAndDashboardUrlToModel() throws Exception {
-		final Student student = new Student();
-		student.setUsername("testuser1");
+		final LabVisionUser user = mock(LabVisionUser.class);
 		
-		UserDetails userDetails = User
-				.withUsername("testuser1")
-				.password("testpassword")
-				.authorities("STUDENT")
-				.build();
+		final String displayName = "Test User";
+		when(user.getDisplayName()).thenReturn(displayName);
 		
-		LabVisionUserDetails labVisionUserDetails = new LabVisionUserDetails(
-				userDetails.getUsername(),
-				userDetails.getPassword(),
-				userDetails.isEnabled(),
-				userDetails.isAccountNonExpired(),
-				userDetails.isCredentialsNonExpired(),
-				userDetails.isAccountNonLocked(),
-				userDetails.getAuthorities(),
-				student
-				);
+		final LabVisionUserDetails labVisionUserDetails = mock(LabVisionUserDetails.class);
+		
+		when(labVisionUserDetails.getLabVisionUser()).thenReturn(user);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
 		
@@ -59,7 +46,7 @@ public class TestEntryPage extends LabvisionApplicationTests {
 		String view = labvisionController.welcomePage(labVisionUserDetails, model);
 		
 		assertEquals("welcome", view);
-		assertEquals(student.getDisplayName(), 
+		assertEquals(displayName, 
 				((LabVisionUser) model.getAttribute("user")).getDisplayName());
 		assertEquals(dashboardUrl, model.getAttribute("dashboardUrl"));
 	}
