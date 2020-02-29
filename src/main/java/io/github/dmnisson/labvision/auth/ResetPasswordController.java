@@ -24,7 +24,6 @@ import io.github.dmnisson.labvision.entities.LabVisionUser;
 import io.github.dmnisson.labvision.entities.UserRole;
 import io.github.dmnisson.labvision.models.NavbarModel;
 import io.github.dmnisson.labvision.models.NavbarModelBuilder;
-import io.github.dmnisson.labvision.models.NavbarModelImpl;
 
 @Controller
 @RequestMapping("/resetpassword")
