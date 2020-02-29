@@ -68,6 +68,7 @@ import io.github.dmnisson.labvision.measure.Amount;
 import io.github.dmnisson.labvision.measure.SI;
 import io.github.dmnisson.labvision.models.NavLink;
 import io.github.dmnisson.labvision.models.NavbarModel;
+import io.github.dmnisson.labvision.models.NavbarModelBuilder;
 import io.github.dmnisson.labvision.models.NavbarModelImpl;
 import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
 import io.github.dmnisson.labvision.repositories.CourseClassRepository;
@@ -592,27 +593,20 @@ public class StudentController {
 	}
 	
 	private NavbarModel buildStudentNavbar(LabVisionUserDetails userDetails) {
-		NavbarModelImpl navbarModel = new NavbarModelImpl();
-		
-		navbarModel.addNavLink("Dashboard", StudentController.class, "dashboard", new Object(), new Object());
-		navbarModel.addNavLink("Experiments", StudentController.class, "experiments", null, null, null, null, null);
-		navbarModel.addNavLink("Reports",	StudentController.class, "reports", null, null, null);
-		navbarModel.addNavLink("Errors", StudentController.class, "errors", new Object(), new Object(), new Object());
-		navbarModel.addNavLink(new NavLink(
-				navbarModel, "Account", 
-				"#", 
-				new NavLink[] {
-						navbarModel.createNavLink("Profile", StudentController.class, "profile", null, null),
-						navbarModel.createNavLink("Courses", StudentController.class, "courses", null, null, null)
-				}
-			));
+		NavbarModelBuilder builder = NavbarModelBuilder.forController(StudentController.class)
+				.link("Dashboard", "dashboard", null, null)
+				.link("Experiments", "experiments", null, null, null, null, null)
+				.link("Reports", "reports", null, null, null)
+				.link("Errors", "errors", null, null, null)
+				.dropdown("Account", "#")
+					.link("Profile", "profile", null, null)
+					.link("Courses", "courses", null, null, null)
+					.buildDropdown();
 		
 		if (userDetailsManager.isAdmin(userDetails)) {
-			navbarModel.addNavLink("Admin", AdminController.class, "dashboard", null, null);
+			builder.link("Admin", AdminController.class, "dashboard", null, null);
 		}
 		
-		navbarModel.setLogoutLink("/logout");
-		
-		return navbarModel;
+		return builder.logoutLink("/logout").build();
 	}
 }

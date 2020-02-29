@@ -34,9 +34,8 @@ import io.github.dmnisson.labvision.entities.Experiment;
 import io.github.dmnisson.labvision.entities.Instructor;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
 import io.github.dmnisson.labvision.experiment.ExperimentService;
-import io.github.dmnisson.labvision.models.NavLink;
 import io.github.dmnisson.labvision.models.NavbarModel;
-import io.github.dmnisson.labvision.models.NavbarModelImpl;
+import io.github.dmnisson.labvision.models.NavbarModelBuilder;
 import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
@@ -295,24 +294,18 @@ public class FacultyController {
 	}
 	
 	private NavbarModel buildFacultyNavbar(LabVisionUserDetails userDetails) {
-		NavbarModelImpl navbarModel = new NavbarModelImpl();
-		
-		navbarModel.addNavLink("Dashboard", FacultyController.class, "dashboard", new Object(), new Object());
-		navbarModel.addNavLink("Experiments", FacultyController.class, "experiments", new Object(), new Object());
-		navbarModel.addNavLink(new NavLink(
-			navbarModel, "Account",
-			"#",
-			new NavLink[] {
-				navbarModel.createNavLink("Profile", FacultyController.class, "profile", new Object(), new Object())
-			}
-		));
+		NavbarModelBuilder builder = NavbarModelBuilder.forController(FacultyController.class)
+				.link("Dashboard", "dashboard", null, null)
+				.link("Experiments", "experiments", null, null)
+				.dropdown("Account", "#")
+					.link("Profile", "profile", null, null)
+					.buildDropdown();
+
 		
 		if (userDetailsManager.isAdmin(userDetails)) {
-			navbarModel.addNavLink("Admin", AdminController.class, "dashboard", null, null);
+			builder.link("Admin", AdminController.class, "dashboard", null, null);
 		}
 		
-		navbarModel.setLogoutLink("/logout");
-		
-		return navbarModel;
+		return builder.logoutLink("/logout").build();
 	}
 }

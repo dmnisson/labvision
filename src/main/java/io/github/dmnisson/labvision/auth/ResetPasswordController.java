@@ -23,6 +23,7 @@ import io.github.dmnisson.labvision.entities.Instructor;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
 import io.github.dmnisson.labvision.entities.UserRole;
 import io.github.dmnisson.labvision.models.NavbarModel;
+import io.github.dmnisson.labvision.models.NavbarModelBuilder;
 import io.github.dmnisson.labvision.models.NavbarModelImpl;
 
 @Controller
@@ -168,8 +169,7 @@ public class ResetPasswordController {
 	}
 
 	private NavbarModel buildNavbarModel() {
-		NavbarModel navbarModel = new NavbarModelImpl();
-		navbarModel.setLogoutLink("/logout");
-		return navbarModel;
+		return NavbarModelBuilder.forController(ResetPasswordController.class)
+				.logoutLink("/logout").build();
 	}
 }

@@ -5,7 +5,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -69,9 +68,8 @@ import io.github.dmnisson.labvision.entities.ReportedResult;
 import io.github.dmnisson.labvision.entities.Student;
 import io.github.dmnisson.labvision.entities.UserRole;
 import io.github.dmnisson.labvision.experiment.ExperimentService;
-import io.github.dmnisson.labvision.models.NavLink;
 import io.github.dmnisson.labvision.models.NavbarModel;
-import io.github.dmnisson.labvision.models.NavbarModelImpl;
+import io.github.dmnisson.labvision.models.NavbarModelBuilder;
 import io.github.dmnisson.labvision.reportdocs.ReportDocumentService;
 import io.github.dmnisson.labvision.repositories.CourseClassRepository;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
@@ -1470,38 +1468,28 @@ public class AdminController {
 	}
 	
 	private NavbarModel buildAdminNavbar(LabVisionUserDetails userDetails) {
-		NavbarModelImpl navbarModel = new NavbarModelImpl();
+		NavbarModelBuilder builder = NavbarModelBuilder
+				.forController(AdminController.class)
+				.link("Dashboard", "dashboard", null, null)
+				.link("Courses", "courses", null, null)
+				.link("Users", "users", null, null);
 		
-		navbarModel.addNavLink("Dashboard", AdminController.class, "dashboard", new Object(), new Object());
-		navbarModel.addNavLink("Courses", AdminController.class, "courses", new Object(), new Object());
-		navbarModel.addNavLink("Users", AdminController.class, "users", new Object(), new Object());
-		
-		ArrayList<NavLink> accountLinks = new ArrayList<>(
-				Arrays.asList(new NavLink[] {
-						navbarModel.createNavLink("Profile", AdminController.class, "profile", new Object(), new Object())
-				})
-		);
+		NavbarModelBuilder.DropdownBuilder<NavbarModelBuilder> dropdownBuilder = builder.dropdown("Account", "#");
+		dropdownBuilder.link("Profile", "profile", null, null);
 		
 		// non-admin user roles, if any
 		List<GrantedAuthority> nonAdminRoles = userDetails.getAuthorities().stream()
 				.filter(auth -> !auth.getAuthority().equals("ROLE_ADMIN"))
 				.collect(Collectors.toList());
 		
-		// add admin exit link
+		// add admin exit link if user has any non-admin roles
 		if (!nonAdminRoles.isEmpty()) {
-			accountLinks.add(navbarModel.createNavLink(
-					"Exit Admin", dashboardUrlService.getDashboardUrl(nonAdminRoles)));
+			dropdownBuilder.link("Exit Admin", dashboardUrlService.getDashboardUrl(nonAdminRoles));
 		}
 		
-		navbarModel.addNavLink(new NavLink(
-				navbarModel, "Account",
-				"#",
-				accountLinks.toArray(new NavLink[accountLinks.size()])
-		));
+		builder = dropdownBuilder.buildDropdown();
 		
-		navbarModel.setLogoutLink("/logout");
-		
-		return navbarModel;
+		return builder.logoutLink("/logout").build();
 	}
 	
 }
