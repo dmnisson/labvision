@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
@@ -33,7 +34,7 @@ public class Student extends LabVisionUser {
 	@OneToMany( mappedBy="student", targetEntity=ReportedResult.class )
 	private List<ReportedResult> reportedResults = new ArrayList<>();
 	
-	@OneToOne
+	@OneToOne( cascade = CascadeType.ALL )
 	private StudentPreferences studentPreferences;
 	
 	@ManyToMany

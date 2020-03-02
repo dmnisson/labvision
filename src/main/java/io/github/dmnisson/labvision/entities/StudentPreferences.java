@@ -17,19 +17,22 @@ public class StudentPreferences implements LabVisionEntity {
 	@GeneratedValue( strategy = GenerationType.AUTO )
 	private int id;
 	
-	@OneToOne
+	@OneToOne( mappedBy = "studentPreferences" )
 	private Student student;
 	
-	// Dashboard preferences
-	private int maxRecentExperiments;
+	// --- Dashboard preferences ---
 	
-	private int maxRecentCourses;
-
+	private Integer maxCurrentExperiments;
+	
+	private Integer maxRecentExperiments;
+	
+	private Integer maxRecentCourses;
+	
 	public int getMaxRecentExperiments() {
 		return maxRecentExperiments;
 	}
 
-	public void setMaxRecentExperiments(int maxRecentExperiments) {
+	public void setMaxRecentExperiments(Integer maxRecentExperiments) {
 		this.maxRecentExperiments = maxRecentExperiments;
 	}
 
@@ -37,7 +40,7 @@ public class StudentPreferences implements LabVisionEntity {
 		return maxRecentCourses;
 	}
 
-	public void setMaxRecentCourses(int maxRecentCourses) {
+	public void setMaxRecentCourses(Integer maxRecentCourses) {
 		this.maxRecentCourses = maxRecentCourses;
 	}
 
@@ -47,5 +50,13 @@ public class StudentPreferences implements LabVisionEntity {
 
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	public int getMaxCurrentExperiments() {
+		return maxCurrentExperiments;
+	}
+
+	public void setMaxCurrentExperiments(Integer maxCurrentExperiments) {
+		this.maxCurrentExperiments = maxCurrentExperiments;
 	}
 }
