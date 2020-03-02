@@ -55,7 +55,7 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"GROUP BY e.id, e.name, c.id, c.name " + 
 			"ORDER BY e.reportDueDate ASC" )
 	public List<CurrentExperimentForStudentDashboard> findCurrentExperimentsForStudentDashboardNoReports(
-			@Param("studentid") Integer studentId);
+			@Param("studentid") Integer studentId, Pageable pageable);
 	
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard(" +
 			"	e.id," +
@@ -80,7 +80,7 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"GROUP BY e.id, e.name, c.id, c.name " +
 			"ORDER BY lu DESC" )
 	public List<CurrentExperimentForStudentDashboard> findCurrentExperimentsForStudentDashboardWithReports(
-			@Param("studentid") Integer studentId);
+			@Param("studentid") Integer studentId, Pageable pageable);
 
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard(" +
 		    "	e.id," +
@@ -107,7 +107,7 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"ORDER BY e.reportDueDate ASC NULLS LAST"
 			)
 	public List<RecentExperimentForStudentDashboard> findRecentExperimentsForStudentDashboardNoReports(
-			@Param("studentid") Integer studentId);
+			@Param("studentid") Integer studentId, Pageable pageable);
 	
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard(" +
 		    "	e.id," +
@@ -130,7 +130,7 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"ORDER BY lu DESC"
 			)
 	public List<RecentExperimentForStudentDashboard> findRecentExperimentsForStudentDashboardWithReports(
-			@Param("studentid") Integer studentId);
+			@Param("studentid") Integer studentId, Pageable pageable);
 
 	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable(" +
 			"	e.id," +

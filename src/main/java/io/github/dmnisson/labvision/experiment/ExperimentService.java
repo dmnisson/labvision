@@ -1,12 +1,17 @@
 package io.github.dmnisson.labvision.experiment;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import io.github.dmnisson.labvision.ResourceNotFoundException;
@@ -217,6 +222,43 @@ public class ExperimentService {
 		ExperimentViewModel<Map<Integer, Map<Integer, List<MeasurementValueForFacultyExperimentView>>>> experimentViewModel = new ExperimentViewModel<>(
 				measurements, measurementValues, experiment, parameters, parameterValues);
 		return experimentViewModel;
+	}
+	
+	public <DTO> List<DTO> findExperimentsForDashboard(
+			Method noReportsMethod, Object[] noReportsArgs, Method withReportsMethod, Object[] withReportsArgs,
+			Class<DTO> dtoClass, int limit) {
+		
+		Pageable noReportsPageable = PageRequest.of(0, limit);
+		
+		List<DTO> experimentsNoReports;
+		try {
+			experimentsNoReports = ((List<?>) noReportsMethod.invoke(
+					experimentRepository, 
+					Stream.concat(
+							Stream.of(noReportsArgs),
+							Stream.of(noReportsPageable)
+							).toArray(Object[]::new)
+					)).stream()
+			.map(dto -> dtoClass.cast(dto))
+			.collect(Collectors.toList());
+		
+			Pageable withReportsPageable = PageRequest.of(0, limit);
+			
+			List<DTO> experimentsWithReports = 
+					((List<?>) withReportsMethod.invoke(
+							Stream.concat(
+									Stream.of(withReportsArgs),
+									Stream.of(withReportsPageable)
+									).toArray(Object[]::new)
+							)).stream()
+					.map(dto -> dtoClass.cast(dto))
+					.collect(Collectors.toList());
+			
+			return Stream.concat(experimentsNoReports.stream(), experimentsWithReports.stream())
+					.collect(Collectors.toList());
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 	
 }

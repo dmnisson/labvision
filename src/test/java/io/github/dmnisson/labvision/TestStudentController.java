@@ -3,21 +3,21 @@ package io.github.dmnisson.labvision;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Pageable;
 import org.springframework.ui.ExtendedModelMap;
 
 import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
@@ -26,6 +26,7 @@ import io.github.dmnisson.labvision.dto.student.course.RecentCourseForStudentDas
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
+import io.github.dmnisson.labvision.experiment.ExperimentService;
 import io.github.dmnisson.labvision.models.NavbarModel;
 import io.github.dmnisson.labvision.models.test.NavLinkSpec;
 import io.github.dmnisson.labvision.models.test.NavLinkSpecAssertions;
@@ -39,7 +40,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 	private LabVisionUserDetailsManager userDetailsManager;
 	
 	@MockBean
-	private ExperimentRepository experimentRepository;
+	private ExperimentService experimentService;
 	
 	@MockBean
 	private CourseRepository courseRepository;
@@ -77,7 +78,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 	}
 	
 	@Test
-	public void dashboard_ShouldAddListOfCurrentExperimentsWithNoReports() {
+	public void dashboard_ShouldAddListOfCurrentExperiments() throws Exception {
 		final Integer studentId = 6;
 		
 		LabVisionUser user = mockLabVisionUser(studentId);
@@ -94,49 +95,20 @@ public class TestStudentController extends LabvisionApplicationTests {
 							.plusDays(7 * i)
 						))
 				.collect(Collectors.toList());
-		when(experimentRepository.findCurrentExperimentsForStudentDashboardNoReports(eq(studentId)))
-			.thenReturn(currentExperiments);
-		when(experimentRepository.findCurrentExperimentsForStudentDashboardWithReports(eq(studentId)))
-			.thenReturn(new ArrayList<>());
-		
-		ExtendedModelMap model = new ExtendedModelMap();
-		
-		studentController.dashboard(user, model);
-		
-		@SuppressWarnings("unchecked")
-		List<CurrentExperimentForStudentDashboard> actualCurrentExperiments = 
-				(List<CurrentExperimentForStudentDashboard>) model.getAttribute("currentExperiments");
-		
-		assertEquals(currentExperiments.size(), actualCurrentExperiments.size());
-		for (int i = 0; i < currentExperiments.size(); i++) {
-			assertCurrentExperimentForStudentDashboardHasSameInfo(
-					currentExperiments.get(i), 
-					actualCurrentExperiments.get(i)
-					);
-		}
-	}
-	
-	@Test
-	public void dashboard_ShouldAddListOfCurrentExperimentsWithReports() {
-		final Integer studentId = 6;
-		
-		LabVisionUser user = mockLabVisionUser(studentId);
-		
-		List<CurrentExperimentForStudentDashboard> currentExperiments = IntStream.range(1, 16)
-				.mapToObj(i -> new CurrentExperimentForStudentDashboard(
-						i + 1, 
-						"Test Experiment " + i, 
-						1, 
-						"Test Course",
-						LocalDateTime.of(1990, 1, 1, 0, 0, 0)
-							.plusDays(i),
-						LocalDateTime.of(2050, 1, 1, 0, 0, 0)
-							.plusDays(7 * i)
-						))
-				.collect(Collectors.toList());
-		when(experimentRepository.findCurrentExperimentsForStudentDashboardNoReports(eq(studentId)))
-			.thenReturn(new ArrayList<>());
-		when(experimentRepository.findCurrentExperimentsForStudentDashboardWithReports(eq(studentId)))
+		when(experimentService.findExperimentsForDashboard(
+				eq(ExperimentRepository.class.getMethod(
+						"findCurrentExperimentsForStudentDashboardNoReports", 
+						Integer.class, Pageable.class
+						)),
+				any(Integer[].class),
+				eq(ExperimentRepository.class.getMethod(
+						"findCurrentExperimentsForStudentDashboardWithReports", 
+						Integer.class, Pageable.class
+						)),
+				any(Integer[].class),
+				eq(CurrentExperimentForStudentDashboard.class),
+				eq(Integer.MAX_VALUE)
+				))
 			.thenReturn(currentExperiments);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
@@ -155,104 +127,40 @@ public class TestStudentController extends LabvisionApplicationTests {
 					);
 		}
 	}
-	
+
 	@Test
-	public void dashboard_ShouldAddListOfCurrentExperimentsWithNoReportsFirst() {
+	public void dashboard_ShouldAddListOfRecentExperiments() throws Exception {
 		final Integer studentId = 6;
 		
 		LabVisionUser user = mockLabVisionUser(studentId);
 		
-		List<CurrentExperimentForStudentDashboard> currentExperimentsNoReports = IntStream.range(1, 16)
-				.mapToObj(i -> new CurrentExperimentForStudentDashboard(
+		List<RecentExperimentForStudentDashboard> recentExperiments = IntStream.range(1, 16)
+				.mapToObj(i -> new RecentExperimentForStudentDashboard(
 						i + 1, 
 						"Test Experiment " + i, 
-						1, 
-						"Test Course",
 						LocalDateTime.of(1990, 1, 1, 0, 0, 0)
+							.plusDays(i),
+						LocalDateTime.of(1989, 12, 15, 0, 0, 0)
 							.plusDays(i),
 						LocalDateTime.of(2050, 1, 1, 0, 0, 0)
 							.plusDays(7 * i)
 						))
 				.collect(Collectors.toList());
-		
-		List<CurrentExperimentForStudentDashboard> currentExperimentsWithReports = IntStream.range(16, 26)
-				.mapToObj(i -> new CurrentExperimentForStudentDashboard(
-						i + 1, 
-						"Test Experiment " + i, 
-						1, 
-						"Test Course",
-						LocalDateTime.of(1990, 1, 1, 0, 0, 0)
-							.plusDays(i),
-						LocalDateTime.of(2050, 1, 1, 0, 0, 0)
-							.plusDays(7 * i)
-						))
-				.collect(Collectors.toList());
-		
-		when(experimentRepository.findCurrentExperimentsForStudentDashboardNoReports(eq(studentId)))
-			.thenReturn(currentExperimentsNoReports);
-		when(experimentRepository.findCurrentExperimentsForStudentDashboardWithReports(eq(studentId)))
-			.thenReturn(currentExperimentsWithReports);
-		
-		ExtendedModelMap model = new ExtendedModelMap();
-		
-		studentController.dashboard(user, model);
-		
-		@SuppressWarnings("unchecked")
-		List<CurrentExperimentForStudentDashboard> actualCurrentExperiments = 
-				(List<CurrentExperimentForStudentDashboard>) model.getAttribute("currentExperiments");
-		
-		assertEquals(currentExperimentsNoReports.size() + currentExperimentsWithReports.size(), 
-				actualCurrentExperiments.size());
-		
-		for (int i = 0; i < currentExperimentsNoReports.size(); i++) {
-			assertCurrentExperimentForStudentDashboardHasSameInfo(
-					currentExperimentsNoReports.get(i), 
-					actualCurrentExperiments.get(i)
-					);
-		}
-		
-		for (int i = 0; i < currentExperimentsWithReports.size(); i++) {
-			assertCurrentExperimentForStudentDashboardHasSameInfo(
-					currentExperimentsWithReports.get(i), 
-					actualCurrentExperiments.get(i + currentExperimentsNoReports.size())
-					);
-		}
-	}
-	
-	@Test
-	public void dashboard_ShouldAddListOfRecentExperimentsWithNoReportsFirst() {
-		final Integer studentId = 6;
-		
-		LabVisionUser user = mockLabVisionUser(studentId);
-		
-		List<RecentExperimentForStudentDashboard> recentExperimentsNoReports = IntStream.range(1, 13)
-				.mapToObj(i -> new RecentExperimentForStudentDashboard(
-						i,
-						"Test Experiment " + i,
-						LocalDateTime.of(1989, 3, 1, 0, 0, 0)
-							.plusDays(i),
-						LocalDateTime.of(1991, 3, 1, 0, 0, 0)
-							.plusDays(i),
-						null
-						))
-				.collect(Collectors.toList());
-		
-		List<RecentExperimentForStudentDashboard> recentExperimentsWithReports = IntStream.range(13, 27)
-				.mapToObj(i -> new RecentExperimentForStudentDashboard(
-						i,
-						"Test Experiment " + i,
-						LocalDateTime.of(1989, 3, 1, 0, 0, 0)
-							.plusDays(i),
-						LocalDateTime.of(1991, 3, 1, 0, 0, 0)
-							.plusDays(i + 1).plusHours(6 * i),
-						null
-						))
-				.collect(Collectors.toList());
-		
-		when(experimentRepository.findRecentExperimentsForStudentDashboardNoReports(studentId))
-			.thenReturn(recentExperimentsNoReports);
-		when(experimentRepository.findRecentExperimentsForStudentDashboardWithReports(studentId))
-			.thenReturn(recentExperimentsWithReports);
+		when(experimentService.findExperimentsForDashboard(
+				eq(ExperimentRepository.class.getMethod(
+						"findRecentExperimentsForStudentDashboardNoReports", 
+						Integer.class, Pageable.class
+						)),
+				any(Integer[].class),
+				eq(ExperimentRepository.class.getMethod(
+						"findRecentExperimentsForStudentDashboardWithReports", 
+						Integer.class, Pageable.class
+						)),
+				any(Integer[].class),
+				eq(RecentExperimentForStudentDashboard.class),
+				eq(Integer.MAX_VALUE)
+				))
+			.thenReturn(recentExperiments);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
 		
@@ -262,26 +170,17 @@ public class TestStudentController extends LabvisionApplicationTests {
 		List<RecentExperimentForStudentDashboard> actualRecentExperiments = 
 				(List<RecentExperimentForStudentDashboard>) model.getAttribute("recentExperiments");
 		
-		assertEquals(recentExperimentsNoReports.size() + recentExperimentsWithReports.size(),
-				actualRecentExperiments.size());
-		
-		for (int i = 0; i < recentExperimentsNoReports.size(); i++) {
+		assertEquals(recentExperiments.size(), actualRecentExperiments.size());
+		for (int i = 0; i < recentExperiments.size(); i++) {
 			assertRecentExperimentForStudentDashboardHasSameInfo(
-					recentExperimentsNoReports.get(i),
+					recentExperiments.get(i), 
 					actualRecentExperiments.get(i)
 					);
 		}
-		
-		for (int i = 0; i < recentExperimentsWithReports.size(); i++) {
-			assertRecentExperimentForStudentDashboardHasSameInfo(
-					recentExperimentsWithReports.get(i),
-					actualRecentExperiments.get(i + recentExperimentsNoReports.size())
-					);
-		}
 	}
-
+	
 	@Test
-	public void dashboard_shouldAddListOfRecentCourses() {
+	public void dashboard_shouldAddListOfRecentCourses() throws Exception {
 		final Integer studentId = 6;
 		
 		LabVisionUser user = mockLabVisionUser(studentId);

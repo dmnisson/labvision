@@ -64,6 +64,7 @@ import io.github.dmnisson.labvision.entities.Parameter;
 import io.github.dmnisson.labvision.entities.ReportDocumentType;
 import io.github.dmnisson.labvision.entities.ReportedResult;
 import io.github.dmnisson.labvision.entities.Student;
+import io.github.dmnisson.labvision.experiment.ExperimentService;
 import io.github.dmnisson.labvision.measure.Amount;
 import io.github.dmnisson.labvision.measure.SI;
 import io.github.dmnisson.labvision.models.NavbarModel;
@@ -86,6 +87,9 @@ public class StudentController {
 	
 	@Autowired
 	private ExperimentRepository experimentRepository;
+	
+	@Autowired
+	private ExperimentService experimentService;
 	
 	@Autowired
 	private CourseRepository courseRepository;
@@ -130,21 +134,39 @@ public class StudentController {
 	}
 	
 	@GetMapping("/dashboard")
-	public String dashboard(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+	public String dashboard(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws NoSuchMethodException, SecurityException {
 		model.addAttribute("student", user);
 		
 		Integer studentId = user.getId();
 		
-		List<CurrentExperimentForStudentDashboard> currentExperiments = Stream.concat(
-				experimentRepository.findCurrentExperimentsForStudentDashboardNoReports(studentId).stream(),
-				experimentRepository.findCurrentExperimentsForStudentDashboardWithReports(studentId).stream()
-				).collect(Collectors.toList());
+		List<CurrentExperimentForStudentDashboard> currentExperiments = experimentService
+				.findExperimentsForDashboard(
+						ExperimentRepository.class.getMethod(
+								"findCurrentExperimentsForStudentDashboardNoReports",
+								Integer.class, Pageable.class), 
+						new Integer[] { studentId }, 
+						ExperimentRepository.class.getMethod(
+								"findCurrentExperimentsForStudentDashboardWithReports",
+								Integer.class, Pageable.class), 
+						new Integer[] { studentId }, 
+						CurrentExperimentForStudentDashboard.class, 
+						Integer.MAX_VALUE
+						);
 		model.addAttribute("currentExperiments", currentExperiments);
 		
-		List<RecentExperimentForStudentDashboard> recentExperiments = Stream.concat(
-				experimentRepository.findRecentExperimentsForStudentDashboardNoReports(studentId).stream(),
-				experimentRepository.findRecentExperimentsForStudentDashboardWithReports(studentId).stream()
-				).collect(Collectors.toList());
+		List<RecentExperimentForStudentDashboard> recentExperiments = experimentService
+				.findExperimentsForDashboard(
+						ExperimentRepository.class.getMethod(
+								"findRecentExperimentsForStudentDashboardNoReports",
+								Integer.class, Pageable.class), 
+						new Integer[] { studentId }, 
+						ExperimentRepository.class.getMethod(
+								"findRecentExperimentsForStudentDashboardWithReports",
+								Integer.class, Pageable.class), 
+						new Integer[] { studentId }, 
+						RecentExperimentForStudentDashboard.class, 
+						Integer.MAX_VALUE
+						);
 		model.addAttribute("recentExperiments", recentExperiments);
 		
 		List<RecentCourseForStudentDashboard> recentCourses = courseRepository.findRecentCoursesForStudentDashboard(studentId);
