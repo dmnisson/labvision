@@ -91,7 +91,7 @@
         <ul class="list-group list-group-flush">
           <c:forEach var="course" items="${recentCourses}">
             <li class="list-group-item">
-              <a href="${s:mvcUrl('SC#getCourse').arg(0, experiment.id).build()}"><c:out value="${course.name}" /></a>
+              <a href="${s:mvcUrl('SC#getCourse').arg(0, course.id).build()}"><c:out value="${course.name}" /></a>
             </li>
           </c:forEach>
         </ul>
