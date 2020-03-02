@@ -95,12 +95,16 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"LEFT JOIN mv.student s " +
 			"LEFT JOIN e.reportedResults rr " +
 			"LEFT JOIN rr.student s2 " +
+			"LEFT JOIN e.course c " +
+			"LEFT JOIN c.courseClasses cc " +
+			"LEFT JOIN cc.students s3 " +
 			"WHERE (s.id IS NULL OR s.id=:studentid) AND " +
 			"(s2.id IS NULL OR s2.id=:studentid) AND " +
-			"(s.id IS NOT NULL OR s2.id IS NOT NULL) AND " +
+			"(s3.id IS NULL OR s3.id=:studentid) AND " +
+			"(s.id IS NOT NULL OR s2.id IS NOT NULL OR s3.id IS NOT NULL) AND " +
 			"rr.added IS NULL " +
 			"GROUP BY e.id, e.name " +
-			"ORDER BY e.reportDueDate ASC"
+			"ORDER BY e.reportDueDate ASC NULLS LAST"
 			)
 	public List<RecentExperimentForStudentDashboard> findRecentExperimentsForStudentDashboardNoReports(
 			@Param("studentid") Integer studentId);
