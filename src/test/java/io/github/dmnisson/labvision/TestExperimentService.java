@@ -53,7 +53,7 @@ public class TestExperimentService extends LabvisionApplicationTests {
 	
 	private void mockWithReportsRepositoryMethod(final Integer studentId, final int limit, final int noReportsSize,
 			final ExperimentLists experimentLists) {
-		when(experimentRepository.findCurrentExperimentsForStudentDashboardWithReports(
+		when(experimentRepository.findCurrentExperimentsForStudentDashboardWithSubmissions(
 				eq(studentId), 
 				eq(PageRequest.of(0, limit - noReportsSize))
 				))
@@ -62,7 +62,7 @@ public class TestExperimentService extends LabvisionApplicationTests {
 
 	private void mockNoReportsRepositoryMethod(final Integer studentId, final int limit,
 			final ExperimentLists experimentLists) {
-		when(experimentRepository.findCurrentExperimentsForStudentDashboardNoReports(
+		when(experimentRepository.findCurrentExperimentsForStudentDashboardNoSubmissions(
 				eq(studentId), 
 				eq(PageRequest.of(0, limit))
 				))
@@ -115,7 +115,7 @@ public class TestExperimentService extends LabvisionApplicationTests {
 		List<CurrentExperimentForStudentDashboard> actualExperiments 
 				= getActualExperiments(studentId, limit);
 		
-		verify(experimentRepository, never()).findCurrentExperimentsForStudentDashboardWithReports(any(), any());
+		verify(experimentRepository, never()).findCurrentExperimentsForStudentDashboardWithSubmissions(any(), any());
 		
 		assertEquals(limit, actualExperiments.size());
 	}
@@ -127,7 +127,7 @@ public class TestExperimentService extends LabvisionApplicationTests {
 		
 		final ExperimentLists experimentLists = makeExperimentLists(limit, 0);
 		
-		when(experimentRepository.findCurrentExperimentsForStudentDashboardWithReports(
+		when(experimentRepository.findCurrentExperimentsForStudentDashboardWithSubmissions(
 				eq(studentId), 
 				eq(PageRequest.of(0, limit))
 				))

@@ -44,17 +44,13 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"JOIN s.activeExperiments e " +
 			"JOIN e.course c " +
 			"LEFT JOIN e.measurements m " +
-			"LEFT JOIN m.values mv " +
-			"LEFT JOIN e.reportedResults rr " +
-			"LEFT JOIN mv.student s2 " +
-			"LEFT JOIN rr.student s3 " +
+			"LEFT JOIN m.values mv ON mv.student.id=:studentid " +
+			"LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid " +
 			"WHERE s.id=:studentid AND " +
-			"(s2.id IS NULL OR s2.id=:studentid) AND " +
-			"(s3.id IS NULL OR s3.id=:studentid) AND " +
-			"rr.added IS NULL " +
+			"mv.id IS NULL AND rr.id IS NULL " +
 			"GROUP BY e.id, e.name, c.id, c.name " + 
-			"ORDER BY e.reportDueDate ASC" )
-	public List<CurrentExperimentForStudentDashboard> findCurrentExperimentsForStudentDashboardNoReports(
+			"ORDER BY e.reportDueDate ASC NULLS LAST" )
+	public List<CurrentExperimentForStudentDashboard> findCurrentExperimentsForStudentDashboardNoSubmissions(
 			@Param("studentid") Integer studentId, Pageable pageable);
 	
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard(" +
@@ -79,7 +75,7 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"rr.added IS NOT NULL " +
 			"GROUP BY e.id, e.name, c.id, c.name " +
 			"ORDER BY lu DESC" )
-	public List<CurrentExperimentForStudentDashboard> findCurrentExperimentsForStudentDashboardWithReports(
+	public List<CurrentExperimentForStudentDashboard> findCurrentExperimentsForStudentDashboardWithSubmissions(
 			@Param("studentid") Integer studentId, Pageable pageable);
 
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard(" +
@@ -90,23 +86,21 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 		    "	e.reportDueDate" +
 			") " +
 			"FROM Experiment e " +
+			"LEFT JOIN e.activeStudents s " +
 			"LEFT JOIN e.measurements m " +
-			"LEFT JOIN m.values mv " +
-			"LEFT JOIN mv.student s " +
-			"LEFT JOIN e.reportedResults rr " +
-			"LEFT JOIN rr.student s2 " +
+			"LEFT JOIN m.values mv ON mv.student.id=:studentid " +
+			"LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid " +
 			"LEFT JOIN e.course c " +
 			"LEFT JOIN c.courseClasses cc " +
-			"LEFT JOIN cc.students s3 " +
+			"LEFT JOIN cc.students s2 " +
 			"WHERE (s.id IS NULL OR s.id=:studentid) AND " +
 			"(s2.id IS NULL OR s2.id=:studentid) AND " +
-			"(s3.id IS NULL OR s3.id=:studentid) AND " +
-			"(s.id IS NOT NULL OR s2.id IS NOT NULL OR s3.id IS NOT NULL) AND " +
-			"rr.added IS NULL " +
+			"(s.id IS NOT NULL OR s2.id IS NOT NULL) AND " +
+			"rr.id IS NULL AND mv.id IS NULL " +
 			"GROUP BY e.id, e.name " +
 			"ORDER BY e.reportDueDate ASC NULLS LAST"
 			)
-	public List<RecentExperimentForStudentDashboard> findRecentExperimentsForStudentDashboardNoReports(
+	public List<RecentExperimentForStudentDashboard> findRecentExperimentsForStudentDashboardNoSubmissions(
 			@Param("studentid") Integer studentId, Pageable pageable);
 	
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard(" +
@@ -125,11 +119,11 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"WHERE (s.id IS NULL OR s.id=:studentid) AND " +
 			"(s2.id IS NULL OR s2.id=:studentid) AND " +
 			"(s.id IS NOT NULL OR s2.id IS NOT NULL) AND " +
-			"rr.added IS NOT NULL " +
+			"mv.id IS NOT NULL OR rr.id IS NOT NULL " +
 			"GROUP BY e.id, e.name " +
 			"ORDER BY lu DESC"
 			)
-	public List<RecentExperimentForStudentDashboard> findRecentExperimentsForStudentDashboardWithReports(
+	public List<RecentExperimentForStudentDashboard> findRecentExperimentsForStudentDashboardWithSubmissions(
 			@Param("studentid") Integer studentId, Pageable pageable);
 
 	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable(" +
