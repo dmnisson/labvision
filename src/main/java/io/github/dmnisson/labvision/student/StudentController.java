@@ -136,39 +136,21 @@ public class StudentController {
 	public String dashboard(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws NoSuchMethodException, SecurityException {
 		model.addAttribute("student", user);
 		
-		Integer studentId = user.getId();
-		
-		List<CurrentExperimentForStudentDashboard> currentExperiments = experimentService
-				.findExperimentsForDashboard(
-						ExperimentRepository.class.getMethod(
-								"findCurrentExperimentsForStudentDashboardNoReports",
-								Integer.class, Pageable.class), 
-						new Integer[] { studentId }, 
-						ExperimentRepository.class.getMethod(
-								"findCurrentExperimentsForStudentDashboardWithReports",
-								Integer.class, Pageable.class), 
-						new Integer[] { studentId }, 
-						CurrentExperimentForStudentDashboard.class, 
-						Integer.MAX_VALUE
-						);
+		List<CurrentExperimentForStudentDashboard> currentExperiments = experimentService.findExperimentsForDashboard(
+				user.getId(), 
+				Integer.MAX_VALUE, 
+				CurrentExperimentForStudentDashboard.class
+				);
 		model.addAttribute("currentExperiments", currentExperiments);
 		
-		List<RecentExperimentForStudentDashboard> recentExperiments = experimentService
-				.findExperimentsForDashboard(
-						ExperimentRepository.class.getMethod(
-								"findRecentExperimentsForStudentDashboardNoReports",
-								Integer.class, Pageable.class), 
-						new Integer[] { studentId }, 
-						ExperimentRepository.class.getMethod(
-								"findRecentExperimentsForStudentDashboardWithReports",
-								Integer.class, Pageable.class), 
-						new Integer[] { studentId }, 
-						RecentExperimentForStudentDashboard.class, 
-						Integer.MAX_VALUE
-						);
+		List<RecentExperimentForStudentDashboard> recentExperiments = experimentService.findExperimentsForDashboard(
+				user.getId(), 
+				Integer.MAX_VALUE, 
+				RecentExperimentForStudentDashboard.class
+				);
 		model.addAttribute("recentExperiments", recentExperiments);
 		
-		List<RecentCourseForStudentDashboard> recentCourses = courseRepository.findRecentCoursesForStudentDashboard(studentId);
+		List<RecentCourseForStudentDashboard> recentCourses = courseRepository.findRecentCoursesForStudentDashboard(user.getId());
 		model.addAttribute("recentCourses", recentCourses);
 		
 		return "student/dashboard";

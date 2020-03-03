@@ -1,7 +1,5 @@
 package io.github.dmnisson.labvision.experiment;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -224,41 +222,32 @@ public class ExperimentService {
 		return experimentViewModel;
 	}
 	
-	public <DTO> List<DTO> findExperimentsForDashboard(
-			Method noReportsMethod, Object[] noReportsArgs, Method withReportsMethod, Object[] withReportsArgs,
-			Class<DTO> dtoClass, int limit) {
-		
+	public <DTO> List<DTO> findExperimentsForDashboard(Integer userId, int limit, Class<DTO> dtoClass) {
 		Pageable noReportsPageable = PageRequest.of(0, limit);
 		
-		List<DTO> experimentsNoReports;
-		try {
-			experimentsNoReports = ((List<?>) noReportsMethod.invoke(
-					experimentRepository, 
-					Stream.concat(
-							Stream.of(noReportsArgs),
-							Stream.of(noReportsPageable)
-							).toArray(Object[]::new)
-					)).stream()
-			.map(dto -> dtoClass.cast(dto))
-			.collect(Collectors.toList());
+		ExperimentDashboardQueries<DTO, Integer> dashboardQueries =
+				ExperimentDashboardQueriesFactory.createDashboardQueriesForDtoType(
+						experimentRepository, 
+						dtoClass,
+						Integer.class
+						);
 		
-			Pageable withReportsPageable = PageRequest.of(0, limit);
-			
-			List<DTO> experimentsWithReports = 
-					((List<?>) withReportsMethod.invoke(
-							Stream.concat(
-									Stream.of(withReportsArgs),
-									Stream.of(withReportsPageable)
-									).toArray(Object[]::new)
-							)).stream()
-					.map(dto -> dtoClass.cast(dto))
-					.collect(Collectors.toList());
-			
-			return Stream.concat(experimentsNoReports.stream(), experimentsWithReports.stream())
-					.collect(Collectors.toList());
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new IllegalArgumentException(e);
+		List<DTO> experimentsNoReports = dashboardQueries.findExperimentsNoReports(userId, noReportsPageable);
+		
+		assert experimentsNoReports.size() <= limit;
+		if (experimentsNoReports.size() == limit) {
+			return experimentsNoReports;
 		}
+		
+		Pageable withReportsPageable = PageRequest.of(0, limit - experimentsNoReports.size());
+		
+		List<DTO> experimentsWithReports = dashboardQueries.findExperimentsWithReports(userId, withReportsPageable);
+		
+		return Stream.concat(
+					experimentsNoReports.stream(),
+					experimentsWithReports.stream()
+					)
+				.collect(Collectors.toList());
 	}
 	
 }
