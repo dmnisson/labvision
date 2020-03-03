@@ -3,7 +3,6 @@ package io.github.dmnisson.labvision;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -17,7 +16,6 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Pageable;
 import org.springframework.ui.ExtendedModelMap;
 
 import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
@@ -31,7 +29,6 @@ import io.github.dmnisson.labvision.models.NavbarModel;
 import io.github.dmnisson.labvision.models.test.NavLinkSpec;
 import io.github.dmnisson.labvision.models.test.NavLinkSpecAssertions;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
-import io.github.dmnisson.labvision.repositories.ExperimentRepository;
 import io.github.dmnisson.labvision.student.StudentController;
 
 public class TestStudentController extends LabvisionApplicationTests {
@@ -96,18 +93,9 @@ public class TestStudentController extends LabvisionApplicationTests {
 						))
 				.collect(Collectors.toList());
 		when(experimentService.findExperimentsForDashboard(
-				eq(ExperimentRepository.class.getMethod(
-						"findCurrentExperimentsForStudentDashboardNoReports", 
-						Integer.class, Pageable.class
-						)),
-				any(Integer[].class),
-				eq(ExperimentRepository.class.getMethod(
-						"findCurrentExperimentsForStudentDashboardWithReports", 
-						Integer.class, Pageable.class
-						)),
-				any(Integer[].class),
-				eq(CurrentExperimentForStudentDashboard.class),
-				eq(Integer.MAX_VALUE)
+				eq(studentId),
+				eq(Integer.MAX_VALUE),
+				eq(CurrentExperimentForStudentDashboard.class)
 				))
 			.thenReturn(currentExperiments);
 		
@@ -147,18 +135,9 @@ public class TestStudentController extends LabvisionApplicationTests {
 						))
 				.collect(Collectors.toList());
 		when(experimentService.findExperimentsForDashboard(
-				eq(ExperimentRepository.class.getMethod(
-						"findRecentExperimentsForStudentDashboardNoReports", 
-						Integer.class, Pageable.class
-						)),
-				any(Integer[].class),
-				eq(ExperimentRepository.class.getMethod(
-						"findRecentExperimentsForStudentDashboardWithReports", 
-						Integer.class, Pageable.class
-						)),
-				any(Integer[].class),
-				eq(RecentExperimentForStudentDashboard.class),
-				eq(Integer.MAX_VALUE)
+				eq(studentId),
+				eq(Integer.MAX_VALUE),
+				eq(RecentExperimentForStudentDashboard.class)
 				))
 			.thenReturn(recentExperiments);
 		
