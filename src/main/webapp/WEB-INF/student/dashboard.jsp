@@ -49,6 +49,13 @@
               </c:forEach>
             </tbody>
           </table>
+          <c:if test="${not empty numMoreCurrentExperiments}">
+          <p class="card-text p-2">
+	          <a href="${s:mvcUrl('SC#experiments').arg(0, 'currentExperiments').build()}" class="btn btn-primary mr-auto">
+	            ${numMoreCurrentExperiments} More...
+	          </a>
+          </p>
+          </c:if>
           </c:if>
         </div>
       </div>
@@ -74,6 +81,13 @@
           </li>
           </c:forEach>
         </ul>
+        <c:if test="${not empty numMoreRecentExperiments}">
+        <p class="card-text p-2">
+          <a href="${s:mvcUrl('SC#experiments').arg(0, 'currentExperiments').build()}" class="btn btn-primary mr-auto">
+            ${numMoreRecentExperiments} More...
+          </a>
+        </p>
+        </c:if>
         </c:if>
       </div>
     </div>
@@ -95,6 +109,13 @@
             </li>
           </c:forEach>
         </ul>
+        <c:if test="${not empty numMoreRecentCourses}">
+        <p class="card-text p-2">
+          <a href="${s:mvcUrl('SC#courses').build()}" class="btn btn-primary mr-auto">
+            ${numMoreRecentCourses} More...
+          </a>
+        </p>
+        </c:if>
         </c:if>
       </div>
     </div>

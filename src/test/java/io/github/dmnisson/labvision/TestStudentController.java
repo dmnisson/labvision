@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,6 +51,9 @@ public class TestStudentController extends LabvisionApplicationTests {
 	private ExperimentService experimentService;
 	
 	@MockBean
+	private CourseService courseService;
+	
+	@MockBean
 	private CourseRepository courseRepository;
 	
 	@MockBean
@@ -71,6 +76,81 @@ public class TestStudentController extends LabvisionApplicationTests {
 			.thenReturn(maxRecentExperiments);
 		when(studentPreferencesService.getMaxRecentCourses(eq(studentId)))
 			.thenReturn(maxRecentCourses);
+	}
+	
+	abstract class DtoListTester<T> {
+		
+		private Integer studentId;
+		private String listAttributeName;
+		private int maxListSize;
+		private long itemCount;
+		
+		protected DtoListTester(Integer studentId, String listAttributeName, int maxListSize, long itemCount) {
+			this.studentId = studentId;
+			this.listAttributeName = listAttributeName;
+			this.maxListSize = maxListSize;
+			this.itemCount = itemCount;
+		}
+		
+		protected abstract Class<T> getListItemClass();
+		protected abstract void mockItemCountFunction();
+		protected abstract T mapListItems(int itemNumber);
+		protected abstract void assertListItemsHaveSameInfo(T expected, T actual);
+		protected abstract void mockStudentPreferencesServiceMethodsForDtoClass(
+				Integer studentId, int maxListSize);
+		
+		protected abstract void mockFindDtoObjects(List<T> expectedList);
+		
+		protected Integer getStudentId() {
+			return studentId;
+		}
+		
+		protected String getListAttributeName() {
+			return listAttributeName;
+		}
+		
+		protected int getMaxListSize() {
+			return maxListSize;
+		}
+		
+		protected long getItemCount() {
+			return itemCount;
+		}
+		
+		// Creates a model spy and verifies that a list of a given type is added
+		public ExtendedModelMap shouldAddList()
+				throws NoSuchMethodException {
+			LabVisionUser user = mockLabVisionUser(studentId);
+			
+			List<T> expectedList 
+				= IntStream.range(1, (int) Math.min(maxListSize + 1, getItemCount() + 1))
+					.mapToObj(i -> this.mapListItems(i))
+					.collect(Collectors.toList());
+			
+			mockFindDtoObjects(expectedList);
+			mockItemCountFunction();
+			mockStudentPreferencesServiceMethodsForDtoClass(studentId, maxListSize);
+			
+			ExtendedModelMap model = new ExtendedModelMap();
+			ExtendedModelMap spyModel = spy(model);
+			
+			studentController.dashboard(user, spyModel);
+			
+			ArgumentCaptor<List<?>> argumentCaptor 
+				= ArgumentCaptor.forClass(List.class);
+			verify(spyModel, times(1)).addAttribute(eq(listAttributeName), argumentCaptor.capture());
+			List<T> actualList
+				= argumentCaptor.getValue().stream()
+					.map(obj -> getListItemClass().cast(obj))
+					.collect(Collectors.toList());
+			
+			assertEquals(expectedList.size(), actualList.size());
+			for (int i = 0; i < expectedList.size(); i++) {
+				assertListItemsHaveSameInfo(expectedList.get(i), actualList.get(i));
+			}
+			
+			return spyModel;
+		}
 	}
 	
 	@Test
@@ -106,156 +186,302 @@ public class TestStudentController extends LabvisionApplicationTests {
 		assertEquals("/logout", navbarModel.getLogoutLink());
 	}
 	
-	@Test
-	public void dashboard_ShouldAddListOfCurrentExperiments() throws Exception {
-		final Integer studentId = 6;
-		final int maxCurrentExperiments = 15;
-		
-		LabVisionUser user = mockLabVisionUser(studentId);
-		
-		List<CurrentExperimentForStudentDashboard> currentExperiments = IntStream.range(1, 16)
-				.mapToObj(i -> new CurrentExperimentForStudentDashboard(
-						i + 1, 
-						"Test Experiment " + i, 
-						1, 
-						"Test Course",
-						LocalDateTime.of(1990, 1, 1, 0, 0, 0)
-							.plusDays(i),
-						LocalDateTime.of(2050, 1, 1, 0, 0, 0)
-							.plusDays(7 * i)
-						))
-				.collect(Collectors.toList());
-		when(experimentService.findExperimentsForDashboard(
-				eq(studentId),
-				eq(maxCurrentExperiments),
-				eq(CurrentExperimentForStudentDashboard.class)
-				))
-			.thenReturn(currentExperiments);
-		mockStudentPreferencesServiceMethods(
-				studentId, maxCurrentExperiments, Integer.MAX_VALUE, Integer.MAX_VALUE);
-		
-		ExtendedModelMap model = new ExtendedModelMap();
-		ExtendedModelMap spyModel = spy(model);
-		
-		studentController.dashboard(user, spyModel);
-		
-		ArgumentCaptor<List<?>> argumentCaptor 
-			= ArgumentCaptor.forClass(List.class);
-		verify(spyModel, times(1)).addAttribute(eq("currentExperiments"), argumentCaptor.capture());
-		List<CurrentExperimentForStudentDashboard> actualCurrentExperiments
-			= argumentCaptor.getValue().stream()
-				.map(obj -> (CurrentExperimentForStudentDashboard) obj)
-				.collect(Collectors.toList());
-		
-		assertEquals(maxCurrentExperiments, actualCurrentExperiments.size());
-		assertEquals(currentExperiments.size(), actualCurrentExperiments.size());
-		for (int i = 0; i < currentExperiments.size(); i++) {
-			assertCurrentExperimentForStudentDashboardHasSameInfo(
-					currentExperiments.get(i), 
-					actualCurrentExperiments.get(i)
-					);
-		}
-	}
+	class CurrentExperimentForStudentDashboardListTester
+		extends DtoListTester<CurrentExperimentForStudentDashboard> {
 
-	@Test
-	public void dashboard_ShouldAddListOfRecentExperiments() throws Exception {
-		final Integer studentId = 6;
-		final int maxRecentExperiments = 15;
-		
-		LabVisionUser user = mockLabVisionUser(studentId);
-		
-		List<RecentExperimentForStudentDashboard> recentExperiments = IntStream.range(1, 16)
-				.mapToObj(i -> new RecentExperimentForStudentDashboard(
-						i + 1, 
-						"Test Experiment " + i, 
-						LocalDateTime.of(1990, 1, 1, 0, 0, 0)
-							.plusDays(i),
-						LocalDateTime.of(1989, 12, 15, 0, 0, 0)
-							.plusDays(i),
-						LocalDateTime.of(2050, 1, 1, 0, 0, 0)
-							.plusDays(7 * i)
-						))
-				.collect(Collectors.toList());
-		when(experimentService.findExperimentsForDashboard(
-				eq(studentId),
-				eq(maxRecentExperiments),
-				eq(RecentExperimentForStudentDashboard.class)
-				))
-			.thenReturn(recentExperiments);
-		mockStudentPreferencesServiceMethods(
-				studentId, Integer.MAX_VALUE, maxRecentExperiments, Integer.MAX_VALUE);
-		
-		ExtendedModelMap model = new ExtendedModelMap();
-		ExtendedModelMap spyModel = spy(model);
-		
-		studentController.dashboard(user, spyModel);
-		
-		ArgumentCaptor<List<?>> argumentCaptor = ArgumentCaptor.forClass(List.class);
-		verify(spyModel, times(1)).addAttribute(eq("recentExperiments"), argumentCaptor.capture());
-		List<RecentExperimentForStudentDashboard> actualRecentExperiments
-			= argumentCaptor.getValue().stream()
-				.map(obj -> (RecentExperimentForStudentDashboard) obj)
-				.collect(Collectors.toList());
-		
-		assertEquals(maxRecentExperiments, actualRecentExperiments.size());
-		assertEquals(recentExperiments.size(), actualRecentExperiments.size());
-		for (int i = 0; i < recentExperiments.size(); i++) {
-			assertRecentExperimentForStudentDashboardHasSameInfo(
-					recentExperiments.get(i), 
-					actualRecentExperiments.get(i)
+		public CurrentExperimentForStudentDashboardListTester(Integer studentId, String listAttributeName,
+				int maxListSize, long itemCount) {
+			super(studentId, listAttributeName, maxListSize, itemCount);
+		}
+
+		@Override
+		protected Class<CurrentExperimentForStudentDashboard> getListItemClass() {
+			return CurrentExperimentForStudentDashboard.class;
+		}
+
+		@Override
+		protected void mockItemCountFunction() {
+			when(experimentService.countCurrentExperimentsByStudentId(eq(getStudentId())))
+				.thenReturn(getItemCount());
+		}
+
+		@Override
+		protected CurrentExperimentForStudentDashboard mapListItems(int itemNumber) {
+			return new CurrentExperimentForStudentDashboard(
+					itemNumber + 1, 
+					"Test Experiment " + itemNumber, 
+					1, 
+					"Test Course",
+					LocalDateTime.of(1990, 1, 1, 0, 0, 0)
+						.plusDays(itemNumber),
+					LocalDateTime.of(2050, 1, 1, 0, 0, 0)
+						.plusDays(7 * itemNumber)
 					);
 		}
+
+		@Override
+		protected void assertListItemsHaveSameInfo(CurrentExperimentForStudentDashboard expected,
+				CurrentExperimentForStudentDashboard actual) {
+			assertCurrentExperimentForStudentDashboardHasSameInfo(expected, actual);
+		}
+
+		@Override
+		protected void mockStudentPreferencesServiceMethodsForDtoClass(Integer studentId, int maxListSize) {
+			mockStudentPreferencesServiceMethods(studentId, maxListSize, Integer.MAX_VALUE, Integer.MAX_VALUE);
+		}
+
+		@Override
+		protected void mockFindDtoObjects(List<CurrentExperimentForStudentDashboard> expectedList) {
+			when(experimentService.findExperimentsForDashboard(
+					eq(getStudentId()),
+					eq(getMaxListSize()),
+					eq(getListItemClass())
+					))
+				.thenReturn(expectedList);
+		}
+		
 	}
 	
 	@Test
-	public void dashboard_shouldAddListOfRecentCourses() throws Exception {
+	public void dashboard_ShouldAddListOfCurrentExperimentsLargerThanMax() throws Exception {
 		final Integer studentId = 6;
-		final int maxRecentCourses = 6;
+		final String listAttributeName = "currentExperiments";
+		final int maxCurrentExperiments = 15;
+		final long numOfCurrentExperiments = 17;
 		
-		LabVisionUser user = mockLabVisionUser(studentId);
+		ExtendedModelMap spyModel = new CurrentExperimentForStudentDashboardListTester(
+				studentId, listAttributeName, maxCurrentExperiments, numOfCurrentExperiments)
+				.shouldAddList();
 		
-		List<RecentCourseForStudentDashboard> recentCourses = IntStream.range(1, 7)
-				.mapToObj(i -> new RecentCourseForStudentDashboard(
-						i, 
-						"Test Course " + i, 
-						LocalDateTime.now().minusDays(10 - i), 
-						LocalDateTime.now().minusDays(9 - i)
-						))
-				.collect(Collectors.toList());
+		verify(spyModel).addAttribute("numMoreCurrentExperiments",
+				numOfCurrentExperiments - maxCurrentExperiments);
+	}
+
+	@Test
+	public void dashboard_ShouldAddListOfCurrentExperimentsMaxSize() throws Exception {
+		final Integer studentId = 6;
+		final String listAttributeName = "currentExperiments";
+		final int maxCurrentExperiments = 15;
+		final long numOfCurrentExperiments = 15;
 		
-		when(courseRepository.findRecentCoursesForStudentDashboard(
-				eq(studentId),
-				eq(PageRequest.of(0, maxRecentCourses))
-				))
-			.thenReturn(recentCourses);
-		mockStudentPreferencesServiceMethods(
-				studentId, Integer.MAX_VALUE, Integer.MAX_VALUE, maxRecentCourses);
+		ExtendedModelMap spyModel = new CurrentExperimentForStudentDashboardListTester(
+				studentId, listAttributeName, maxCurrentExperiments, numOfCurrentExperiments)
+				.shouldAddList();
 		
-		ExtendedModelMap model = new ExtendedModelMap();
-		ExtendedModelMap spyModel = spy(model);
+		verify(spyModel, never()).addAttribute(eq("numMoreCurrentExperiments"), any());
+	}
+	
+	@Test
+	public void dashboard_ShouldAddListOfCurrentExperimentsSmallerThanMax() throws Exception {
+		final Integer studentId = 6;
+		final String listAttributeName = "currentExperiments";
+		final int maxCurrentExperiments = 15;
+		final long numOfCurrentExperiments = 12;
 		
-		studentController.dashboard(user, spyModel);
+		ExtendedModelMap spyModel = new CurrentExperimentForStudentDashboardListTester(
+				studentId, listAttributeName, maxCurrentExperiments, numOfCurrentExperiments)
+				.shouldAddList();
 		
-		ArgumentCaptor<List<?>> argumentCaptor = ArgumentCaptor.forClass(List.class);
-		verify(spyModel, times(1)).addAttribute(eq("recentCourses"), argumentCaptor.capture());
-		List<RecentCourseForStudentDashboard> actualRecentCourses
-			= argumentCaptor.getValue().stream()
-				.map(obj -> (RecentCourseForStudentDashboard) obj)
-				.collect(Collectors.toList());
-		
-		assertEquals(maxRecentCourses, actualRecentCourses.size());
-		assertEquals(recentCourses.size(), actualRecentCourses.size());
-		
-		for (int i = 0; i < recentCourses.size(); i++) {
-			assertEquals(recentCourses.get(i).getId(), 
-					actualRecentCourses.get(i).getId());
-			assertEquals(recentCourses.get(i).getName(), 
-					actualRecentCourses.get(i).getName());
-			assertEquals(recentCourses.get(i).getMostRecentValueTaken(), 
-					actualRecentCourses.get(i).getMostRecentValueTaken());
-			assertEquals(recentCourses.get(i).getLastUpdated(),
-					actualRecentCourses.get(i).getLastUpdated());
+		verify(spyModel, never()).addAttribute(eq("numMoreCurrentExperiments"), any());
+	}
+	
+	class RecentExperimentForStudentDashboardListTester
+		extends DtoListTester<RecentExperimentForStudentDashboard> {
+
+		protected RecentExperimentForStudentDashboardListTester(Integer studentId, String listAttributeName,
+				int maxListSize, long itemCount) {
+			super(studentId, listAttributeName, maxListSize, itemCount);
 		}
+
+		@Override
+		protected Class<RecentExperimentForStudentDashboard> getListItemClass() {
+			return RecentExperimentForStudentDashboard.class;
+		}
+
+		@Override
+		protected void mockItemCountFunction() {
+			when(experimentService.countRecentExperimentsByStudentId(getStudentId()))
+				.thenReturn(getItemCount());
+		}
+
+		@Override
+		protected RecentExperimentForStudentDashboard mapListItems(int itemNumber) {
+			return new RecentExperimentForStudentDashboard(
+					itemNumber + 1, 
+					"Test Experiment " + itemNumber, 
+					LocalDateTime.of(1990, 1, 1, 0, 0, 0)
+						.plusDays(itemNumber),
+					LocalDateTime.of(1989, 12, 15, 0, 0, 0)
+						.plusDays(itemNumber),
+					LocalDateTime.of(2050, 1, 1, 0, 0, 0)
+						.plusDays(7 * itemNumber)
+					);
+		}
+
+		@Override
+		protected void assertListItemsHaveSameInfo(RecentExperimentForStudentDashboard expected,
+				RecentExperimentForStudentDashboard actual) {
+			assertRecentExperimentForStudentDashboardHasSameInfo(expected, actual);
+		}
+
+		@Override
+		protected void mockStudentPreferencesServiceMethodsForDtoClass(Integer studentId, int maxListSize) {
+			mockStudentPreferencesServiceMethods(studentId, Integer.MAX_VALUE, maxListSize, Integer.MAX_VALUE);
+		}
+
+		@Override
+		protected void mockFindDtoObjects(List<RecentExperimentForStudentDashboard> expectedList) {
+			when(experimentService.findExperimentsForDashboard(
+					eq(getStudentId()),
+					eq(getMaxListSize()),
+					eq(getListItemClass())
+					))
+				.thenReturn(expectedList);
+		}
+		
+	}
+	
+	@Test
+	public void dashboard_ShouldAddListOfRecentExperimentsLargerThanMax() throws Exception {
+		final Integer studentId = 6;
+		final String listAttributeName = "recentExperiments";
+		final int maxRecentExperiments = 15;
+		final long numOfRecentExperiments = 18;
+		
+		
+		ExtendedModelMap spyModel = new RecentExperimentForStudentDashboardListTester(
+				studentId, listAttributeName, maxRecentExperiments, numOfRecentExperiments)
+				.shouldAddList();
+		
+		verify(spyModel).addAttribute("numMoreRecentExperiments", 
+				numOfRecentExperiments - maxRecentExperiments);
+	}
+	
+	@Test
+	public void dashboard_ShouldAddListOfRecentExperimentsMaxSize() throws Exception {
+		final Integer studentId = 6;
+		final String listAttributeName = "recentExperiments";
+		final int maxRecentExperiments = 15;
+		final long numOfRecentExperiments = 15;
+		
+		ExtendedModelMap spyModel = new RecentExperimentForStudentDashboardListTester(
+				studentId, listAttributeName, maxRecentExperiments, numOfRecentExperiments)
+				.shouldAddList();
+		
+		verify(spyModel, never()).addAttribute(eq("numMoreRecentExperiments"), any());
+	}
+	
+	@Test
+	public void dashboard_ShouldAddListOfRecentExperimentsSmallerThanMax() throws Exception {
+		final Integer studentId = 6;
+		final String listAttributeName = "recentExperiments";
+		final int maxRecentExperiments = 15;
+		final long numOfRecentExperiments = 12;
+		
+		ExtendedModelMap spyModel = new RecentExperimentForStudentDashboardListTester(
+				studentId, listAttributeName, maxRecentExperiments, numOfRecentExperiments)
+				.shouldAddList();
+		
+		verify(spyModel, never()).addAttribute(eq("numMoreRecentExperiments"), any());
+	}
+	
+	class RecentCourseForStudentDashboardListTester
+		extends DtoListTester<RecentCourseForStudentDashboard> {
+		
+		public RecentCourseForStudentDashboardListTester(Integer studentId, String listAttributeName, 
+				int maxListSize, long itemCount) {
+			super(studentId, listAttributeName, maxListSize, itemCount);
+		}
+
+		@Override
+		protected Class<RecentCourseForStudentDashboard> getListItemClass() {
+			return RecentCourseForStudentDashboard.class;
+		}
+
+		@Override
+		protected void mockItemCountFunction() {
+			when(courseService.countRecentCoursesByStudentId(getStudentId()))
+				.thenReturn(getItemCount());
+		}
+
+		@Override
+		protected RecentCourseForStudentDashboard mapListItems(int i) {
+			return new RecentCourseForStudentDashboard(
+					i, 
+					"Test Course " + i, 
+					LocalDateTime.now().minusDays(10 - i), 
+					LocalDateTime.now().minusDays(9 - i)
+					);
+		}
+
+		@Override
+		protected void assertListItemsHaveSameInfo(RecentCourseForStudentDashboard expected,
+				RecentCourseForStudentDashboard actual) {
+			assertEquals(expected.getId(), actual.getId());
+			assertEquals(expected.getName(), actual.getName());
+			assertEquals(expected.getMostRecentValueTaken(), actual.getMostRecentValueTaken());
+			assertEquals(expected.getLastUpdated(), actual.getLastUpdated());
+		}
+
+		@Override
+		protected void mockStudentPreferencesServiceMethodsForDtoClass(Integer studentId, int maxListSize) {
+			mockStudentPreferencesServiceMethods(
+					studentId, Integer.MAX_VALUE, Integer.MAX_VALUE, maxListSize);
+		}
+
+		@Override
+		protected void mockFindDtoObjects(List<RecentCourseForStudentDashboard> expectedList) {
+			when(courseRepository.findRecentCoursesForStudentDashboard(
+					eq(getStudentId()), 
+					eq(PageRequest.of(0, getMaxListSize()))
+					))
+				.thenReturn(expectedList);
+		}
+		
+		
+	}
+	
+	@Test
+	public void dashboard_shouldAddListOfRecentCoursesLargerThanMax() throws Exception {
+		final Integer studentId = 6;
+		final String listAttributeName = "recentCourses";
+		final int maxRecentCourses = 6;
+		final long numOfRecentCourses = 8;
+		
+		ExtendedModelMap spyModel = new RecentCourseForStudentDashboardListTester(
+				studentId, listAttributeName, maxRecentCourses, numOfRecentCourses)
+				.shouldAddList();
+		
+		verify(spyModel).addAttribute("numMoreRecentCourses", 
+				numOfRecentCourses - maxRecentCourses);
+	}
+	
+	@Test
+	public void dashboard_shouldAddListOfRecentCoursesMaxSize() throws Exception {
+		final Integer studentId = 6;
+		final String listAttributeName = "recentCourses";
+		final int maxRecentCourses = 6;
+		final long numOfRecentCourses = 6;
+		
+		ExtendedModelMap spyModel = new RecentCourseForStudentDashboardListTester(
+				studentId, listAttributeName, maxRecentCourses, numOfRecentCourses)
+				.shouldAddList();
+		
+		verify(spyModel, never()).addAttribute(eq("numMoreRecentCourses"), any());
+	}
+	
+	@Test
+	public void dashboard_shouldAddListOfRecentCoursesSmallerThanMax() throws Exception {
+		final Integer studentId = 6;
+		final String listAttributeName = "recentCourses";
+		final int maxRecentCourses = 6;
+		final long numOfRecentCourses = 4;
+		
+		ExtendedModelMap spyModel = new RecentCourseForStudentDashboardListTester(
+				studentId, listAttributeName, maxRecentCourses, numOfRecentCourses)
+				.shouldAddList();
+		
+		verify(spyModel, never()).addAttribute(eq("numMoreRecentCourses"), any());
 	}
 	
 	@Test
@@ -351,11 +577,10 @@ public class TestStudentController extends LabvisionApplicationTests {
 				actualCurrentExperiment.getReportDueDate());
 	}
 	
-	private void assertRecentExperimentForStudentDashboardHasSameInfo(
+	private static void assertRecentExperimentForStudentDashboardHasSameInfo(
 			RecentExperimentForStudentDashboard recentExperiment,
-			Object actualRecentExperimentObj) {
+			RecentExperimentForStudentDashboard actualRecentExperimentObj) {
 		
-		assertTrue(actualRecentExperimentObj instanceof RecentExperimentForStudentDashboard);
 		RecentExperimentForStudentDashboard actualRecentExperiment = 
 				(RecentExperimentForStudentDashboard) actualRecentExperimentObj;
 		

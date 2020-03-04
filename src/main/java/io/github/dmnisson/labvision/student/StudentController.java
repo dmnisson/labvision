@@ -142,25 +142,49 @@ public class StudentController {
 	public String dashboard(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) throws NoSuchMethodException, SecurityException {
 		model.addAttribute("student", user);
 		
+		final int maxCurrentExperiments = studentPreferencesService.getMaxCurrentExperiments(user.getId());
 		List<CurrentExperimentForStudentDashboard> currentExperiments = experimentService.findExperimentsForDashboard(
 				user.getId(), 
-				studentPreferencesService.getMaxCurrentExperiments(user.getId()), 
+				maxCurrentExperiments, 
 				CurrentExperimentForStudentDashboard.class
 				);
 		model.addAttribute("currentExperiments", currentExperiments);
 		
+		long numMoreCurrentExperiments 
+			= experimentService.countCurrentExperimentsByStudentId(user.getId())
+				- maxCurrentExperiments;
+		if (numMoreCurrentExperiments > 0) {
+			model.addAttribute("numMoreCurrentExperiments", numMoreCurrentExperiments);
+		}
+		
+		final int maxRecentExperiments = studentPreferencesService.getMaxRecentExperiments(user.getId());
 		List<RecentExperimentForStudentDashboard> recentExperiments = experimentService.findExperimentsForDashboard(
 				user.getId(), 
-				studentPreferencesService.getMaxRecentExperiments(user.getId()), 
+				maxRecentExperiments, 
 				RecentExperimentForStudentDashboard.class
 				);
 		model.addAttribute("recentExperiments", recentExperiments);
 		
+		long numMoreRecentExperiments
+			= experimentService.countRecentExperimentsByStudentId(user.getId())
+				- maxRecentExperiments;
+		if (numMoreRecentExperiments > 0) {
+			model.addAttribute("numMoreRecentExperiments", numMoreRecentExperiments);
+		}
+		
+		final int maxRecentCourses = studentPreferencesService.getMaxRecentCourses(user.getId());
 		List<RecentCourseForStudentDashboard> recentCourses = courseRepository.findRecentCoursesForStudentDashboard(
 				user.getId(), 
-				PageRequest.of(0, studentPreferencesService.getMaxRecentCourses(user.getId()))
+				PageRequest.of(0, maxRecentCourses)
 				);
 		model.addAttribute("recentCourses", recentCourses);
+		
+		long numMoreRecentCourses
+			= courseService.countRecentCoursesByStudentId(user.getId())
+				- maxRecentCourses;
+		if (numMoreRecentCourses > 0) {
+			model.addAttribute("numMoreRecentCourses", numMoreRecentCourses);
+		}
 		
 		return "student/dashboard";
 	}
