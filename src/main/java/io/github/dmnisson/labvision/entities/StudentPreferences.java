@@ -5,6 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
+import javax.validation.constraints.Min;
 
 /**
  * Stores a student user preferences
@@ -22,10 +23,13 @@ public class StudentPreferences implements LabVisionEntity {
 	
 	// --- Dashboard preferences ---
 	
+	@Min(1)
 	private Integer maxCurrentExperiments;
 	
+	@Min(1)
 	private Integer maxRecentExperiments;
 	
+	@Min(1)
 	private Integer maxRecentCourses;
 	
 	public int getMaxRecentExperiments() {
