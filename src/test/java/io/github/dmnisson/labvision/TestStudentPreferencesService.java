@@ -4,11 +4,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import io.github.dmnisson.labvision.entities.StudentPreferences;
 import io.github.dmnisson.labvision.repositories.StudentPreferencesRepository;
 import io.github.dmnisson.labvision.student.StudentPreferencesConfig;
 import io.github.dmnisson.labvision.student.StudentPreferencesService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -115,4 +118,54 @@ public class TestStudentPreferencesService extends LabvisionApplicationTests {
 		assertEquals(17, maxRecentCourses);
 	}
 	
+	@Test
+	public void getStudentPreferences_ShouldReturnStudentPreferences() {
+		final Integer studentId = 6;
+		
+		StudentPreferences studentPreferences = new StudentPreferences();
+		
+		when(studentPreferencesRepository.findByStudentId(studentId))
+			.thenReturn(Optional.of(studentPreferences));
+		
+		StudentPreferences actualStudentPreferences 
+			= studentPreferencesService.getStudentPreferences(studentId);
+		
+		assertEquals(studentPreferences, actualStudentPreferences);
+	}
+	
+	@Test
+	public void getStudentPreferences_ShouldReturnNull() {
+		final Integer studentId = 6;
+		
+		when(studentPreferencesRepository.findByStudentId(studentId))
+			.thenReturn(Optional.empty());
+		
+		StudentPreferences actualStudentPreferences 
+			= studentPreferencesService.getStudentPreferences(studentId);
+		
+		assertNull(actualStudentPreferences);
+	}
+	
+	@Test
+	public void getDefaultStudentPreferences_ShouldReturnDefaults() {
+		
+		final int maxCurrentExperiments = 7;
+		final int maxRecentExperiments = 8;
+		final int maxRecentCourses = 12;
+		
+		when(studentPreferencesConfig.getDefaultMaxCurrentExperiments())
+			.thenReturn(maxCurrentExperiments);
+		when(studentPreferencesConfig.getDefaultMaxRecentExperiments())
+			.thenReturn(maxRecentExperiments);
+		when(studentPreferencesConfig.getDefaultMaxRecentCourses())
+			.thenReturn(maxRecentCourses);
+		
+		StudentPreferences actualDefaultStudentPreferences 
+			= studentPreferencesService.getDefaultStudentPreferences();
+		
+		assertNotNull(actualDefaultStudentPreferences);
+		assertEquals(maxCurrentExperiments, actualDefaultStudentPreferences.getMaxCurrentExperiments());
+		assertEquals(maxRecentExperiments, actualDefaultStudentPreferences.getMaxRecentExperiments());
+		assertEquals(maxRecentCourses, actualDefaultStudentPreferences.getMaxRecentCourses());
+	}
 }
