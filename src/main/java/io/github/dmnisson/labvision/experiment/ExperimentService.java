@@ -225,14 +225,14 @@ public class ExperimentService {
 	public <DTO> List<DTO> findExperimentData(Integer userId, int limit, Class<DTO> dtoClass) {
 		Pageable noReportsPageable = PageRequest.of(0, limit);
 		
-		ExperimentDtoQueries<DTO, Integer> dashboardQueries =
-				ExperimentDtoQueriesFactory.createDashboardQueriesForDtoType(
+		ExperimentDtoQueries<DTO, Integer> dtoQueries =
+				ExperimentDtoQueriesFactory.createDtoQueriesForDtoType(
 						experimentRepository, 
 						dtoClass,
 						Integer.class
 						);
 		
-		List<DTO> experimentsNoReports = dashboardQueries.findExperimentsNoReports(userId, noReportsPageable);
+		List<DTO> experimentsNoReports = dtoQueries.findExperimentsNoReports(userId, noReportsPageable);
 		
 		assert experimentsNoReports.size() <= limit;
 		if (experimentsNoReports.size() == limit) {
@@ -241,7 +241,7 @@ public class ExperimentService {
 		
 		Pageable withReportsPageable = PageRequest.of(0, limit - experimentsNoReports.size());
 		
-		List<DTO> experimentsWithReports = dashboardQueries.findExperimentsWithReports(userId, withReportsPageable);
+		List<DTO> experimentsWithReports = dtoQueries.findExperimentsWithReports(userId, withReportsPageable);
 		
 		return Stream.concat(
 					experimentsNoReports.stream(),
