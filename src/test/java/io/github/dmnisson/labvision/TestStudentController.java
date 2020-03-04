@@ -16,6 +16,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.ui.ExtendedModelMap;
 
 import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
@@ -30,6 +31,7 @@ import io.github.dmnisson.labvision.models.test.NavLinkSpec;
 import io.github.dmnisson.labvision.models.test.NavLinkSpecAssertions;
 import io.github.dmnisson.labvision.repositories.CourseRepository;
 import io.github.dmnisson.labvision.student.StudentController;
+import io.github.dmnisson.labvision.student.StudentPreferencesService;
 
 public class TestStudentController extends LabvisionApplicationTests {
 	
@@ -42,8 +44,27 @@ public class TestStudentController extends LabvisionApplicationTests {
 	@MockBean
 	private CourseRepository courseRepository;
 	
+	@MockBean
+	private StudentPreferencesService studentPreferencesService;
+	
 	@Autowired
 	private StudentController studentController;
+	
+	// Helper to mock all of the StudentPreferencesService methods used by the
+	// controller
+	private void mockStudentPreferencesServiceMethods(
+			final Integer studentId, 
+			final int maxCurrentExperiments,
+			final int maxRecentExperiments, 
+			final int maxRecentCourses) {
+		
+		when(studentPreferencesService.getMaxCurrentExperiments(eq(studentId)))
+			.thenReturn(maxCurrentExperiments);
+		when(studentPreferencesService.getMaxRecentExperiments(eq(studentId)))
+			.thenReturn(maxRecentExperiments);
+		when(studentPreferencesService.getMaxRecentCourses(eq(studentId)))
+			.thenReturn(maxRecentCourses);
+	}
 	
 	@Test
 	public void populateModel_ShouldAddNavbarModel() {
@@ -77,6 +98,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 	@Test
 	public void dashboard_ShouldAddListOfCurrentExperiments() throws Exception {
 		final Integer studentId = 6;
+		final int maxCurrentExperiments = 15;
 		
 		LabVisionUser user = mockLabVisionUser(studentId);
 		
@@ -94,10 +116,12 @@ public class TestStudentController extends LabvisionApplicationTests {
 				.collect(Collectors.toList());
 		when(experimentService.findExperimentsForDashboard(
 				eq(studentId),
-				eq(Integer.MAX_VALUE),
+				eq(maxCurrentExperiments),
 				eq(CurrentExperimentForStudentDashboard.class)
 				))
 			.thenReturn(currentExperiments);
+		mockStudentPreferencesServiceMethods(
+				studentId, maxCurrentExperiments, Integer.MAX_VALUE, Integer.MAX_VALUE);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
 		
@@ -107,6 +131,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 		List<CurrentExperimentForStudentDashboard> actualCurrentExperiments = 
 				(List<CurrentExperimentForStudentDashboard>) model.getAttribute("currentExperiments");
 		
+		assertEquals(maxCurrentExperiments, actualCurrentExperiments.size());
 		assertEquals(currentExperiments.size(), actualCurrentExperiments.size());
 		for (int i = 0; i < currentExperiments.size(); i++) {
 			assertCurrentExperimentForStudentDashboardHasSameInfo(
@@ -119,6 +144,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 	@Test
 	public void dashboard_ShouldAddListOfRecentExperiments() throws Exception {
 		final Integer studentId = 6;
+		final int maxRecentExperiments = 15;
 		
 		LabVisionUser user = mockLabVisionUser(studentId);
 		
@@ -136,10 +162,12 @@ public class TestStudentController extends LabvisionApplicationTests {
 				.collect(Collectors.toList());
 		when(experimentService.findExperimentsForDashboard(
 				eq(studentId),
-				eq(Integer.MAX_VALUE),
+				eq(maxRecentExperiments),
 				eq(RecentExperimentForStudentDashboard.class)
 				))
 			.thenReturn(recentExperiments);
+		mockStudentPreferencesServiceMethods(
+				studentId, Integer.MAX_VALUE, maxRecentExperiments, Integer.MAX_VALUE);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
 		
@@ -149,6 +177,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 		List<RecentExperimentForStudentDashboard> actualRecentExperiments = 
 				(List<RecentExperimentForStudentDashboard>) model.getAttribute("recentExperiments");
 		
+		assertEquals(maxRecentExperiments, actualRecentExperiments.size());
 		assertEquals(recentExperiments.size(), actualRecentExperiments.size());
 		for (int i = 0; i < recentExperiments.size(); i++) {
 			assertRecentExperimentForStudentDashboardHasSameInfo(
@@ -161,6 +190,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 	@Test
 	public void dashboard_shouldAddListOfRecentCourses() throws Exception {
 		final Integer studentId = 6;
+		final int maxRecentCourses = 6;
 		
 		LabVisionUser user = mockLabVisionUser(studentId);
 		
@@ -173,8 +203,13 @@ public class TestStudentController extends LabvisionApplicationTests {
 						))
 				.collect(Collectors.toList());
 		
-		when(courseRepository.findRecentCoursesForStudentDashboard(studentId))
+		when(courseRepository.findRecentCoursesForStudentDashboard(
+				eq(studentId),
+				eq(PageRequest.of(0, maxRecentCourses))
+				))
 			.thenReturn(recentCourses);
+		mockStudentPreferencesServiceMethods(
+				studentId, Integer.MAX_VALUE, Integer.MAX_VALUE, maxRecentCourses);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
 		
@@ -184,6 +219,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 		List<RecentCourseForStudentDashboard> actualRecentCourses =
 				(List<RecentCourseForStudentDashboard>) model.getAttribute("recentCourses");
 		
+		assertEquals(maxRecentCourses, actualRecentCourses.size());
 		assertEquals(recentCourses.size(), actualRecentCourses.size());
 		
 		for (int i = 0; i < recentCourses.size(); i++) {
