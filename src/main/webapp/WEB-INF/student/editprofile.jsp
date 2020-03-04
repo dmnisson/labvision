@@ -24,7 +24,7 @@
 	  </div>
 	  <div class="row">
 	    <div class="col">
-	      <label for="studentName"><h3>Full Name</h3></label>
+	      <label class="h3" for="studentName">Full Name</label>
 	    </div>
 	    <div class="col">
 	      <input type="text" class="form-control" name="studentName" value="${fn:escapeXml(student.name)}" />
