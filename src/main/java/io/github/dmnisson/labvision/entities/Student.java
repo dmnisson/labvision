@@ -118,6 +118,7 @@ public class Student extends LabVisionUser {
 
 	public void setStudentPreferences(StudentPreferences studentPreferences) {
 		this.studentPreferences = studentPreferences;
+		studentPreferences.setStudent(this);
 	}
 	
 	@Override
