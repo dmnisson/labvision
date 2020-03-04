@@ -301,6 +301,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 		LabVisionUser user = mockLabVisionUser(studentId);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
+		ExtendedModelMap spyModel = spy(model);
 		
 		when(studentPreferencesService.getDefaultStudentPreferences())
 			.thenReturn(defaultStudentPreferences);
@@ -311,7 +312,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 		requestParams.put("maxRecentExperiments", "");
 		requestParams.put("maxRecentCourses", "");
 		
-		studentController.updateSettings(requestParams, user, model);
+		studentController.updateSettings(requestParams, user, spyModel);
 		
 		ArgumentCaptor<StudentPreferences> studentPreferencesCaptor 
 			= ArgumentCaptor.forClass(StudentPreferences.class);
@@ -323,8 +324,8 @@ public class TestStudentController extends LabvisionApplicationTests {
 		assertNull(argStudentPreferences.getMaxRecentExperiments());
 		assertNull(argStudentPreferences.getMaxRecentCourses());
 		
-		assertEquals(argStudentPreferences, model.getAttribute("prefs"));
-		assertEquals(defaultStudentPreferences, model.getAttribute("defaults"));
+		verify(spyModel, times(1)).addAttribute("prefs", argStudentPreferences);
+		verify(spyModel, times(1)).addAttribute("defaults", defaultStudentPreferences);
 	}
 	
 	// Assertion helpers
