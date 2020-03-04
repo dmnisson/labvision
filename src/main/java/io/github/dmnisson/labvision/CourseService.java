@@ -15,4 +15,8 @@ public class CourseService {
 		return courseRepository.findStudentEnrolled(studentId, courseId).isPresent();
 	}
 	
+	public long countRecentCoursesByStudentId(Integer studentId) {
+		return courseRepository.countRecentCoursesByStudentId(studentId);
+	}
+	
 }

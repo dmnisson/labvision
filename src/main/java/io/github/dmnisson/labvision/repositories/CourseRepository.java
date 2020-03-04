@@ -18,6 +18,24 @@ import io.github.dmnisson.labvision.entities.Course;
 import io.github.dmnisson.labvision.entities.Student;
 
 public interface CourseRepository extends JpaRepository<Course, Integer> {
+	
+	@Query(	"SELECT COUNT(DISTINCT c.id) FROM Course c " +
+			"LEFT JOIN c.courseClasses cc " +
+		    "LEFT JOIN cc.students s1 " +
+			"LEFT JOIN c.experiments e " +
+		    "LEFT JOIN e.activeStudents s2 " +
+		    "LEFT JOIN e.measurements m " +
+			"LEFT JOIN m.values mv " +
+		    "LEFT JOIN mv.student s3 " +
+		    "LEFT JOIN e.reportedResults rr " +
+			"LEFT JOIN rr.student s4 " +
+			"WHERE (s1.id IS NULL OR s1.id=:studentid) " +
+			"AND (s2.id IS NULL OR s2.id=:studentid) " +
+			"AND (s3.id IS NULL OR s3.id=:studentid) " +
+			"AND (s4.id IS NULL OR s4.id=:studentid) " +
+			"AND (s1.id IS NOT NULL OR s2.id IS NOT NULL OR s3.id IS NOT NULL OR s4.id IS NOT NULL)")
+	public long countRecentCoursesByStudentId(@Param("studentid") Integer studentId);
+	
 	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.course.RecentCourseForStudentDashboard(" +
 		    "	c.id," +
 		    "	c.name," +
