@@ -41,7 +41,8 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 			"AND (s1.id IS NOT NULL OR s2.id IS NOT NULL OR s3.id IS NOT NULL OR s4.id IS NOT NULL)" +
 			"GROUP BY c " +
 			"ORDER BY lu DESC NULLS LAST")
-	public List<RecentCourseForStudentDashboard> findRecentCoursesForStudentDashboard(@Param("studentid") Integer studentid);
+	public List<RecentCourseForStudentDashboard> findRecentCoursesForStudentDashboard(
+			@Param("studentid") Integer studentid, Pageable pageable);
 
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.course.CourseInfo("
 			+ "	e.course.id,"

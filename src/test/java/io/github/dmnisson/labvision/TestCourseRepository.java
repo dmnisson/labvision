@@ -9,9 +9,9 @@ import java.util.stream.IntStream;
 
 import javax.measure.quantity.Length;
 
-import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.dmnisson.labvision.dto.student.course.RecentCourseForStudentDashboard;
@@ -165,7 +165,10 @@ public class TestCourseRepository extends LabvisionApplicationTests {
 			= makeSeedsForRecentCourses("testStudent2", "Test Student Two", 105, 109);
 		
 		List<RecentCourseForStudentDashboard> recentCourses
-			= courseRepository.findRecentCoursesForStudentDashboard(seeds1.getTestStudent().getId());
+			= courseRepository.findRecentCoursesForStudentDashboard(
+					seeds1.getTestStudent().getId(),
+					PageRequest.of(0, Integer.MAX_VALUE)
+					);
 		
 		for (Course course : seeds1.getTestCourses()) {
 			assertTrue(
