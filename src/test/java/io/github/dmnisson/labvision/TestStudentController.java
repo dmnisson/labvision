@@ -12,11 +12,13 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
@@ -277,17 +279,25 @@ public class TestStudentController extends LabvisionApplicationTests {
 		when(studentPreferencesService.getDefaultStudentPreferences())
 			.thenReturn(defaultStudentPreferences);
 		
-		studentController.updateSettings(newStudentPreferences, user, model);
+		HashMap<String, String> requestParams = new HashMap<>();
+		requestParams.put("maxCurrentExperiments",
+				newStudentPreferences.getMaxCurrentExperiments().toString());
+		requestParams.put("maxRecentExperiments", "");
+		requestParams.put("maxRecentCourses", "");
 		
-		verify(studentPreferencesService, times(1)).updateStudentPreferences(studentId, newStudentPreferences);
+		studentController.updateSettings(requestParams, user, model);
 		
-		StudentPreferences modelStudentPreferences = (StudentPreferences) model.getAttribute("prefs");
-		
+		ArgumentCaptor<StudentPreferences> studentPreferencesCaptor 
+			= ArgumentCaptor.forClass(StudentPreferences.class);
+		verify(studentPreferencesService, times(1))
+			.updateStudentPreferences(eq(studentId), studentPreferencesCaptor.capture());
+		StudentPreferences argStudentPreferences = studentPreferencesCaptor.getValue();
 		assertEquals(newStudentPreferences.getMaxCurrentExperiments(), 
-				modelStudentPreferences.getMaxCurrentExperiments());
-		assertNull(modelStudentPreferences.getMaxRecentExperiments());
-		assertNull(modelStudentPreferences.getMaxRecentCourses());
+				argStudentPreferences.getMaxCurrentExperiments());
+		assertNull(argStudentPreferences.getMaxRecentExperiments());
+		assertNull(argStudentPreferences.getMaxRecentCourses());
 		
+		assertEquals(argStudentPreferences, model.getAttribute("prefs"));
 		assertEquals(defaultStudentPreferences, model.getAttribute("defaults"));
 	}
 	

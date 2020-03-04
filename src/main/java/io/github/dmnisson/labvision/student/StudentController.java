@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -81,6 +80,7 @@ import io.github.dmnisson.labvision.repositories.ParameterRepository;
 import io.github.dmnisson.labvision.repositories.ParameterValueRepository;
 import io.github.dmnisson.labvision.repositories.ReportedResultRepository;
 import io.github.dmnisson.labvision.repositories.StudentRepository;
+import io.github.dmnisson.labvision.utils.NullSafeNumberUtils;
 import io.github.dmnisson.labvision.utils.PaginationUtils;
 
 @Controller
@@ -554,9 +554,23 @@ public class StudentController {
 	}
 	
 	@PostMapping("/settings")
-	public String updateSettings(@RequestBody StudentPreferences newStudentPreferences,
+	public String updateSettings(@RequestParam Map<String, String> requestParams,
 			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
 	
+		StudentPreferences newStudentPreferences = new StudentPreferences();
+		newStudentPreferences.setMaxCurrentExperiments(NullSafeNumberUtils.parseNumberOptional(
+				requestParams.get("maxCurrentExperiments"),
+				Integer.class
+				).orElse(null));
+		newStudentPreferences.setMaxRecentExperiments(NullSafeNumberUtils.parseNumberOptional(
+				requestParams.get("maxRecentExperiments"),
+				Integer.class
+				).orElse(null));
+		newStudentPreferences.setMaxRecentCourses(NullSafeNumberUtils.parseNumberOptional(
+				requestParams.get("maxRecentCourses"),
+				Integer.class
+				).orElse(null));
+		
 		studentPreferencesService.updateStudentPreferences(user.getId(), newStudentPreferences);
 		
 		model.addAttribute("prefs", newStudentPreferences);
