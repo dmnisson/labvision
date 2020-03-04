@@ -2,9 +2,12 @@ package io.github.dmnisson.labvision;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
@@ -25,6 +28,7 @@ import io.github.dmnisson.labvision.dto.student.course.RecentCourseForStudentDas
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
+import io.github.dmnisson.labvision.entities.StudentPreferences;
 import io.github.dmnisson.labvision.experiment.ExperimentService;
 import io.github.dmnisson.labvision.models.NavbarModel;
 import io.github.dmnisson.labvision.models.test.NavLinkSpec;
@@ -87,6 +91,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 				NavLinkSpec.of("Errors", StudentController.class, "errors", null, null, null),
 				NavLinkSpec.of("Account", "#", Arrays.asList(
 						NavLinkSpec.of("Profile", StudentController.class, "profile", null, null),
+						NavLinkSpec.of("Settings", StudentController.class, "reviewSettings", null, null),
 						NavLinkSpec.of("Courses", StudentController.class, "courses", null, null, null)
 						))
 		};
@@ -232,6 +237,58 @@ public class TestStudentController extends LabvisionApplicationTests {
 			assertEquals(recentCourses.get(i).getLastUpdated(),
 					actualRecentCourses.get(i).getLastUpdated());
 		}
+	}
+	
+	@Test
+	public void reviewSettings_ShouldAddPreferencesToModel() {
+		final Integer studentId = 6;
+		
+		LabVisionUser user = mockLabVisionUser(studentId);
+		
+		StudentPreferences studentPreferences = new StudentPreferences();
+		StudentPreferences defaultStudentPreferences = new StudentPreferences();
+		
+		when(studentPreferencesService.getStudentPreferences(eq(studentId)))
+			.thenReturn(studentPreferences);
+		when(studentPreferencesService.getDefaultStudentPreferences())
+			.thenReturn(defaultStudentPreferences);
+		
+		ExtendedModelMap model = new ExtendedModelMap();
+		
+		studentController.reviewSettings(user, model);
+		
+		assertEquals(studentPreferences, model.getAttribute("prefs"));
+		assertEquals(defaultStudentPreferences, model.getAttribute("defaults"));
+	}
+	
+	@Test
+	public void updateSettings_shouldUpdatePreferencesAndAddNewPreferencesToModel() {
+		final Integer studentId = 6;
+		
+		StudentPreferences defaultStudentPreferences = new StudentPreferences();
+		
+		StudentPreferences newStudentPreferences = new StudentPreferences();
+		newStudentPreferences.setMaxCurrentExperiments(7);
+		
+		LabVisionUser user = mockLabVisionUser(studentId);
+		
+		ExtendedModelMap model = new ExtendedModelMap();
+		
+		when(studentPreferencesService.getDefaultStudentPreferences())
+			.thenReturn(defaultStudentPreferences);
+		
+		studentController.updateSettings(newStudentPreferences, user, model);
+		
+		verify(studentPreferencesService, times(1)).updateStudentPreferences(studentId, newStudentPreferences);
+		
+		StudentPreferences modelStudentPreferences = (StudentPreferences) model.getAttribute("prefs");
+		
+		assertEquals(newStudentPreferences.getMaxCurrentExperiments(), 
+				modelStudentPreferences.getMaxCurrentExperiments());
+		assertNull(modelStudentPreferences.getMaxRecentExperiments());
+		assertNull(modelStudentPreferences.getMaxRecentCourses());
+		
+		assertEquals(defaultStudentPreferences, model.getAttribute("defaults"));
 	}
 	
 	// Assertion helpers

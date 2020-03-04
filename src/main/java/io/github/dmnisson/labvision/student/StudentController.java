@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,6 +65,7 @@ import io.github.dmnisson.labvision.entities.Parameter;
 import io.github.dmnisson.labvision.entities.ReportDocumentType;
 import io.github.dmnisson.labvision.entities.ReportedResult;
 import io.github.dmnisson.labvision.entities.Student;
+import io.github.dmnisson.labvision.entities.StudentPreferences;
 import io.github.dmnisson.labvision.experiment.ExperimentService;
 import io.github.dmnisson.labvision.measure.Amount;
 import io.github.dmnisson.labvision.measure.SI;
@@ -539,6 +541,32 @@ public class StudentController {
 			.toUriString();
 	}
 	
+	@GetMapping("/settings")
+	public String reviewSettings(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+		
+		StudentPreferences prefs = studentPreferencesService.getStudentPreferences(user.getId());
+		model.addAttribute("prefs", prefs);
+		
+		StudentPreferences defaults = studentPreferencesService.getDefaultStudentPreferences();
+		model.addAttribute("defaults", defaults);
+		
+		return "student/settings";
+	}
+	
+	@PostMapping("/settings")
+	public String updateSettings(@RequestBody StudentPreferences newStudentPreferences,
+			@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model) {
+	
+		studentPreferencesService.updateStudentPreferences(user.getId(), newStudentPreferences);
+		
+		model.addAttribute("prefs", newStudentPreferences);
+		
+		StudentPreferences defaults = studentPreferencesService.getDefaultStudentPreferences();
+		model.addAttribute("defaults", defaults);
+		
+		return "student/settings";
+	}
+	
 	@GetMapping("/courses")
 	public String courses(@AuthenticationPrincipal(expression="labVisionUser") LabVisionUser user, Model model, Pageable pageable) {
 		Student student = (Student) user;
@@ -608,6 +636,7 @@ public class StudentController {
 				.link("Errors", "errors", null, null, null)
 				.dropdown("Account", "#")
 					.link("Profile", "profile", null, null)
+					.link("Settings", "reviewSettings", null, null)
 					.link("Courses", "courses", null, null, null)
 					.buildDropdown();
 		
