@@ -32,7 +32,7 @@ public class StudentPreferences implements LabVisionEntity {
 	@Min(1)
 	private Integer maxRecentCourses;
 	
-	public int getMaxRecentExperiments() {
+	public Integer getMaxRecentExperiments() {
 		return maxRecentExperiments;
 	}
 
@@ -40,7 +40,7 @@ public class StudentPreferences implements LabVisionEntity {
 		this.maxRecentExperiments = maxRecentExperiments;
 	}
 
-	public int getMaxRecentCourses() {
+	public Integer getMaxRecentCourses() {
 		return maxRecentCourses;
 	}
 
@@ -56,11 +56,19 @@ public class StudentPreferences implements LabVisionEntity {
 		this.id = id;
 	}
 
-	public int getMaxCurrentExperiments() {
+	public Integer getMaxCurrentExperiments() {
 		return maxCurrentExperiments;
 	}
 
 	public void setMaxCurrentExperiments(Integer maxCurrentExperiments) {
 		this.maxCurrentExperiments = maxCurrentExperiments;
+	}
+
+	public Student getStudent() {
+		return student;
+	}
+	
+	public void setStudent(Student student) {
+		this.student = student;
 	}
 }
