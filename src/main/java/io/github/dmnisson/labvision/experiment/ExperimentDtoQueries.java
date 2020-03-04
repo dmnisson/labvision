@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 
-public interface ExperimentDashboardQueries<DTO, UserID> {
+public interface ExperimentDtoQueries<DTO, UserID> {
 
 	public List<DTO> findExperimentsNoReports(UserID userId, Pageable pageable);
 	

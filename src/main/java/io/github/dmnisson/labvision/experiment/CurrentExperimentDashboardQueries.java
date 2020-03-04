@@ -8,7 +8,7 @@ import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForS
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
 
 public class CurrentExperimentDashboardQueries
-		implements ExperimentDashboardQueries<CurrentExperimentForStudentDashboard, Integer> {
+		implements ExperimentDtoQueries<CurrentExperimentForStudentDashboard, Integer> {
 
 	private final ExperimentRepository experimentRepository;
 	

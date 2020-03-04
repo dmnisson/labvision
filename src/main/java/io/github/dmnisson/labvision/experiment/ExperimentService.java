@@ -225,7 +225,7 @@ public class ExperimentService {
 	public <DTO> List<DTO> findExperimentData(Integer userId, int limit, Class<DTO> dtoClass) {
 		Pageable noReportsPageable = PageRequest.of(0, limit);
 		
-		ExperimentDashboardQueries<DTO, Integer> dashboardQueries =
+		ExperimentDtoQueries<DTO, Integer> dashboardQueries =
 				ExperimentDashboardQueriesFactory.createDashboardQueriesForDtoType(
 						experimentRepository, 
 						dtoClass,

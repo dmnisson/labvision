@@ -7,21 +7,21 @@ import io.github.dmnisson.labvision.repositories.ExperimentRepository;
 public class ExperimentDashboardQueriesFactory {
 
 	@SuppressWarnings("unchecked")
-	public static <DTO, UserID> ExperimentDashboardQueries<DTO, UserID> createDashboardQueriesForDtoType(
+	public static <DTO, UserID> ExperimentDtoQueries<DTO, UserID> createDashboardQueriesForDtoType(
 			ExperimentRepository experimentRepository, Class<DTO> dtoClass, Class<UserID> userIdClass) {
 		
 		if (dtoClass.equals(CurrentExperimentForStudentDashboard.class)) {
 			
 			checkClassEqual(userIdClass, Integer.class);
 			
-			return (ExperimentDashboardQueries<DTO, UserID>) 
+			return (ExperimentDtoQueries<DTO, UserID>) 
 					new CurrentExperimentDashboardQueries(experimentRepository);
 			
 		} else if (dtoClass.equals(RecentExperimentForStudentDashboard.class)) {
 			
 			checkClassEqual(userIdClass, Integer.class);
 			
-			return (ExperimentDashboardQueries<DTO, UserID>) 
+			return (ExperimentDtoQueries<DTO, UserID>) 
 					new RecentExperimentDashboardQueries(experimentRepository);
 			
 		} else {
