@@ -232,7 +232,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 
 		@Override
 		protected void mockFindDtoObjects(List<CurrentExperimentForStudentDashboard> expectedList) {
-			when(experimentService.findExperimentsForDashboard(
+			when(experimentService.findExperimentData(
 					eq(getStudentId()),
 					eq(getMaxListSize()),
 					eq(getListItemClass())
@@ -331,7 +331,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 
 		@Override
 		protected void mockFindDtoObjects(List<RecentExperimentForStudentDashboard> expectedList) {
-			when(experimentService.findExperimentsForDashboard(
+			when(experimentService.findExperimentData(
 					eq(getStudentId()),
 					eq(getMaxListSize()),
 					eq(getListItemClass())

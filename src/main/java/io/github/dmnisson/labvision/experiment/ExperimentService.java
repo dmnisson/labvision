@@ -222,7 +222,7 @@ public class ExperimentService {
 		return experimentViewModel;
 	}
 	
-	public <DTO> List<DTO> findExperimentsForDashboard(Integer userId, int limit, Class<DTO> dtoClass) {
+	public <DTO> List<DTO> findExperimentData(Integer userId, int limit, Class<DTO> dtoClass) {
 		Pageable noReportsPageable = PageRequest.of(0, limit);
 		
 		ExperimentDashboardQueries<DTO, Integer> dashboardQueries =

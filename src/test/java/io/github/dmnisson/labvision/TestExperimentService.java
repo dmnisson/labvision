@@ -74,7 +74,7 @@ public class TestExperimentService extends LabvisionApplicationTests {
 			throws NoSuchMethodException {
 		Integer userId = (Integer) new Integer[] { studentId }[0];
 		
-		return experimentService.findExperimentsForDashboard(userId, limit, CurrentExperimentForStudentDashboard.class);
+		return experimentService.findExperimentData(userId, limit, CurrentExperimentForStudentDashboard.class);
 	}
 	
 	// Class that stores experiments with no reports and experiments with reports
