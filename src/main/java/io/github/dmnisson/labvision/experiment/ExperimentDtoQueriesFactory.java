@@ -4,7 +4,7 @@ import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForS
 import io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
 
-public class ExperimentDashboardQueriesFactory {
+public class ExperimentDtoQueriesFactory {
 
 	@SuppressWarnings("unchecked")
 	public static <DTO, UserID> ExperimentDtoQueries<DTO, UserID> createDashboardQueriesForDtoType(

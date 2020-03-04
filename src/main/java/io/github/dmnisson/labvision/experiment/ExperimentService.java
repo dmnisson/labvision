@@ -226,7 +226,7 @@ public class ExperimentService {
 		Pageable noReportsPageable = PageRequest.of(0, limit);
 		
 		ExperimentDtoQueries<DTO, Integer> dashboardQueries =
-				ExperimentDashboardQueriesFactory.createDashboardQueriesForDtoType(
+				ExperimentDtoQueriesFactory.createDashboardQueriesForDtoType(
 						experimentRepository, 
 						dtoClass,
 						Integer.class
