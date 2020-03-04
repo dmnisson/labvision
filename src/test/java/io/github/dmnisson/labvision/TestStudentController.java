@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -75,17 +76,15 @@ public class TestStudentController extends LabvisionApplicationTests {
 	@Test
 	public void populateModel_ShouldAddNavbarModel() {
 		ExtendedModelMap model = new ExtendedModelMap();
+		ExtendedModelMap spyModel = spy(model);
 		
 		LabVisionUserDetails labVisionUserDetails = mock(LabVisionUserDetails.class);
 		
 		when(userDetailsManager.isAdmin(eq(labVisionUserDetails)))
 			.thenReturn(false);
 		
-		studentController.populateModel(model, labVisionUserDetails);
+		studentController.populateModel(spyModel, labVisionUserDetails);
 		
-		final NavbarModel navbarModel = (NavbarModel) model.getAttribute("navbarModel");
-		assertNotNull(navbarModel);
-
 		NavLinkSpec[] navLinkSpecs = {
 				NavLinkSpec.of("Dashboard", StudentController.class, "dashboard", null, null),
 				NavLinkSpec.of("Experiments", StudentController.class, "experiments", null, null, null, null, null),
@@ -98,6 +97,11 @@ public class TestStudentController extends LabvisionApplicationTests {
 						))
 		};
 		
+		ArgumentCaptor<NavbarModel> navbarModelCaptor = ArgumentCaptor.forClass(NavbarModel.class);
+		verify(spyModel, times(1)).addAttribute(eq("navbarModel"), navbarModelCaptor.capture());
+		final NavbarModel navbarModel = navbarModelCaptor.getValue();
+		
+		assertNotNull(navbarModel);
 		NavLinkSpecAssertions.assertNavLinks(navLinkSpecs, navbarModel);
 		assertEquals("/logout", navbarModel.getLogoutLink());
 	}
@@ -131,12 +135,17 @@ public class TestStudentController extends LabvisionApplicationTests {
 				studentId, maxCurrentExperiments, Integer.MAX_VALUE, Integer.MAX_VALUE);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
+		ExtendedModelMap spyModel = spy(model);
 		
-		studentController.dashboard(user, model);
+		studentController.dashboard(user, spyModel);
 		
-		@SuppressWarnings("unchecked")
-		List<CurrentExperimentForStudentDashboard> actualCurrentExperiments = 
-				(List<CurrentExperimentForStudentDashboard>) model.getAttribute("currentExperiments");
+		ArgumentCaptor<List<?>> argumentCaptor 
+			= ArgumentCaptor.forClass(List.class);
+		verify(spyModel, times(1)).addAttribute(eq("currentExperiments"), argumentCaptor.capture());
+		List<CurrentExperimentForStudentDashboard> actualCurrentExperiments
+			= argumentCaptor.getValue().stream()
+				.map(obj -> (CurrentExperimentForStudentDashboard) obj)
+				.collect(Collectors.toList());
 		
 		assertEquals(maxCurrentExperiments, actualCurrentExperiments.size());
 		assertEquals(currentExperiments.size(), actualCurrentExperiments.size());
@@ -177,12 +186,16 @@ public class TestStudentController extends LabvisionApplicationTests {
 				studentId, Integer.MAX_VALUE, maxRecentExperiments, Integer.MAX_VALUE);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
+		ExtendedModelMap spyModel = spy(model);
 		
-		studentController.dashboard(user, model);
+		studentController.dashboard(user, spyModel);
 		
-		@SuppressWarnings("unchecked")
-		List<RecentExperimentForStudentDashboard> actualRecentExperiments = 
-				(List<RecentExperimentForStudentDashboard>) model.getAttribute("recentExperiments");
+		ArgumentCaptor<List<?>> argumentCaptor = ArgumentCaptor.forClass(List.class);
+		verify(spyModel, times(1)).addAttribute(eq("recentExperiments"), argumentCaptor.capture());
+		List<RecentExperimentForStudentDashboard> actualRecentExperiments
+			= argumentCaptor.getValue().stream()
+				.map(obj -> (RecentExperimentForStudentDashboard) obj)
+				.collect(Collectors.toList());
 		
 		assertEquals(maxRecentExperiments, actualRecentExperiments.size());
 		assertEquals(recentExperiments.size(), actualRecentExperiments.size());
@@ -219,12 +232,16 @@ public class TestStudentController extends LabvisionApplicationTests {
 				studentId, Integer.MAX_VALUE, Integer.MAX_VALUE, maxRecentCourses);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
+		ExtendedModelMap spyModel = spy(model);
 		
-		studentController.dashboard(user, model);
+		studentController.dashboard(user, spyModel);
 		
-		@SuppressWarnings("unchecked")
-		List<RecentCourseForStudentDashboard> actualRecentCourses =
-				(List<RecentCourseForStudentDashboard>) model.getAttribute("recentCourses");
+		ArgumentCaptor<List<?>> argumentCaptor = ArgumentCaptor.forClass(List.class);
+		verify(spyModel, times(1)).addAttribute(eq("recentCourses"), argumentCaptor.capture());
+		List<RecentCourseForStudentDashboard> actualRecentCourses
+			= argumentCaptor.getValue().stream()
+				.map(obj -> (RecentCourseForStudentDashboard) obj)
+				.collect(Collectors.toList());
 		
 		assertEquals(maxRecentCourses, actualRecentCourses.size());
 		assertEquals(recentCourses.size(), actualRecentCourses.size());
@@ -256,11 +273,20 @@ public class TestStudentController extends LabvisionApplicationTests {
 			.thenReturn(defaultStudentPreferences);
 		
 		ExtendedModelMap model = new ExtendedModelMap();
+		ExtendedModelMap spyModel = spy(model);
 		
-		studentController.reviewSettings(user, model);
+		studentController.reviewSettings(user, spyModel);
 		
-		assertEquals(studentPreferences, model.getAttribute("prefs"));
-		assertEquals(defaultStudentPreferences, model.getAttribute("defaults"));
+		ArgumentCaptor<StudentPreferences> prefsArgumentCaptor 
+			= ArgumentCaptor.forClass(StudentPreferences.class);
+		verify(spyModel, times(1)).addAttribute(eq("prefs"), prefsArgumentCaptor.capture());
+		
+		ArgumentCaptor<StudentPreferences> defaultsArgumentCaptor 
+			= ArgumentCaptor.forClass(StudentPreferences.class);
+		verify(spyModel, times(1)).addAttribute(eq("defaults"), defaultsArgumentCaptor.capture());
+		
+		assertEquals(studentPreferences, prefsArgumentCaptor.getValue());
+		assertEquals(defaultStudentPreferences, defaultsArgumentCaptor.getValue());
 	}
 	
 	@Test
