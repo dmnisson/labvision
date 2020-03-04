@@ -250,4 +250,12 @@ public class ExperimentService {
 				.collect(Collectors.toList());
 	}
 	
+	public long countCurrentExperimentsByStudentId(Integer studentId) {
+		return experimentRepository.countCurrentExperimentsByStudentId(studentId);
+	}
+	
+	public long countRecentExperimentsByStudentId(Integer studentId) {
+		return experimentRepository.countRecentExperimentsByStudentId(studentId);
+	}
+	
 }

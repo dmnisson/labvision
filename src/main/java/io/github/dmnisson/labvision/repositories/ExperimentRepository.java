@@ -32,6 +32,11 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"			END" +
 			"		)";
 	
+	@Query( "SELECT COUNT(DISTINCT e.id) FROM Student s " +
+			"JOIN s.activeExperiments e " +
+			"WHERE s.id=:studentid" )
+	public long countCurrentExperimentsByStudentId(@Param("studentid") Integer studentId);
+	
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard(" +
 			"	e.id," +
 			"	e.name," +
@@ -78,6 +83,20 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 	public List<CurrentExperimentForStudentDashboard> findCurrentExperimentsForStudentDashboardWithSubmissions(
 			@Param("studentid") Integer studentId, Pageable pageable);
 
+	@Query("SELECT COUNT(DISTINCT e.id) " +
+			"FROM Experiment e " +
+			"LEFT JOIN e.activeStudents s " +
+			"LEFT JOIN e.measurements m " +
+			"LEFT JOIN m.values mv ON mv.student.id=:studentid " +
+			"LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid " +
+			"LEFT JOIN e.course c " +
+			"LEFT JOIN c.courseClasses cc " +
+			"LEFT JOIN cc.students s2 " +
+			"WHERE (s.id IS NULL OR s.id=:studentid) AND " +
+			"(s2.id IS NULL OR s2.id=:studentid) AND " +
+			"(s.id IS NOT NULL OR s2.id IS NOT NULL)")
+	public long countRecentExperimentsByStudentId(@Param("studentid") Integer studentId);
+	
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard(" +
 		    "	e.id," +
 		    "	e.name," +
@@ -316,6 +335,5 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			+ "JOIN e.course c "
 			+ "WHERE e.id=:experimentid")
 	public Optional<ExperimentInfo> findInfoById(@Param("experimentid") Integer experimentId);
-	
 		
 }
