@@ -256,5 +256,4 @@ public class ExperimentService {
 	public long countRecentExperimentsByStudentId(Integer studentId) {
 		return experimentRepository.countRecentExperimentsByStudentId(studentId);
 	}
-	
 }

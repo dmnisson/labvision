@@ -7,12 +7,12 @@ import org.springframework.data.domain.Pageable;
 import io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
 
-public class RecentExperimentDashboardQueries
+public class RecentExperimentForStudentDashboardQueries
 		implements ExperimentDtoQueries<RecentExperimentForStudentDashboard, Integer> {
 
 	private final ExperimentRepository experimentRepository;
 	
-	public RecentExperimentDashboardQueries(ExperimentRepository experimentRepository) {
+	public RecentExperimentForStudentDashboardQueries(ExperimentRepository experimentRepository) {
 		this.experimentRepository = experimentRepository;
 	}
 

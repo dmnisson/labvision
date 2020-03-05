@@ -37,12 +37,12 @@ public class ExperimentDtoQueriesFactory extends AbstractDtoQueriesFactory<
 		if (dtoClass.equals(CurrentExperimentForStudentDashboard.class)) {
 			
 			return (ExperimentDtoQueries<DTO, Integer>) 
-					new CurrentExperimentDashboardQueries(repository);
+					new CurrentExperimentForStudentDashboardQueries(repository);
 			
 		} else if (dtoClass.equals(RecentExperimentForStudentDashboard.class)) {
 			
 			return (ExperimentDtoQueries<DTO, Integer>) 
-					new RecentExperimentDashboardQueries(repository);
+					new RecentExperimentForStudentDashboardQueries(repository);
 			
 		} else {
 			throw new IllegalArgumentException("Unrecognized DTO type: " + dtoClass);
