@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 import javax.measure.quantity.Angle;
+import javax.measure.quantity.Speed;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -224,6 +225,10 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 		
 		testCourse = courseRepository.saveAndFlush(testCourse);
 		
+		CourseClass testCourseClass = testCourse.addCourseClass("Test Course 101 Online");
+		testCourseClass.addStudent(testStudent1);
+		testCourseClass = courseClassRepository.save(testCourseClass);
+		
 		Experiment activeExperiment2 = experimentRepository.saveAndFlush(
 				testCourse.addExperiment(
 						"Test Experiment 2",
@@ -241,9 +246,39 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 		testStudent2 = studentRepository.save(testStudent2);
 		final Experiment savedActiveExperiment2 = experimentRepository.saveAndFlush(activeExperiment2);
 		
+		Experiment activeExperiment3 = experimentRepository.saveAndFlush(
+				testCourse.addExperiment(
+						"Test Experiment 2",
+						"Test experiment number 2.", 
+						LocalDateTime.of(2050, 3, 4, 0, 0, 0)
+						)
+				);
+		
+		Measurement activeExperiment3measurement1 = activeExperiment3
+				.addMeasurement("Test Measurement 1", Speed.class);
+		
+		Experiment savedActiveExperiment3 = experimentRepository.save(activeExperiment3);
+		activeExperiment3measurement1 = savedActiveExperiment3
+				.getMeasurements().stream().findAny().get();
+		testStudent1.addActiveExperiment(savedActiveExperiment3);
+		testStudent1 = studentRepository.save(testStudent1);
+		
+		MeasurementValue activeExperiment3measurement1value1 = activeExperiment3measurement1
+				.addValue(
+						testStudent1, 
+						testCourseClass, 
+						new Amount<>(1.5, 0.12, SI.getInstance().getUnit(Speed.class)), 
+						LocalDateTime.now().minusHours(2)
+						);
+		measurementValueRepository.save(activeExperiment3measurement1value1);
+		
 		testCourse = courseRepository.saveAndFlush(testCourse);
 		
-		final CurrentExperimentEntitySeeds parameterObject = new CurrentExperimentEntitySeeds(testStudent1, savedActiveExperiment1, savedActiveExperiment2);
+		final CurrentExperimentEntitySeeds parameterObject = new CurrentExperimentEntitySeeds(
+				testStudent1, 
+				savedActiveExperiment1, 
+				savedActiveExperiment2,
+				savedActiveExperiment3);
 		return parameterObject;
 	}
 	
@@ -251,12 +286,15 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 		private Student testStudent1;
 		private Experiment savedActiveExperiment1;
 		private Experiment savedActiveExperiment2;
+		private Experiment savedActiveExperiment3;
 
 		public CurrentExperimentEntitySeeds(Student testStudent1, Experiment savedActiveExperiment1,
-				Experiment savedActiveExperiment2) {
+				Experiment savedActiveExperiment2, Experiment savedActiveExperiment3) {
+			super();
 			this.testStudent1 = testStudent1;
 			this.savedActiveExperiment1 = savedActiveExperiment1;
 			this.savedActiveExperiment2 = savedActiveExperiment2;
+			this.savedActiveExperiment3 = savedActiveExperiment3;
 		}
 
 		public Student getTestStudent1() {
@@ -269,6 +307,10 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 
 		public Experiment getSavedActiveExperiment2() {
 			return savedActiveExperiment2;
+		}
+
+		public Experiment getSavedActiveExperiment3() {
+			return savedActiveExperiment3;
 		}
 	}
 
@@ -350,6 +392,10 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 				currentExperiments.stream()
 					.anyMatch(e -> seeds.getSavedActiveExperiment2().getId().equals(e.getId()))
 				);
+		assertTrue(
+				currentExperiments.stream()
+					.noneMatch(e -> seeds.getSavedActiveExperiment3().getId().equals(e.getId()))
+				);
 	}
 
 	@Transactional
@@ -371,6 +417,10 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 		assertTrue(
 				currentExperiments.stream()
 					.noneMatch(e -> seeds.getSavedActiveExperiment2().getId().equals(e.getId()))
+				);
+		assertTrue(
+				currentExperiments.stream()
+					.anyMatch(e -> seeds.getSavedActiveExperiment3().getId().equals(e.getId()))
 				);
 	}
 	
