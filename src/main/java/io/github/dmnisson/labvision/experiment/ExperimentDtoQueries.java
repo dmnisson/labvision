@@ -11,5 +11,9 @@ public interface ExperimentDtoQueries<DTO, UserID> extends DtoQueries<DTO, UserI
 	public List<DTO> findExperimentsNoSubmissions(UserID userId, Pageable pageable);
 	
 	public List<DTO> findExperimentsWithSubmissions(UserID userId, Pageable pageable);
+
+	public long countExperimentsNoSubmissions(Integer userId);
+
+	public long countExperiments(Integer userId);
 	
 }

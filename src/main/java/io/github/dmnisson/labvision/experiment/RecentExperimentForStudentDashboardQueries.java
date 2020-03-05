@@ -26,4 +26,14 @@ public class RecentExperimentForStudentDashboardQueries
 		return experimentRepository.findRecentExperimentsForStudentDashboardWithSubmissions(userId, pageable);
 	}
 
+	@Override
+	public long countExperimentsNoSubmissions(Integer userId) {
+		return experimentRepository.countRecentExperimentsByStudentIdNoSubmissions(userId);
+	}
+
+	@Override
+	public long countExperiments(Integer userId) {
+		return experimentRepository.countRecentExperimentsByStudentId(userId);
+	}
+
 }

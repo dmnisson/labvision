@@ -37,6 +37,14 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"WHERE s.id=:studentid" )
 	public long countCurrentExperimentsByStudentId(@Param("studentid") Integer studentId);
 	
+	@Query( "SELECT COUNT(DISTINCT e.id) FROM Student s " +
+			"JOIN s.activeExperiments e " +
+			"LEFT JOIN e.measurements m " +
+			"LEFT JOIN m.values mv ON mv.student.id=:studentid " +
+			"LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid " +
+			"WHERE s.id=:studentid AND mv.id IS NULL AND rr.id IS NULL" )
+	public long countCurrentExperimentsByStudentIdNoSubmissions(@Param("studentid") Integer studentId);
+	
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard(" +
 			"	e.id," +
 			"	e.name," +
@@ -96,6 +104,21 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"(s2.id IS NULL OR s2.id=:studentid) AND " +
 			"(s.id IS NOT NULL OR s2.id IS NOT NULL)")
 	public long countRecentExperimentsByStudentId(@Param("studentid") Integer studentId);
+	
+	@Query("SELECT COUNT(DISTINCT e.id) " +
+			"FROM Experiment e " +
+			"LEFT JOIN e.activeStudents s " +
+			"LEFT JOIN e.measurements m " +
+			"LEFT JOIN m.values mv ON mv.student.id=:studentid " +
+			"LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid " +
+			"LEFT JOIN e.course c " +
+			"LEFT JOIN c.courseClasses cc " +
+			"LEFT JOIN cc.students s2 " +
+			"WHERE (s.id IS NULL OR s.id=:studentid) AND " +
+			"(s2.id IS NULL OR s2.id=:studentid) AND " +
+			"(s.id IS NOT NULL OR s2.id IS NOT NULL) AND " +
+			"mv.id IS NULL AND rr.id IS NULL")
+	public long countRecentExperimentsByStudentIdNoSubmissions(@Param("studentid") Integer studentId);
 	
 	@Query( "SELECT new io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard(" +
 		    "	e.id," +
@@ -163,6 +186,48 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"ORDER BY lu DESC NULLS FIRST, e.reportDueDate ASC")
 	public Page<CurrentExperimentForStudentExperimentTable> findCurrentExperimentsForStudentExperimentTable(
 			@Param("studentid") Integer studentId, Pageable pageable);
+	
+	// report-related fields need to be passed to constructor so that
+	// the correct constructor can be properly resolved
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable("
+			+ "	e.id,"
+			+ "	e.name,"
+			+ EXPERIMENT_LAST_UPDATED_FUNCTION + " AS lu,"
+			+ "	e.reportDueDate,"
+			+ "	MAX(rr.added),"
+			+ "	CASE WHEN COUNT(rr.score) > 0 THEN SUM(rr.score) ELSE 0 END"
+			+ ") "
+			+ "FROM Student s "
+			+ "JOIN s.activeExperiments e "
+			+ "LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid "
+			+ "LEFT JOIN e.measurements m "
+			+ "LEFT JOIN m.values mv ON mv.student.id=:studentid "
+			+ "WHERE s.id=:studentid AND "
+			+ "rr.id IS NULL AND mv.id IS NULL "
+			+ "GROUP BY e "
+			+ "ORDER BY e.reportDueDate ASC")
+	public Page<CurrentExperimentForStudentExperimentTable> findCurrentExperimentsForStudentExperimentTableNoSubmissions(
+			@Param("studentid") Integer studentId, Pageable pageable);
+	
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable("
+			+ "	e.id,"
+			+ "	e.name,"
+			+ EXPERIMENT_LAST_UPDATED_FUNCTION + " AS lu,"
+			+ "	e.reportDueDate,"
+			+ "	MAX(rr.added),"
+			+ "	CASE WHEN COUNT(rr.score) > 0 THEN SUM(rr.score) ELSE 0 END"
+			+ ") "
+			+ "FROM Student s "
+			+ "JOIN s.activeExperiments e "
+			+ "LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid "
+			+ "LEFT JOIN e.measurements m "
+			+ "LEFT JOIN m.values mv ON mv.student.id=:studentid "
+			+ "WHERE s.id=:studentid AND "
+			+ "(rr.id IS NOT NULL OR mv.id IS NOT NULL) "
+			+ "GROUP BY e "
+			+ "ORDER BY e.reportDueDate ASC")
+	public Page<CurrentExperimentForStudentExperimentTable> findCurrentExperimentsForStudentExperimentTableWithSubmissions(
+			@Param("studentid") Integer studentId, Pageable pageable);
 
 	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.PastExperimentForStudentExperimentTable(" +
 			"	e.id," +
@@ -183,6 +248,26 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"GROUP BY e " +
 			"ORDER BY lu DESC NULLS FIRST")
 	public Page<PastExperimentForStudentExperimentTable> findPastExperimentsForStudentExperimentTable(
+			@Param("studentid") Integer studentId, Pageable pageable);
+	
+	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.PastExperimentForStudentExperimentTable(" +
+			"	e.id," +
+			"	e.name," +
+			EXPERIMENT_LAST_UPDATED_FUNCTION + " AS lu," +
+			"	COUNT(rr.id)," +
+			"	MAX(rr.added)," +
+			"	CASE WHEN COUNT(rr.score) > 0 THEN SUM(rr.score) ELSE 0 END" +
+			") " +
+			"FROM Experiment e " +
+			"LEFT JOIN e.activeStudents s " +
+			"LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid " +
+			"LEFT JOIN e.measurements m " +
+			"LEFT JOIN m.values mv ON mv.student.id=:studentid " +
+			"WHERE (s.id IS NULL OR s.id<>:studentid) AND " +
+			"(rr.id IS NOT NULL OR mv.id IS NOT NULL) " +
+			"GROUP BY e " +
+			"ORDER BY lu DESC")
+	public Page<PastExperimentForStudentExperimentTable> findPastExperimentsForStudentExperimentTableWithSubmissions(
 			@Param("studentid") Integer studentId, Pageable pageable);
 
 	@Query(	"SELECT new io.github.dmnisson.labvision.dto.experiment.ExperimentInfo(" +
@@ -256,6 +341,15 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			@Param("studentid") Integer studentId,
 			@Param("courseid") Integer courseId, Pageable pageable);
 
+	@Query(	"SELECT COUNT(DISTINCT e.id) FROM Experiment e "
+			+ "LEFT JOIN e.activeStudents s "
+			+ "LEFT JOIN e.reportedResults rr ON rr.student.id=:studentid "
+			+ "LEFT JOIN e.measurements m "
+			+ "LEFT JOIN m.values mv ON mv.student.id=:studentid "
+			+ "WHERE (s.id IS NULL OR s.id<>:studentid) AND "
+			+ "(rr.id IS NOT NULL OR mv.id IS NOT NULL) ")
+	public long countPastExperimentsByStudentId(@Param("studentid") Integer studentId);
+	
 	@Query(	"SELECT new io.github.dmnisson.labvision.dto.student.experiment.PastExperimentForStudentExperimentTable(" +
 			"	e.id," +
 			"	e.name," +

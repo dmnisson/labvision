@@ -1,21 +1,27 @@
 package io.github.dmnisson.labvision;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.stream.StreamSupport;
 
 import javax.measure.quantity.Angle;
 import javax.measure.quantity.Speed;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard;
+import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
+import io.github.dmnisson.labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.entities.Course;
 import io.github.dmnisson.labvision.entities.CourseClass;
@@ -54,70 +60,45 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 	private MeasurementValueRepository measurementValueRepository;
 	
 	// Helper that tests that a given repository method returns only active experiments
-	private void assertRepositoryMethodShouldOnlyGetActiveExperiments(
-			final BiFunction<Integer, Pageable, List<CurrentExperimentForStudentDashboard>> repositoryMethodCaller, boolean addReportedResults) {
-		Student testStudent1 = new Student();
-		testStudent1.setUsername("testStudent1");
-		testStudent1.setName("Test Student One");
+	private <DTO extends ExperimentInfo> void assertRepositoryMethodShouldOnlyGetActiveExperiments(
+			final BiFunction<Integer, Pageable, ? extends Iterable<DTO>> repositoryMethodCaller, boolean addReportedResults) {
+		CurrentExperimentEntitySeeds seeds = seedEntitiesForCurrentExperiments2(addReportedResults);
 		
-		Student testStudent2 = new Student();
-		testStudent2.setUsername("testStudent2");
-		testStudent2.setName("Test Student Two");
+		Iterable<DTO> currentExperiments =
+				repositoryMethodCaller.apply(seeds.getTestStudent1().getId(), PageRequest.of(0, Integer.MAX_VALUE));
 		
-		Course testCourse = new Course();
-		testCourse.setName("Test Course 101");
-		testCourse = courseRepository.save(testCourse);
-		
-		Experiment activeExperiment1 = 
-				testCourse.addExperiment(
-						"Test Experiment 1",
-						"Test Student One's only active experiment.", 
-						LocalDateTime.of(2050, 3, 4, 0, 0, 0)
-						);
-		testCourse = courseRepository.save(testCourse);
-		
-		testStudent1.addActiveExperiment(activeExperiment1);
-		final Experiment savedActiveExperiment1 = experimentRepository.saveAndFlush(activeExperiment1);
-		testStudent1 = studentRepository.save(testStudent1);
-		
-		if (addReportedResults) {
-			ReportedResult reportedResult1 = savedActiveExperiment1.addReportedResult(testStudent1);
-			reportedResult1.setName("Test Report 1");
-			reportedResultRepository.saveAndFlush(reportedResult1);
-		}
-		
-		testCourse = courseRepository.saveAndFlush(testCourse);
-		
-		Experiment activeExperiment2 = experimentRepository.saveAndFlush(
-				testCourse.addExperiment(
-						"Test Experiment 2",
-						"The only experiment not active by Test Student One.", 
-						LocalDateTime.of(2050, 3, 4, 0, 0, 0)
-						)
+		assertTrue(
+				StreamSupport.stream(currentExperiments.spliterator(), false)
+					.anyMatch(e -> seeds.getSavedActiveExperiment1().getId().equals(e.getId()))
 				);
+		assertTrue(
+				StreamSupport.stream(currentExperiments.spliterator(), false)
+					.noneMatch(e -> seeds.getSavedActiveExperiment2().getId().equals(e.getId()))
+				);
+	}
+	
+	private <DTO extends ExperimentInfo> void assertRepositoryMethodShouldOnlyGetPastExperiments(
+			final BiFunction<Integer, Pageable, ? extends Iterable<DTO>> repositoryMethodCaller,
+			boolean addReportedResults) {
 		
-		testStudent2.addActiveExperiment(activeExperiment2);
-		final Experiment savedActiveExperiment2 = experimentRepository.saveAndFlush(activeExperiment2);
-		testStudent2 = studentRepository.save(testStudent2);
+		RecentExperimentEntitySeeds seeds = seedEntitiesForRecentExperiments();
 		
 		if (addReportedResults) {
-			ReportedResult reportedResult2 = savedActiveExperiment2.addReportedResult(testStudent1);
-			reportedResult2.setName("Test Report 2");
+			ReportedResult reportedResult2 
+				= seeds.getSavedExperiment1().addReportedResult(seeds.getTestStudent1());
+			reportedResult2.setName("Test Report 1234");
+			reportedResult2.setAdded(LocalDateTime.now());
 			reportedResultRepository.saveAndFlush(reportedResult2);
 		}
 		
-		testCourse = courseRepository.saveAndFlush(testCourse);
-		
-		List<CurrentExperimentForStudentDashboard> currentExperiments =
-				repositoryMethodCaller.apply(testStudent1.getId(), PageRequest.of(0, Integer.MAX_VALUE));
-		
-		assertTrue(
-				currentExperiments.stream()
-					.anyMatch(e -> savedActiveExperiment1.getId().equals(e.getId()))
+		Iterable<DTO> experiments = repositoryMethodCaller.apply(
+				seeds.getTestStudent1().getId(),
+				PageRequest.of(0, Integer.MAX_VALUE)
 				);
+		
 		assertTrue(
-				currentExperiments.stream()
-					.noneMatch(e -> savedActiveExperiment2.getId().equals(e.getId()))
+				StreamSupport.stream(experiments.spliterator(), false)
+					.noneMatch(e -> seeds.getSavedExperiment1().getId().equals(e.getId()))
 				);
 	}
 	
@@ -282,6 +263,70 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 		return parameterObject;
 	}
 	
+	// Seed entites for functions that check that current experiments only count active ones
+	private CurrentExperimentEntitySeeds seedEntitiesForCurrentExperiments2(boolean addReportedResults) {
+		Student testStudent1 = new Student();
+		testStudent1.setUsername("testStudent1");
+		testStudent1.setName("Test Student One");
+		
+		Student testStudent2 = new Student();
+		testStudent2.setUsername("testStudent2");
+		testStudent2.setName("Test Student Two");
+		
+		Course testCourse = new Course();
+		testCourse.setName("Test Course 101");
+		testCourse = courseRepository.save(testCourse);
+		
+		Experiment activeExperiment1 = 
+				testCourse.addExperiment(
+						"Test Experiment 1",
+						"Test Student One's only active experiment.", 
+						LocalDateTime.of(2050, 3, 4, 0, 0, 0)
+						);
+		testCourse = courseRepository.save(testCourse);
+		
+		testStudent1.addActiveExperiment(activeExperiment1);
+		final Experiment savedActiveExperiment1 = experimentRepository.saveAndFlush(activeExperiment1);
+		testStudent1 = studentRepository.save(testStudent1);
+		
+		if (addReportedResults) {
+			ReportedResult reportedResult1 = savedActiveExperiment1.addReportedResult(testStudent1);
+			reportedResult1.setName("Test Report 1");
+			reportedResultRepository.saveAndFlush(reportedResult1);
+		}
+		
+		testCourse = courseRepository.saveAndFlush(testCourse);
+		
+		Experiment activeExperiment2 = experimentRepository.saveAndFlush(
+				testCourse.addExperiment(
+						"Test Experiment 2",
+						"The only experiment not active by Test Student One.", 
+						LocalDateTime.of(2050, 3, 4, 0, 0, 0)
+						)
+				);
+		
+		testStudent2.addActiveExperiment(activeExperiment2);
+		final Experiment savedActiveExperiment2 = experimentRepository.saveAndFlush(activeExperiment2);
+		testStudent2 = studentRepository.save(testStudent2);
+		
+		if (addReportedResults) {
+			ReportedResult reportedResult2 = savedActiveExperiment2.addReportedResult(testStudent1);
+			reportedResult2.setName("Test Report 2");
+			reportedResultRepository.saveAndFlush(reportedResult2);
+		}
+		
+		testCourse = courseRepository.saveAndFlush(testCourse);
+		
+		CurrentExperimentEntitySeeds seeds
+			= new CurrentExperimentEntitySeeds(
+					testStudent1,
+					savedActiveExperiment1,
+					savedActiveExperiment2,
+					null
+					);
+		return seeds;
+	}
+	
 	static class CurrentExperimentEntitySeeds {
 		private Student testStudent1;
 		private Experiment savedActiveExperiment1;
@@ -358,7 +403,7 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 	
 	@Transactional
 	@Test
-	public void findCurrentExperimentsForStudentDashboardNoReports_ShouldOnlyGetActiveExperiments() {
+	public void findCurrentExperimentsForStudentDashboardNoSubmissions_ShouldOnlyGetActiveExperiments() {
 		
 		assertRepositoryMethodShouldOnlyGetActiveExperiments((id, pageable) -> 
 			experimentRepository.findCurrentExperimentsForStudentDashboardNoSubmissions(id, pageable), false);
@@ -366,7 +411,7 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 
 	@Transactional
 	@Test
-	public void findCurrentExperimentsForStudentDashboardWithReports_ShouldOnlyGetActiveExperiments() {
+	public void findCurrentExperimentsForStudentDashboardWithSubmissions_ShouldOnlyGetActiveExperiments() {
 		
 		assertRepositoryMethodShouldOnlyGetActiveExperiments((id, pageable) -> 
 			experimentRepository.findCurrentExperimentsForStudentDashboardWithSubmissions(id, pageable), true);
@@ -374,7 +419,7 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 	
 	@Transactional
 	@Test
-	public void findCurrentExperimentsForStudentDashboardNoReports_ShouldGetExperimentsWithNoReports() {
+	public void findCurrentExperimentsForStudentDashboardNoSubmissions_ShouldGetExperimentsWithNoSubmissions() {
 		
 		final CurrentExperimentEntitySeeds seeds = seedEntitiesForCurrentExperiments();
 		
@@ -384,23 +429,28 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 				PageRequest.of(0, Integer.MAX_VALUE)
 				);
 				
+		assertContainsNoExperimentsWithSubmissions(seeds, currentExperiments);
+	}
+
+	private static <DTO extends ExperimentInfo> void assertContainsNoExperimentsWithSubmissions(
+			final CurrentExperimentEntitySeeds seeds, Iterable<DTO> currentExperiments) {
 		assertTrue(
-				currentExperiments.stream()
+				StreamSupport.stream(currentExperiments.spliterator(), false)
 					.noneMatch(e -> seeds.getSavedActiveExperiment1().getId().equals(e.getId()))
 				);
 		assertTrue(
-				currentExperiments.stream()
+				StreamSupport.stream(currentExperiments.spliterator(), false)
 					.anyMatch(e -> seeds.getSavedActiveExperiment2().getId().equals(e.getId()))
 				);
 		assertTrue(
-				currentExperiments.stream()
+				StreamSupport.stream(currentExperiments.spliterator(), false)
 					.noneMatch(e -> seeds.getSavedActiveExperiment3().getId().equals(e.getId()))
 				);
 	}
 
 	@Transactional
 	@Test
-	public void findCurrentExperimentsForStudentDashboardWithReports_ShouldGetExperimentsWithReports() {
+	public void findCurrentExperimentsForStudentDashboardWithSubmissions_ShouldGetExperimentsWithSubmissions() {
 		
 		final CurrentExperimentEntitySeeds seeds = seedEntitiesForCurrentExperiments();
 		
@@ -410,23 +460,30 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 				PageRequest.of(0, Integer.MAX_VALUE)
 				);
 				
+		assertContainsOnlyExperimentsWithSubmissions(seeds, currentExperiments);
+	}
+
+	private <DTO extends ExperimentInfo> void assertContainsOnlyExperimentsWithSubmissions(
+			final CurrentExperimentEntitySeeds seeds,
+			Iterable<DTO> currentExperiments) {
+		
 		assertTrue(
-				currentExperiments.stream()
+				StreamSupport.stream(currentExperiments.spliterator(), false)
 					.anyMatch(e -> seeds.getSavedActiveExperiment1().getId().equals(e.getId()))
 				);
 		assertTrue(
-				currentExperiments.stream()
+				StreamSupport.stream(currentExperiments.spliterator(), false)
 					.noneMatch(e -> seeds.getSavedActiveExperiment2().getId().equals(e.getId()))
 				);
 		assertTrue(
-				currentExperiments.stream()
+				StreamSupport.stream(currentExperiments.spliterator(), false)
 					.anyMatch(e -> seeds.getSavedActiveExperiment3().getId().equals(e.getId()))
 				);
 	}
 	
 	@Transactional
 	@Test
-	public void findRecentExperimentsForStudentDashboardNoReports_ShouldGetExperimentsWithNoReports() {
+	public void findRecentExperimentsForStudentDashboardNoSubmissions_ShouldGetExperimentsWithNoSubmissions() {
 		
 		final RecentExperimentEntitySeeds seeds = seedEntitiesForRecentExperiments();
 		
@@ -456,7 +513,7 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 	
 	@Transactional
 	@Test
-	public void findRecentExperimentsForStudentDashboardWithReports_ShouldGetExperimentsWithReports() {
+	public void findRecentExperimentsForStudentDashboardWithSubmissions_ShouldGetExperimentsWithSubmissions() {
 		
 		final RecentExperimentEntitySeeds seeds = seedEntitiesForRecentExperiments();
 		
@@ -482,6 +539,156 @@ public class TestExperimentRepository extends LabvisionApplicationTests {
 					.noneMatch(e -> seeds.getSavedExperiment4().getId().equals(e.getId()))
 				);
 		
+	}
+
+	@Transactional
+	@Test
+	public void findCurrentExperimentsForStudentExperimentTableNoSubmissions_ShouldOnlyGetActiveExperiments() {
+		
+		assertRepositoryMethodShouldOnlyGetActiveExperiments(
+				(studentId, pageable) -> 
+					experimentRepository.findCurrentExperimentsForStudentExperimentTableNoSubmissions(studentId, pageable), 
+				false
+				);
+		
+	}
+	
+	@Transactional
+	@Test
+	public void findCurrentExperimentsForStudentExperimentTableNoSubmissions_ShouldGetExperimentsWithNoSubmissions() {
+		
+		final CurrentExperimentEntitySeeds seeds = seedEntitiesForCurrentExperiments();
+		
+		Page<CurrentExperimentForStudentExperimentTable> currentExperiments
+			= experimentRepository.findCurrentExperimentsForStudentExperimentTableNoSubmissions(
+					seeds.getTestStudent1().getId(), 
+					PageRequest.of(0, Integer.MAX_VALUE)
+					);
+		
+		assertContainsNoExperimentsWithSubmissions(seeds, currentExperiments);
+		
+	}
+	
+	@Transactional
+	@Test
+	public void findCurrentExperimentsForStudentExperimentTableWithSubmissions_ShouldGetExperimentsWithSubmissions() {
+		
+		final CurrentExperimentEntitySeeds seeds = seedEntitiesForCurrentExperiments();
+		
+		Page<CurrentExperimentForStudentExperimentTable> currentExperiments
+			= experimentRepository.findCurrentExperimentsForStudentExperimentTableWithSubmissions(
+					seeds.getTestStudent1().getId(), 
+					PageRequest.of(0, Integer.MAX_VALUE)
+					);
+		
+		assertContainsOnlyExperimentsWithSubmissions(seeds, currentExperiments);
+		
+	}
+	
+	@Transactional
+	@Test
+	public void findPastExperimentsForStudentExperimentTableWithSubmissions_ShouldOnlyGetPastExperiments() {
+		assertRepositoryMethodShouldOnlyGetPastExperiments(
+				(studentId, pageable) -> experimentRepository.findPastExperimentsForStudentExperimentTableWithSubmissions(studentId, pageable), 
+				true
+				);
+	}
+	
+	@Transactional
+	@Test
+	public void findPastExperimentsForStudentExperimentTableWithSubmissions_ShouldGetExperimentsWithSubmissions() {
+		
+		RecentExperimentEntitySeeds seeds = seedEntitiesForRecentExperiments();
+		
+		Page<PastExperimentForStudentExperimentTable> pastExperiments
+			= experimentRepository.findPastExperimentsForStudentExperimentTableWithSubmissions(
+					seeds.getTestStudent1().getId(), 
+					PageRequest.of(0, Integer.MAX_VALUE)
+					);
+		
+		assertTrue(
+				pastExperiments.stream()
+					.noneMatch(e -> seeds.getSavedExperiment1().getId().equals(e.getId()))
+				);
+		assertTrue(
+				pastExperiments.stream()
+					.anyMatch(e -> seeds.getSavedExperiment2().getId().equals(e.getId()))
+				);
+		assertTrue(
+				pastExperiments.stream()
+					.anyMatch(e -> seeds.getSavedExperiment3().getId().equals(e.getId()))
+				);
+		assertTrue(
+				pastExperiments.stream()
+					.noneMatch(e -> seeds.getSavedExperiment4().getId().equals(e.getId()))
+				);
+		
+	}
+	
+	@Transactional
+	@Test
+	public void countCurrentExperimentsByStudentId_ShouldCountActiveExperiments() {
+		CurrentExperimentEntitySeeds seeds = seedEntitiesForCurrentExperiments2(true);
+		
+		long count = experimentRepository.countCurrentExperimentsByStudentId(
+				seeds.getTestStudent1().getId());
+		
+		assertEquals(1L, count);
+	}
+	
+	@Transactional
+	@Test
+	public void countCurrentExperimentsByStudentIdNoSubmissions_ShouldCountOnlyActiveExperiments() {
+		CurrentExperimentEntitySeeds seeds = seedEntitiesForCurrentExperiments2(false);
+		
+		long count = experimentRepository.countCurrentExperimentsByStudentIdNoSubmissions(
+				seeds.getTestStudent1().getId());
+		
+		assertEquals(1L, count);
+	}
+	
+	@Transactional
+	@Test
+	public void countCurrentExperimentsByStudentIdNoSubmissions_ShouldCountActiveExperimentsWithNoSubmissions() {
+		CurrentExperimentEntitySeeds seeds = seedEntitiesForCurrentExperiments();
+		
+		long count = experimentRepository.countCurrentExperimentsByStudentIdNoSubmissions(
+				seeds.getTestStudent1().getId());
+		
+		assertEquals(1L, count);
+	}
+	
+	@Transactional
+	@Test
+	public void countRecentExperimentsByStudentId_ShouldCountRecentExperiments() {
+		RecentExperimentEntitySeeds seeds = seedEntitiesForRecentExperiments();
+		
+		long count = experimentRepository.countRecentExperimentsByStudentId(
+				seeds.getTestStudent1().getId());
+		
+		assertEquals(4L, count);
+	}
+	
+	@Transactional
+	@Test
+	public void countRecentExperimentsByStudentIdNoSubmissions_ShouldCountRecentExperimentsWithNoSubmissions() {
+		RecentExperimentEntitySeeds seeds = seedEntitiesForRecentExperiments();
+		
+		long count = experimentRepository.countRecentExperimentsByStudentIdNoSubmissions(
+				seeds.getTestStudent1().getId());
+		
+		assertEquals(2L, count);
+	}
+	
+	@Transactional
+	@Test
+	public void countPastExperimentsByStudentId_ShouldCountPastExperiments() {
+		RecentExperimentEntitySeeds seeds = seedEntitiesForRecentExperiments();
+		
+		long count = experimentRepository.countPastExperimentsByStudentId(
+				seeds.getTestStudent1().getId());
+		
+		assertEquals(2L, count);
 	}
 	
 }
