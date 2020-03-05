@@ -142,10 +142,10 @@ public class StudentController {
 		model.addAttribute("student", user);
 		
 		final int maxCurrentExperiments = studentPreferencesService.getMaxCurrentExperiments(user.getId());
-		List<CurrentExperimentForStudentDashboard> currentExperiments = experimentService.findExperimentData(
+		Iterable<CurrentExperimentForStudentDashboard> currentExperiments = experimentService.findExperimentData(
 				user.getId(), 
-				maxCurrentExperiments, 
-				CurrentExperimentForStudentDashboard.class
+				0, 
+				maxCurrentExperiments, CurrentExperimentForStudentDashboard.class
 				);
 		model.addAttribute("currentExperiments", currentExperiments);
 		
@@ -157,10 +157,10 @@ public class StudentController {
 		}
 		
 		final int maxRecentExperiments = studentPreferencesService.getMaxRecentExperiments(user.getId());
-		List<RecentExperimentForStudentDashboard> recentExperiments = experimentService.findExperimentData(
+		Iterable<RecentExperimentForStudentDashboard> recentExperiments = experimentService.findExperimentData(
 				user.getId(), 
-				maxRecentExperiments, 
-				RecentExperimentForStudentDashboard.class
+				0, 
+				maxRecentExperiments, RecentExperimentForStudentDashboard.class
 				);
 		model.addAttribute("recentExperiments", recentExperiments);
 		

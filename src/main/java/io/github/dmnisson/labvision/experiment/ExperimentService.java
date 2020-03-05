@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -222,8 +223,8 @@ public class ExperimentService {
 		return experimentViewModel;
 	}
 	
-	public <DTO> List<DTO> findExperimentData(Integer userId, int limit, Class<DTO> dtoClass) {
-		Pageable noReportsPageable = PageRequest.of(0, limit);
+	public <DTO> Iterable<DTO> findExperimentData(Integer userId, int page, int limit, Class<DTO> dtoClass) {
+		Pageable noSubmissionsPageable = PageRequest.of(page, limit);
 		
 		ExperimentDtoQueries<DTO, Integer> dtoQueries =
 				ExperimentDtoQueriesFactory.createDtoQueriesForDtoType(
@@ -231,20 +232,26 @@ public class ExperimentService {
 						dtoClass
 						);
 		
-		List<DTO> experimentsNoReports = dtoQueries.findExperimentsNoSubmissions(userId, noReportsPageable);
+		Iterable<DTO> experimentsNoSubmissions = dtoQueries.findExperimentsNoSubmissions(userId, noSubmissionsPageable);
 		
-		assert experimentsNoReports.size() <= limit;
-		if (experimentsNoReports.size() == limit) {
-			return experimentsNoReports;
+		final long experimentsNoSubmissionsCount 
+			= StreamSupport.stream(experimentsNoSubmissions.spliterator(), false).count();
+		final long totalCount = dtoQueries.countExperiments(userId);
+		
+		assert experimentsNoSubmissionsCount <= Math.min(limit, totalCount - page * limit);
+		if (experimentsNoSubmissionsCount == Math.min(limit, totalCount - page * limit)) {
+			return experimentsNoSubmissions;
 		}
 		
-		Pageable withReportsPageable = PageRequest.of(0, limit - experimentsNoReports.size());
+		final long totalNoSubmissionsCount = dtoQueries.countExperimentsNoSubmissions(userId);
 		
-		List<DTO> experimentsWithReports = dtoQueries.findExperimentsWithSubmissions(userId, withReportsPageable);
+		Pageable withSubmissionsPageable = PageRequest.of(page - (int) (totalNoSubmissionsCount / limit), limit);
+		
+		Iterable<DTO> experimentsWithSubmissions = dtoQueries.findExperimentsWithSubmissions(userId, withSubmissionsPageable);
 		
 		return Stream.concat(
-					experimentsNoReports.stream(),
-					experimentsWithReports.stream()
+					StreamSupport.stream(experimentsNoSubmissions.spliterator(), false),
+					StreamSupport.stream(experimentsWithSubmissions.spliterator(), false)
 					)
 				.collect(Collectors.toList());
 	}
