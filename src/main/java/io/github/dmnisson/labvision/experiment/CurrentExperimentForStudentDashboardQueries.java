@@ -17,12 +17,12 @@ public class CurrentExperimentForStudentDashboardQueries
 	}
 
 	@Override
-	public List<CurrentExperimentForStudentDashboard> findExperimentsNoReports(Integer userId, Pageable pageable) {
+	public List<CurrentExperimentForStudentDashboard> findExperimentsNoSubmissions(Integer userId, Pageable pageable) {
 		return experimentRepository.findCurrentExperimentsForStudentDashboardNoSubmissions(userId, pageable);
 	}
 
 	@Override
-	public List<CurrentExperimentForStudentDashboard> findExperimentsWithReports(Integer userId, Pageable pageable) {
+	public List<CurrentExperimentForStudentDashboard> findExperimentsWithSubmissions(Integer userId, Pageable pageable) {
 		return experimentRepository.findCurrentExperimentsForStudentDashboardWithSubmissions(userId, pageable);
 	}
 

@@ -231,7 +231,7 @@ public class ExperimentService {
 						dtoClass
 						);
 		
-		List<DTO> experimentsNoReports = dtoQueries.findExperimentsNoReports(userId, noReportsPageable);
+		List<DTO> experimentsNoReports = dtoQueries.findExperimentsNoSubmissions(userId, noReportsPageable);
 		
 		assert experimentsNoReports.size() <= limit;
 		if (experimentsNoReports.size() == limit) {
@@ -240,7 +240,7 @@ public class ExperimentService {
 		
 		Pageable withReportsPageable = PageRequest.of(0, limit - experimentsNoReports.size());
 		
-		List<DTO> experimentsWithReports = dtoQueries.findExperimentsWithReports(userId, withReportsPageable);
+		List<DTO> experimentsWithReports = dtoQueries.findExperimentsWithSubmissions(userId, withReportsPageable);
 		
 		return Stream.concat(
 					experimentsNoReports.stream(),

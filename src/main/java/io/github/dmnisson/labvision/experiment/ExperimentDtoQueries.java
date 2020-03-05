@@ -8,8 +8,8 @@ import io.github.dmnisson.labvision.DtoQueries;
 
 public interface ExperimentDtoQueries<DTO, UserID> extends DtoQueries<DTO, UserID> {
 
-	public List<DTO> findExperimentsNoReports(UserID userId, Pageable pageable);
+	public List<DTO> findExperimentsNoSubmissions(UserID userId, Pageable pageable);
 	
-	public List<DTO> findExperimentsWithReports(UserID userId, Pageable pageable);
+	public List<DTO> findExperimentsWithSubmissions(UserID userId, Pageable pageable);
 	
 }
