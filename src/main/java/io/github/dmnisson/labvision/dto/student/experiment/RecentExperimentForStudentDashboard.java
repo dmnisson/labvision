@@ -15,14 +15,6 @@ public class RecentExperimentForStudentDashboard extends ExperimentForStudentDas
 		this.mostRecentValueTaken = mostRecentValueTaken;
 	}
 
-	public int getId() {
-		return id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
 	public LocalDateTime getMostRecentValueTaken() {
 		return mostRecentValueTaken;
 	}

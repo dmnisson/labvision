@@ -2,24 +2,19 @@ package io.github.dmnisson.labvision.dto.student.experiment;
 
 import java.time.LocalDateTime;
 
-public class ExperimentForStudentExperimentTable {
+import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
 
-	protected final int id;
-	protected final String name;
+public class ExperimentForStudentExperimentTable extends ExperimentInfo {
+
 	private final LocalDateTime lastUpdated;
 
 	public ExperimentForStudentExperimentTable(int id, String name, LocalDateTime lastUpdated) {
-		this.id = id;
-		this.name = name;
+		this(id, name, null, lastUpdated);
+	}
+
+	public ExperimentForStudentExperimentTable(int id, String name, String courseName, LocalDateTime lastUpdated) {
+		super(id, name, courseName);
 		this.lastUpdated = lastUpdated;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	public LocalDateTime getLastUpdated() {
