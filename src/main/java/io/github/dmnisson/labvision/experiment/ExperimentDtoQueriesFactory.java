@@ -1,39 +1,56 @@
 package io.github.dmnisson.labvision.experiment;
 
+import io.github.dmnisson.labvision.AbstractDtoQueriesFactory;
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard;
+import io.github.dmnisson.labvision.entities.Experiment;
 import io.github.dmnisson.labvision.repositories.ExperimentRepository;
 
-public class ExperimentDtoQueriesFactory {
+public class ExperimentDtoQueriesFactory extends AbstractDtoQueriesFactory<
+	ExperimentRepository, Experiment, Integer,
+	ExperimentDtoQueries<? extends Object, Integer>, Object, Integer
+	> {
+
+	private static ExperimentDtoQueriesFactory instance = null;
+	
+	public static ExperimentDtoQueriesFactory getInstance() {
+		if (instance == null) {
+			instance = new ExperimentDtoQueriesFactory();
+		}
+		return instance;
+	}
+	
+	private ExperimentDtoQueriesFactory() {
+		super();
+	}
+	
+	@Override
+	protected Class<Integer> getUserIdClass() {
+		return Integer.class;
+	}
 
 	@SuppressWarnings("unchecked")
-	public static <DTO, UserID> ExperimentDtoQueries<DTO, UserID> createDtoQueriesForDtoType(
-			ExperimentRepository experimentRepository, Class<DTO> dtoClass, Class<UserID> userIdClass) {
+	@Override
+	public <DTO> ExperimentDtoQueries<DTO, Integer> createDtoQueriesForDtoTypeInternal(
+			ExperimentRepository repository, Class<DTO> dtoClass) {
 		
 		if (dtoClass.equals(CurrentExperimentForStudentDashboard.class)) {
 			
-			checkClassEqual(userIdClass, Integer.class);
-			
-			return (ExperimentDtoQueries<DTO, UserID>) 
-					new CurrentExperimentDashboardQueries(experimentRepository);
+			return (ExperimentDtoQueries<DTO, Integer>) 
+					new CurrentExperimentDashboardQueries(repository);
 			
 		} else if (dtoClass.equals(RecentExperimentForStudentDashboard.class)) {
 			
-			checkClassEqual(userIdClass, Integer.class);
-			
-			return (ExperimentDtoQueries<DTO, UserID>) 
-					new RecentExperimentDashboardQueries(experimentRepository);
+			return (ExperimentDtoQueries<DTO, Integer>) 
+					new RecentExperimentDashboardQueries(repository);
 			
 		} else {
-			throw new IllegalArgumentException("Unrecognized dashboard DTO type: " + dtoClass);
-		}
-		
-	}
-	
-	private static <T> void checkClassEqual(Class<T> expectedClass, Class<?> actualClass) {
-		if (!expectedClass.equals(actualClass)) {
-			throw new IllegalArgumentException(actualClass + " class given where " + expectedClass + " expected");
+			throw new IllegalArgumentException("Unrecognized DTO type: " + dtoClass);
 		}
 	}
-	
+
+	public static <DTO> ExperimentDtoQueries<DTO, Integer> createDtoQueriesForDtoType(
+			ExperimentRepository repository, Class<DTO> dtoClass) {
+		return getInstance().createDtoQueriesForDtoTypeInternal(repository, dtoClass);
+	}
 }

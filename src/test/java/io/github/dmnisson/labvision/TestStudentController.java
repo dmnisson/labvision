@@ -24,11 +24,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.ui.ExtendedModelMap;
 
 import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
 import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
+import io.github.dmnisson.labvision.course.CourseService;
 import io.github.dmnisson.labvision.dto.student.course.RecentCourseForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard;
@@ -38,7 +38,6 @@ import io.github.dmnisson.labvision.experiment.ExperimentService;
 import io.github.dmnisson.labvision.models.NavbarModel;
 import io.github.dmnisson.labvision.models.test.NavLinkSpec;
 import io.github.dmnisson.labvision.models.test.NavLinkSpecAssertions;
-import io.github.dmnisson.labvision.repositories.CourseRepository;
 import io.github.dmnisson.labvision.student.StudentController;
 import io.github.dmnisson.labvision.student.StudentPreferencesService;
 
@@ -52,9 +51,6 @@ public class TestStudentController extends LabvisionApplicationTests {
 	
 	@MockBean
 	private CourseService courseService;
-	
-	@MockBean
-	private CourseRepository courseRepository;
 	
 	@MockBean
 	private StudentPreferencesService studentPreferencesService;
@@ -431,9 +427,10 @@ public class TestStudentController extends LabvisionApplicationTests {
 
 		@Override
 		protected void mockFindDtoObjects(List<RecentCourseForStudentDashboard> expectedList) {
-			when(courseRepository.findRecentCoursesForStudentDashboard(
+			when(courseService.findCourseData(
 					eq(getStudentId()), 
-					eq(PageRequest.of(0, getMaxListSize()))
+					eq(getMaxListSize()), 
+					eq(RecentCourseForStudentDashboard.class)
 					))
 				.thenReturn(expectedList);
 		}

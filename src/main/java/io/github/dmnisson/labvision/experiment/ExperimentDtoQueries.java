@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 
-public interface ExperimentDtoQueries<DTO, UserID> {
+import io.github.dmnisson.labvision.DtoQueries;
+
+public interface ExperimentDtoQueries<DTO, UserID> extends DtoQueries<DTO, UserID> {
 
 	public List<DTO> findExperimentsNoReports(UserID userId, Pageable pageable);
 	

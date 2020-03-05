@@ -228,8 +228,7 @@ public class ExperimentService {
 		ExperimentDtoQueries<DTO, Integer> dtoQueries =
 				ExperimentDtoQueriesFactory.createDtoQueriesForDtoType(
 						experimentRepository, 
-						dtoClass,
-						Integer.class
+						dtoClass
 						);
 		
 		List<DTO> experimentsNoReports = dtoQueries.findExperimentsNoReports(userId, noReportsPageable);

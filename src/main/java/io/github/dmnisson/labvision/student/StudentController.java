@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -31,12 +30,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import io.github.dmnisson.labvision.AccessDeniedException;
-import io.github.dmnisson.labvision.CourseService;
 import io.github.dmnisson.labvision.ReportedResultService;
 import io.github.dmnisson.labvision.ResourceNotFoundException;
 import io.github.dmnisson.labvision.admin.AdminController;
 import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
 import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
+import io.github.dmnisson.labvision.course.CourseService;
 import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseTable;
 import io.github.dmnisson.labvision.dto.course.CourseForStudentCourseView;
 import io.github.dmnisson.labvision.dto.experiment.ExperimentInfo;
@@ -173,10 +172,12 @@ public class StudentController {
 		}
 		
 		final int maxRecentCourses = studentPreferencesService.getMaxRecentCourses(user.getId());
-		List<RecentCourseForStudentDashboard> recentCourses = courseRepository.findRecentCoursesForStudentDashboard(
-				user.getId(), 
-				PageRequest.of(0, maxRecentCourses)
-				);
+		List<RecentCourseForStudentDashboard> recentCourses
+			= courseService.findCourseData(
+					user.getId(), 
+					maxRecentCourses, 
+					RecentCourseForStudentDashboard.class
+					);
 		model.addAttribute("recentCourses", recentCourses);
 		
 		long numMoreRecentCourses
