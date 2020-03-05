@@ -138,7 +138,7 @@ public interface ExperimentRepository extends JpaRepository<Experiment, Integer>
 			"WHERE (s.id IS NULL OR s.id=:studentid) AND " +
 			"(s2.id IS NULL OR s2.id=:studentid) AND " +
 			"(s.id IS NOT NULL OR s2.id IS NOT NULL) AND " +
-			"mv.id IS NOT NULL OR rr.id IS NOT NULL " +
+			"(mv.id IS NOT NULL OR rr.id IS NOT NULL) " +
 			"GROUP BY e.id, e.name " +
 			"ORDER BY lu DESC"
 			)
