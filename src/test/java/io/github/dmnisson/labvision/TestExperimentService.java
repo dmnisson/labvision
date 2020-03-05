@@ -104,7 +104,7 @@ public class TestExperimentService extends LabvisionApplicationTests {
 	// --- TESTS ---
 	
 	@Test
-	public void findExperimentsForDashboard_ShouldLimitNoReportsResults() throws Exception {
+	public void findExperimentData_ShouldLimitNoRe() throws Exception {
 		final Integer studentId = 6;
 		final int limit = 8;
 		
@@ -121,7 +121,7 @@ public class TestExperimentService extends LabvisionApplicationTests {
 	}
 	
 	@Test
-	public void findExperimentsForDashboard_ShouldLimitWithReportsResults() throws Exception {
+	public void findExperimentData_ShouldLimitWithReportsResults() throws Exception {
 		final Integer studentId = 6;
 		final int limit = 8;
 		
@@ -140,7 +140,7 @@ public class TestExperimentService extends LabvisionApplicationTests {
 	}
 	
 	@Test
-	public void findExperimentsForDashboard_ShouldLimitTotalResultsSize() throws Exception {
+	public void findExperimentData_ShouldLimitTotalResultsSize() throws Exception {
 		final Integer studentId = 6;
 		final int limit = 8;
 		final int noReportsSize = 4;
@@ -157,7 +157,7 @@ public class TestExperimentService extends LabvisionApplicationTests {
 	}
 
 	@Test
-	public void findExperimentsForDashboard_ShouldOrderNoReportsFirst() throws Exception {
+	public void findExperimentData_ShouldOrderNoReportsFirst() throws Exception {
 		final Integer studentId = 6;
 		final int limit = 8;
 		final int noReportsSize = 4;
