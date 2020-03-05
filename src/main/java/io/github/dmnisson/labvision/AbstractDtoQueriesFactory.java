@@ -12,7 +12,7 @@ public abstract class AbstractDtoQueriesFactory<
 	
 	protected abstract Class<UserID> getUserIdClass();
 
-	protected abstract <DTO extends DTOBase> Q createDtoQueriesForDtoTypeInternal(R repository, 
+	protected abstract <DTO extends DTOBase> Q createDtoQueriesForDtoType(R repository, 
 			Class<DTO> dtoClass);
 
 }

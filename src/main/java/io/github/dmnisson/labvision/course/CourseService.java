@@ -15,6 +15,9 @@ public class CourseService {
 	@Autowired
 	private CourseRepository courseRepository;
 	
+	@Autowired
+	private CourseDtoQueryFactory courseDtoQueryFactory;
+	
 	public boolean checkStudentEnrolled(Integer studentId, Integer courseId) {
 		return courseRepository.findStudentEnrolled(studentId, courseId).isPresent();
 	}
@@ -27,7 +30,7 @@ public class CourseService {
 		Pageable pageable = PageRequest.of(0, limit);
 		
 		CourseDtoQuery<DTO, Integer> dtoQuery =
-				CourseDtoQueryFactory.createDtoQueryForDtoType(courseRepository, dtoClass);
+				courseDtoQueryFactory.createDtoQueriesForDtoType(courseRepository, dtoClass);
 		
 		return dtoQuery.findCourseData(userId, pageable);
 	}

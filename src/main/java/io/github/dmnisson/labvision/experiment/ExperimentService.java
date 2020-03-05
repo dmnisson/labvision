@@ -48,6 +48,9 @@ public class ExperimentService {
 	@Autowired
 	private CourseRepository courseRepository;
 	
+	@Autowired
+	private ExperimentDtoQueriesFactory experimentDtoQueriesFactory;
+	
 	public Experiment createExperiment(final Integer courseId, ExperimentEditorData editorData) {
 		Course course = courseRepository.findById(courseId)
 				.orElseThrow(() -> new ResourceNotFoundException(Course.class, courseId));
@@ -227,7 +230,7 @@ public class ExperimentService {
 		Pageable noSubmissionsPageable = PageRequest.of(page, limit);
 		
 		ExperimentDtoQueries<DTO, Integer> dtoQueries =
-				ExperimentDtoQueriesFactory.createDtoQueriesForDtoType(
+				experimentDtoQueriesFactory.createDtoQueriesForDtoType(
 						experimentRepository, 
 						dtoClass
 						);

@@ -9,22 +9,8 @@ public class CourseDtoQueryFactory extends AbstractDtoQueriesFactory<
 	CourseRepository, Course, Integer,
 	CourseDtoQuery<? extends Object, Integer>, Object, Integer
 	> {
-
-	private static CourseDtoQueryFactory instance = null;
 	
-	public static CourseDtoQueryFactory getInstance() {
-		if (instance == null) {
-			instance = new CourseDtoQueryFactory();
-		}
-		return instance;
-	}
-	
-	private CourseDtoQueryFactory() {
-	}
-
-	public static <DTO> CourseDtoQuery<DTO, Integer> createDtoQueryForDtoType(
-			CourseRepository courseRepository, Class<DTO> dtoClass) {
-		return getInstance().createDtoQueriesForDtoTypeInternal(courseRepository, dtoClass);
+	CourseDtoQueryFactory() {
 	}
 
 	@Override
@@ -34,7 +20,7 @@ public class CourseDtoQueryFactory extends AbstractDtoQueriesFactory<
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected <DTO> CourseDtoQuery<DTO, Integer> createDtoQueriesForDtoTypeInternal(
+	protected <DTO> CourseDtoQuery<DTO, Integer> createDtoQueriesForDtoType(
 			CourseRepository repository, Class<DTO> dtoClass) {
 		
 		if (dtoClass.equals(RecentCourseForStudentDashboard.class)) {

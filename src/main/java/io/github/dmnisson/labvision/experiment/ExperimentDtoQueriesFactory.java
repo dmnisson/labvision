@@ -10,17 +10,8 @@ public class ExperimentDtoQueriesFactory extends AbstractDtoQueriesFactory<
 	ExperimentRepository, Experiment, Integer,
 	ExperimentDtoQueries<? extends Object, Integer>, Object, Integer
 	> {
-
-	private static ExperimentDtoQueriesFactory instance = null;
 	
-	public static ExperimentDtoQueriesFactory getInstance() {
-		if (instance == null) {
-			instance = new ExperimentDtoQueriesFactory();
-		}
-		return instance;
-	}
-	
-	private ExperimentDtoQueriesFactory() {
+	ExperimentDtoQueriesFactory() {
 		super();
 	}
 	
@@ -31,7 +22,7 @@ public class ExperimentDtoQueriesFactory extends AbstractDtoQueriesFactory<
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <DTO> ExperimentDtoQueries<DTO, Integer> createDtoQueriesForDtoTypeInternal(
+	public <DTO> ExperimentDtoQueries<DTO, Integer> createDtoQueriesForDtoType(
 			ExperimentRepository repository, Class<DTO> dtoClass) {
 		
 		if (dtoClass.equals(CurrentExperimentForStudentDashboard.class)) {
@@ -47,10 +38,5 @@ public class ExperimentDtoQueriesFactory extends AbstractDtoQueriesFactory<
 		} else {
 			throw new IllegalArgumentException("Unrecognized DTO type: " + dtoClass);
 		}
-	}
-
-	public static <DTO> ExperimentDtoQueries<DTO, Integer> createDtoQueriesForDtoType(
-			ExperimentRepository repository, Class<DTO> dtoClass) {
-		return getInstance().createDtoQueriesForDtoTypeInternal(repository, dtoClass);
 	}
 }
