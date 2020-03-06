@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -226,7 +227,9 @@ public class ExperimentService {
 		return experimentViewModel;
 	}
 	
-	public <DTO> Iterable<DTO> findExperimentData(Integer userId, int page, int limit, Class<DTO> dtoClass) {
+	public <DTO, A, R extends Iterable<DTO>> R findExperimentData(
+			Integer userId, int page, int limit, Class<DTO> dtoClass, Collector<DTO, A, R> collector) {
+		
 		Pageable noSubmissionsPageable = PageRequest.of(page, limit);
 		
 		ExperimentDtoQueries<DTO, Integer> dtoQueries =
@@ -241,9 +244,11 @@ public class ExperimentService {
 			= StreamSupport.stream(experimentsNoSubmissions.spliterator(), false).count();
 		final long totalCount = dtoQueries.countExperiments(userId);
 		
+		// if we are not going to have experiments with reports on this page, exit
 		assert experimentsNoSubmissionsCount <= Math.min(limit, totalCount - page * limit);
 		if (experimentsNoSubmissionsCount == Math.min(limit, totalCount - page * limit)) {
-			return experimentsNoSubmissions;
+			return StreamSupport.stream(experimentsNoSubmissions.spliterator(), false)
+					.collect(collector);
 		}
 		
 		final long totalNoSubmissionsCount = dtoQueries.countExperimentsNoSubmissions(userId);
@@ -256,7 +261,7 @@ public class ExperimentService {
 					StreamSupport.stream(experimentsNoSubmissions.spliterator(), false),
 					StreamSupport.stream(experimentsWithSubmissions.spliterator(), false)
 					)
-				.collect(Collectors.toList());
+				.collect(collector);
 	}
 	
 	public long countCurrentExperimentsByStudentId(Integer studentId) {
@@ -265,5 +270,24 @@ public class ExperimentService {
 	
 	public long countRecentExperimentsByStudentId(Integer studentId) {
 		return experimentRepository.countRecentExperimentsByStudentId(studentId);
+	}
+	
+	public long countPastExperimentsByStudentId(Integer studentId) {
+		return experimentRepository.countPastExperimentsByStudentId(studentId);
+	}
+
+	public <DTO, A, R extends Iterable<DTO>> R findExperimentData(
+			Integer userId,
+			Pageable pageable, 
+			Class<DTO> dtoClass,
+			Collector<DTO, A, R> collector) {
+
+		return findExperimentData(
+				userId, 
+				pageable.getPageNumber(), 
+				pageable.getPageSize(), 
+				dtoClass, 
+				collector
+				);
 	}
 }

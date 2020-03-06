@@ -145,7 +145,7 @@ public class StudentController {
 		Iterable<CurrentExperimentForStudentDashboard> currentExperiments = experimentService.findExperimentData(
 				user.getId(), 
 				0, 
-				maxCurrentExperiments, CurrentExperimentForStudentDashboard.class
+				maxCurrentExperiments, CurrentExperimentForStudentDashboard.class, Collectors.toList()
 				);
 		model.addAttribute("currentExperiments", currentExperiments);
 		
@@ -160,7 +160,7 @@ public class StudentController {
 		Iterable<RecentExperimentForStudentDashboard> recentExperiments = experimentService.findExperimentData(
 				user.getId(), 
 				0, 
-				maxRecentExperiments, RecentExperimentForStudentDashboard.class
+				maxRecentExperiments, RecentExperimentForStudentDashboard.class, Collectors.toList()
 				);
 		model.addAttribute("recentExperiments", recentExperiments);
 		
@@ -200,13 +200,37 @@ public class StudentController {
 		
 		Integer studentId = user.getId();
 		
-		Page<CurrentExperimentForStudentExperimentTable> currentExperiments = experimentRepository.findCurrentExperimentsForStudentExperimentTable(studentId, currentExperimentsPageable);
+		int totalCurrentExperiments = Math.toIntExact(
+				experimentService.countCurrentExperimentsByStudentId(studentId)
+				);
+		Page<CurrentExperimentForStudentExperimentTable> currentExperiments
+			= experimentService.findExperimentData(
+					studentId, 
+					currentExperimentsPageable,
+					CurrentExperimentForStudentExperimentTable.class,
+					PaginationUtils.pageCollector(
+							currentExperimentsPageable, 
+							totalCurrentExperiments
+							)
+					);
 		model.addAttribute("currentExperiments", currentExperiments.getContent());
 		
 		PaginationUtils.addPageModelAttributes(model, currentExperiments, "currentExperiments", 
 				StudentController.class, "experiments", null, null, null, null, null);
 		
-		Page<PastExperimentForStudentExperimentTable> pastExperiments = experimentRepository.findPastExperimentsForStudentExperimentTable(studentId, pastExperimentsPageable);
+		int totalPastExperiments = Math.toIntExact(
+				experimentService.countPastExperimentsByStudentId(studentId)
+				);
+		Page<PastExperimentForStudentExperimentTable> pastExperiments
+			= experimentService.findExperimentData(
+					studentId, 
+					pastExperimentsPageable, 
+					PastExperimentForStudentExperimentTable.class, 
+					PaginationUtils.pageCollector(
+							pastExperimentsPageable, 
+							totalPastExperiments
+							)
+					);
 		model.addAttribute("pastExperiments", pastExperiments.getContent());
 		
 		PaginationUtils.addPageModelAttributes(model, pastExperiments, "pastExperiments", 

@@ -4,7 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -13,17 +16,25 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.ui.ExtendedModelMap;
 
 import io.github.dmnisson.labvision.auth.LabVisionUserDetails;
@@ -31,6 +42,8 @@ import io.github.dmnisson.labvision.auth.LabVisionUserDetailsManager;
 import io.github.dmnisson.labvision.course.CourseService;
 import io.github.dmnisson.labvision.dto.student.course.RecentCourseForStudentDashboard;
 import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentDashboard;
+import io.github.dmnisson.labvision.dto.student.experiment.CurrentExperimentForStudentExperimentTable;
+import io.github.dmnisson.labvision.dto.student.experiment.PastExperimentForStudentExperimentTable;
 import io.github.dmnisson.labvision.dto.student.experiment.RecentExperimentForStudentDashboard;
 import io.github.dmnisson.labvision.entities.LabVisionUser;
 import io.github.dmnisson.labvision.entities.StudentPreferences;
@@ -40,6 +53,7 @@ import io.github.dmnisson.labvision.models.test.NavLinkSpec;
 import io.github.dmnisson.labvision.models.test.NavLinkSpecAssertions;
 import io.github.dmnisson.labvision.student.StudentController;
 import io.github.dmnisson.labvision.student.StudentPreferencesService;
+import io.github.dmnisson.labvision.utils.PaginationUtils;
 
 public class TestStudentController extends LabvisionApplicationTests {
 	
@@ -74,7 +88,7 @@ public class TestStudentController extends LabvisionApplicationTests {
 			.thenReturn(maxRecentCourses);
 	}
 	
-	abstract class DtoListTester<T> {
+	abstract class DtoListTester<T, R extends Iterable<T>> {
 		
 		private Integer studentId;
 		private String listAttributeName;
@@ -95,7 +109,8 @@ public class TestStudentController extends LabvisionApplicationTests {
 		protected abstract void mockStudentPreferencesServiceMethodsForDtoClass(
 				Integer studentId, int maxListSize);
 		
-		protected abstract void mockFindDtoObjects(List<T> expectedList);
+		protected abstract Collector<T, ?, R> getResultCollector();
+		protected abstract void mockFindDtoObjects(R expectedItems);
 		
 		protected Integer getStudentId() {
 			return studentId;
@@ -115,38 +130,46 @@ public class TestStudentController extends LabvisionApplicationTests {
 		
 		// Creates a model spy and verifies that a list of a given type is added
 		public ExtendedModelMap shouldAddList()
-				throws NoSuchMethodException {
-			LabVisionUser user = mockLabVisionUser(studentId);
+				throws Exception {
+			LabVisionUser mockUser = mockLabVisionUser(studentId);
 			
-			List<T> expectedList 
+			R expectedIterable 
 				= IntStream.range(1, (int) Math.min(maxListSize + 1, getItemCount() + 1))
 					.mapToObj(i -> this.mapListItems(i))
-					.collect(Collectors.toList());
+					.collect(getResultCollector());
 			
-			mockFindDtoObjects(expectedList);
+			mockFindDtoObjects(expectedIterable);
 			mockItemCountFunction();
 			mockStudentPreferencesServiceMethodsForDtoClass(studentId, maxListSize);
 			
 			ExtendedModelMap model = new ExtendedModelMap();
 			ExtendedModelMap spyModel = spy(model);
 			
-			studentController.dashboard(user, spyModel);
+			runControllerMethod(mockUser, spyModel);
 			
-			ArgumentCaptor<List<?>> argumentCaptor 
-				= ArgumentCaptor.forClass(List.class);
+			ArgumentCaptor<Iterable<?>> argumentCaptor 
+				= ArgumentCaptor.forClass(Iterable.class);
 			verify(spyModel, times(1)).addAttribute(eq(listAttributeName), argumentCaptor.capture());
-			List<T> actualList
-				= argumentCaptor.getValue().stream()
+			R actualIterable
+				= StreamSupport.stream(argumentCaptor.getValue().spliterator(), false)
 					.map(obj -> getListItemClass().cast(obj))
+					.collect(getResultCollector());
+			
+			List<T> expectedList = StreamSupport.stream(expectedIterable.spliterator(), false)
+					.collect(Collectors.toList());
+			List<T> actualList = StreamSupport.stream(actualIterable.spliterator(), false)
 					.collect(Collectors.toList());
 			
 			assertEquals(expectedList.size(), actualList.size());
+		
 			for (int i = 0; i < expectedList.size(); i++) {
 				assertListItemsHaveSameInfo(expectedList.get(i), actualList.get(i));
 			}
 			
 			return spyModel;
 		}
+
+		protected abstract void runControllerMethod(LabVisionUser user, ExtendedModelMap spyModel) throws Exception;
 	}
 	
 	@Test
@@ -183,7 +206,10 @@ public class TestStudentController extends LabvisionApplicationTests {
 	}
 	
 	class CurrentExperimentForStudentDashboardListTester
-		extends DtoListTester<CurrentExperimentForStudentDashboard> {
+		extends DtoListTester<
+			CurrentExperimentForStudentDashboard,
+			List<CurrentExperimentForStudentDashboard>
+			> {
 
 		public CurrentExperimentForStudentDashboardListTester(Integer studentId, String listAttributeName,
 				int maxListSize, long itemCount) {
@@ -231,9 +257,21 @@ public class TestStudentController extends LabvisionApplicationTests {
 			when(experimentService.findExperimentData(
 					eq(getStudentId()),
 					eq(0),
-					eq(getMaxListSize()), eq(getListItemClass())
+					eq(getMaxListSize()), eq(getListItemClass()), 
+					any()
 					))
 				.thenReturn(expectedList);
+		}
+
+		@Override
+		protected void runControllerMethod(LabVisionUser user, ExtendedModelMap spyModel) throws Exception {
+			studentController.dashboard(user, spyModel);
+		}
+
+		@Override
+		protected Collector<CurrentExperimentForStudentDashboard, ?, List<CurrentExperimentForStudentDashboard>> 
+		getResultCollector() {
+			return Collectors.toList();
 		}
 		
 	}
@@ -282,7 +320,10 @@ public class TestStudentController extends LabvisionApplicationTests {
 	}
 	
 	class RecentExperimentForStudentDashboardListTester
-		extends DtoListTester<RecentExperimentForStudentDashboard> {
+		extends DtoListTester<
+			RecentExperimentForStudentDashboard,
+			List<RecentExperimentForStudentDashboard>
+		> {
 
 		protected RecentExperimentForStudentDashboardListTester(Integer studentId, String listAttributeName,
 				int maxListSize, long itemCount) {
@@ -330,9 +371,20 @@ public class TestStudentController extends LabvisionApplicationTests {
 			when(experimentService.findExperimentData(
 					eq(getStudentId()),
 					eq(0),
-					eq(getMaxListSize()), eq(getListItemClass())
+					eq(getMaxListSize()), eq(getListItemClass()), 
+					any()
 					))
 				.thenReturn(expectedList);
+		}
+
+		@Override
+		protected void runControllerMethod(LabVisionUser user, ExtendedModelMap spyModel) throws Exception {
+			studentController.dashboard(user, spyModel);
+		}
+
+		@Override
+		protected Collector<RecentExperimentForStudentDashboard, ?, List<RecentExperimentForStudentDashboard>> getResultCollector() {
+			return Collectors.toList();
 		}
 		
 	}
@@ -382,7 +434,10 @@ public class TestStudentController extends LabvisionApplicationTests {
 	}
 	
 	class RecentCourseForStudentDashboardListTester
-		extends DtoListTester<RecentCourseForStudentDashboard> {
+		extends DtoListTester<
+			RecentCourseForStudentDashboard,
+			List<RecentCourseForStudentDashboard>
+		> {
 		
 		public RecentCourseForStudentDashboardListTester(Integer studentId, String listAttributeName, 
 				int maxListSize, long itemCount) {
@@ -433,6 +488,16 @@ public class TestStudentController extends LabvisionApplicationTests {
 					eq(RecentCourseForStudentDashboard.class)
 					))
 				.thenReturn(expectedList);
+		}
+
+		@Override
+		protected void runControllerMethod(LabVisionUser user, ExtendedModelMap spyModel) throws Exception {
+			studentController.dashboard(user, spyModel);
+		}
+
+		@Override
+		protected Collector<RecentCourseForStudentDashboard, ?, List<RecentCourseForStudentDashboard>> getResultCollector() {
+			return Collectors.toList();
 		}
 		
 		
@@ -599,5 +664,267 @@ public class TestStudentController extends LabvisionApplicationTests {
 		when(user.getId()).thenReturn(studentId);
 		when(user.getDisplayName()).thenReturn("Test User");
 		return user;
+	}
+	
+	// --- Experiments table tests ---
+	
+	class CurrentExperimentForStudentExperimentTableListTester
+		extends DtoListTester<
+			CurrentExperimentForStudentExperimentTable,
+			Page<CurrentExperimentForStudentExperimentTable>
+			> {
+
+		protected CurrentExperimentForStudentExperimentTableListTester(
+				Integer studentId, String listAttributeName,
+				int maxListSize, long itemCount) {
+			super(studentId, listAttributeName, maxListSize, itemCount);
+		}
+
+		@Override
+		protected Class<CurrentExperimentForStudentExperimentTable> getListItemClass() {
+			return CurrentExperimentForStudentExperimentTable.class;
+		}
+
+		@Override
+		protected void mockItemCountFunction() {
+			when(experimentService.countCurrentExperimentsByStudentId(eq(getStudentId())))
+				.thenReturn(getItemCount());
+		}
+
+		@Override
+		protected CurrentExperimentForStudentExperimentTable mapListItems(int itemNumber) {
+			return new CurrentExperimentForStudentExperimentTable(
+					itemNumber, 
+					"Test Experiment " + itemNumber, 
+					LocalDateTime.of(1995, 1, 1, 0, 0, 0).plusDays(itemNumber),
+					LocalDateTime.of(2050, 3, 4, 0, 0, 0).plusDays(2 * itemNumber), 
+					LocalDateTime.of(1995, 1, 1, 0, 0, 0).plusDays(itemNumber - 1),
+					BigDecimal.ZERO);
+		}
+
+		@Override
+		protected void assertListItemsHaveSameInfo(CurrentExperimentForStudentExperimentTable expected,
+				CurrentExperimentForStudentExperimentTable actual) {
+			assertEquals(expected.getId(), actual.getId());
+			assertEquals(expected.getName(), actual.getName());
+			assertEquals(expected.getLastUpdated(), actual.getLastUpdated());
+			assertEquals(expected.getReportDueDate(), actual.getReportDueDate());
+			assertEquals(expected.getLastReportUpdated(), actual.getLastReportUpdated());
+			assertEquals(expected.getTotalReportScore(), actual.getTotalReportScore());
+		}
+
+		@Override
+		protected void mockStudentPreferencesServiceMethodsForDtoClass(Integer studentId, int maxListSize) {
+			// TODO consider adding the option for students to change their default page size 
+		}
+
+		@Override
+		protected void mockFindDtoObjects(Page<CurrentExperimentForStudentExperimentTable> expectedList) {
+			when(experimentService.findExperimentData(
+					eq(getStudentId()), 
+					eq(PageRequest.of(0, getMaxListSize())), 
+					eq(getListItemClass()),
+					any()
+					))
+			.thenReturn(expectedList);
+			
+			// ensure we return an empty Page object on other calls to avoid ClassCastExceptions
+			when(experimentService.findExperimentData(
+					eq(getStudentId()), 
+					any(),
+					not(eq(getListItemClass())),
+					any()
+					))
+			.thenReturn(new PageImpl<>(new ArrayList<>()));
+		}
+
+		@Override
+		protected void runControllerMethod(LabVisionUser user, ExtendedModelMap spyModel) throws Exception {
+			studentController.experiments(
+					"currentExperiments", 
+					user, 
+					spyModel, 
+					PageRequest.of(0, getMaxListSize()), 
+					PageRequest.of(0, getMaxListSize())
+					);
+		}
+
+		@Override
+		protected Collector<
+			CurrentExperimentForStudentExperimentTable, 
+			?, Page<CurrentExperimentForStudentExperimentTable>
+		> getResultCollector() {
+			
+			return PaginationUtils.pageCollector(PageRequest.of(0, getMaxListSize()), 
+					(int) getItemCount());
+		}
+	}
+	
+	class PastExperimentForStudentTableListTester
+		extends DtoListTester<
+			PastExperimentForStudentExperimentTable,
+			Page<PastExperimentForStudentExperimentTable>
+	> {
+
+		protected PastExperimentForStudentTableListTester(
+				Integer studentId, 
+				String listAttributeName, 
+				int maxListSize,
+				long itemCount) {
+			super(studentId, listAttributeName, maxListSize, itemCount);
+		}
+
+		@Override
+		protected Class<PastExperimentForStudentExperimentTable> getListItemClass() {
+			return PastExperimentForStudentExperimentTable.class;
+		}
+
+		@Override
+		protected void mockItemCountFunction() {
+			when(experimentService.countPastExperimentsByStudentId(eq(getStudentId())))
+				.thenReturn(getItemCount());
+		}
+
+		@Override
+		protected PastExperimentForStudentExperimentTable mapListItems(int itemNumber) {
+			return new PastExperimentForStudentExperimentTable(
+					itemNumber, 
+					"Test Experiment " + itemNumber, 
+					LocalDateTime.of(1997, 2, 1, 0, 0, 0).plusDays(itemNumber), 
+					itemNumber % 3, 
+					LocalDateTime.of(1996, 3, 5, 0, 0, 0).plusDays(3 * itemNumber),
+					BigDecimal.ZERO);
+		}
+
+		@Override
+		protected void assertListItemsHaveSameInfo(PastExperimentForStudentExperimentTable expected,
+				PastExperimentForStudentExperimentTable actual) {
+			assertEquals(expected.getId(), actual.getId());
+			assertEquals(expected.getName(), actual.getName());
+			assertEquals(expected.getLastUpdated(), actual.getLastUpdated());
+			assertEquals(expected.getReportCount(), actual.getReportCount());
+			assertEquals(expected.getLastReportUpdated(), actual.getLastReportUpdated());
+		}
+
+		@Override
+		protected void mockStudentPreferencesServiceMethodsForDtoClass(Integer studentId, int maxListSize) {
+			// TODO consider adding the option for students to change their default page size 
+		}
+
+		@Override
+		protected void mockFindDtoObjects(Page<PastExperimentForStudentExperimentTable> expectedItems) {
+			when(experimentService.findExperimentData(
+					eq(getStudentId()), 
+					eq(PageRequest.of(0, getMaxListSize())),
+					eq(getListItemClass()), 
+					any()
+					))
+				.thenReturn(expectedItems);
+			
+			// ensure we return an empty Page object on other calls to avoid ClassCastExceptions
+			when(experimentService.findExperimentData(
+					eq(getStudentId()), 
+					any(), 
+					not(eq(getListItemClass())),
+					any()
+					))
+			.thenReturn(new PageImpl<>(new ArrayList<>()));
+		}
+
+		@Override
+		protected void runControllerMethod(LabVisionUser user, ExtendedModelMap spyModel) throws Exception {
+			studentController.experiments(
+					"pastExperiments", 
+					user, 
+					spyModel, 
+					PageRequest.of(0, getMaxListSize()), 
+					PageRequest.of(0, getMaxListSize())
+					);
+		}
+
+		@Override
+		protected Collector<PastExperimentForStudentExperimentTable, 
+		?, Page<PastExperimentForStudentExperimentTable>> getResultCollector() {
+			
+			return PaginationUtils.pageCollector(
+					PageRequest.of(0, getMaxListSize()), 
+					(int) getItemCount()
+					);
+		}
+		
+	}
+	
+	// Helper function to verify that PaginationUtils.addPageModelAttributes() has
+	// added the correct attributes
+	private static void verifyPaginationAttributesAdded(ExtendedModelMap modelSpy, final String listAttributeName,
+			final int pageSize, final long itemCount) {
+		verify(modelSpy, times(1)).addAttribute(
+				listAttributeName + "_pages", 
+				IntStream.range(
+						1, 
+						(int)(itemCount / pageSize) + 2
+						)
+					.mapToObj(Integer::valueOf)
+					.collect(Collectors.toList())
+				);
+		verify(modelSpy, times(1)).addAttribute(
+				listAttributeName + "_currentPage",
+				1
+				);
+		verify(modelSpy, never()).addAttribute(
+				eq(listAttributeName + "_prevPageUrl"),
+				any()
+				);
+		verify(modelSpy, times(1)).addAttribute(
+				eq(listAttributeName + "_nextPageUrl"),
+				anyString()
+				);
+		verify(modelSpy, times(1)).addAttribute(
+				eq(listAttributeName + "_pageUrls"),
+				argThat((Map<Integer, String> map) -> 
+						map.size() == (int)(itemCount / pageSize) + 1
+						)
+				);
+	}
+	
+	@Test
+	public void experiments_ShouldAddListOfCurrentExperiments() throws Exception {
+		final Integer studentId = 6;
+		
+		final String listAttributeName = "currentExperiments";
+		final int pageSize = 15;
+		final long itemCount = 17;
+		
+		ExtendedModelMap modelSpy = new CurrentExperimentForStudentExperimentTableListTester(
+				studentId, 
+				listAttributeName,
+				pageSize, 
+				itemCount
+				).shouldAddList();
+		
+		verify(modelSpy, times(1)).addAttribute("activePane", "currentExperiments");
+		
+		verifyPaginationAttributesAdded(modelSpy, listAttributeName, pageSize, itemCount);
+		
+	}
+	
+	@Test
+	public void experiments_ShouldAddListOfPastExperiments() throws Exception {
+		final Integer studentId = 6;
+		
+		final String listAttributeName = "pastExperiments";
+		final int pageSize = 18;
+		final long itemCount = 27;
+		
+		ExtendedModelMap modelSpy = new PastExperimentForStudentTableListTester(
+				studentId, 
+				listAttributeName,
+				pageSize, 
+				itemCount
+				).shouldAddList();
+		
+		verify(modelSpy, times(1)).addAttribute("activePane", "pastExperiments");
+		
+		verifyPaginationAttributesAdded(modelSpy, listAttributeName, pageSize, itemCount);
 	}
 }

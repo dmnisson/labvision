@@ -1,20 +1,24 @@
 package io.github.dmnisson.labvision.utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
 public class PaginationUtils {
-	
+
 	/**
 	 * Adds model attributes for pagination of tables
 	 * @param <T> the type of object to paginate
@@ -173,6 +177,41 @@ public class PaginationUtils {
 		
 	}
 
+	/**
+	 * Gets a Collector that can turn a set of input elements into a Page identical
+	 * to the entire collection
+	 * @param <T> the type of input element
+	 * @return the page
+	 */
+	public static <T> Collector<T, ?, Page<T>> pageCollector() {
+		return Collector.<T, ArrayList<T>, Page<T>>of(
+				ArrayList::new, 
+				ArrayList::add, 
+				(list1, list2) -> {
+					list1.addAll(list2);
+					return list1;
+				}, 
+				PageImpl::new);
+	}
+	
+	/**
+	 * Gets a Collector that can turn a set of input elements into a Page
+	 * @param <T> the type of input element
+	 * @param pageable the paging information
+	 * @param total the total amount of items available
+	 * @return the page
+	 */
+	public static <T> Collector<T, ?, Page<T>> pageCollector(Pageable pageable, int total) {
+		return Collector.<T, ArrayList<T>, Page<T>>of(
+				ArrayList::new, 
+				ArrayList::add, 
+				(list1, list2) -> {
+					list1.addAll(list2);
+					return list1;
+				}, 
+				list -> new PageImpl<>(list, pageable, total));
+	}
+	
 	// Helper function that builds the appropriate URL for the page
 	private static <T> String buildPageUrl(Page<T> page, final int pageNumber, String qualifier,
 			String qualifierPrefix, Class<?> controllerClass, String methodName, Object... args) {
@@ -189,5 +228,4 @@ public class PaginationUtils {
 		}
 		return uriComponentsBuilder.build().toUriString();
 	}
-
 }
