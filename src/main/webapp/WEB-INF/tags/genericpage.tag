@@ -3,7 +3,7 @@
 <%@ attribute name="title" %>
 <%@ attribute name="style" fragment="true" %>
 <%@ attribute name="script" fragment="true" %>
-<!DOCTYPE html5>
+<!DOCTYPE html>
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
